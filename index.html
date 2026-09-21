@@ -4451,7 +4451,7 @@ body.menu-open #menuPanel{opacity:1!important;visibility:visible!important;point
 <button aria-pressed="false" class="intent-action action-go secondary" data-intent-action="go" type="button"><span class="intent-action-copy"><span class="intent-action-title">GO</span><span class="intent-action-sub">Find an easy route</span></span></button>
 <button aria-pressed="false" class="intent-action action-eat secondary" data-intent-action="eat" type="button"><span class="intent-action-copy"><span class="intent-action-title">EAT</span><span class="intent-action-sub">Food &amp; restaurants</span></span></button>
 <button aria-pressed="false" class="intent-action action-how secondary" data-intent-action="how" type="button"><span class="intent-action-copy"><span class="intent-action-title">How do I</span><span class="intent-action-sub">Korean culture</span></span></button>
-<button class="intent-action action-experience secondary" data-demo="Experience" type="button"><span class="intent-action-copy"><span class="intent-action-title">EXPERIENCE</span><span class="intent-action-sub">Tours &amp; activities</span></span></button>
+<button class="intent-action action-experience secondary" data-intent-action="experience" aria-pressed="false" type="button"><span class="intent-action-copy"><span class="intent-action-title">EXPERIENCE</span><span class="intent-action-sub">Tours &amp; activities</span></span></button>
 </div>
 </div>
 <div aria-label="Personalized travel suggestions" class="home-feed">
@@ -4637,6 +4637,17 @@ const howData={
   Help:['How do I get help?','How do I report a lost item?','How do I find a hospital or pharmacy?','How do I call an ambulance?']
 };
 
+const experienceCategories=['Popular','Landmarks','Culture','Cruise & Night','K-Beauty','Shows','Day Trips'];
+const experienceData={
+  Popular:['N Seoul Tower','Han River Night Cruise','Gyeongbokgung Hanbok Experience','Lotte World Seoul','NANTA Show'],
+  Landmarks:['N Seoul Tower','Seoul Sky Observatory','COEX Aquarium','Lotte World Seoul'],
+  Culture:['Gyeongbokgung Hanbok Experience','Bukchon Traditional Craft Workshop','Korean Cooking Class','Gwangjang Market Food Tour'],
+  'Cruise & Night':['Han River Night Cruise','Seoul Night Walking Tour','Seoul Pub Crawl','Naksan Night View Tour'],
+  'K-Beauty':['Personal Color Analysis','K-Beauty Makeup Experience','Korean Spa & Jjimjilbang Experience','K-Beauty Skin Care Experience'],
+  Shows:['NANTA Show','The Painters Show','K-Pop Dance Class','Traditional Korean Performance'],
+  'Day Trips':['DMZ Tour','Nami Island Day Trip','Suwon Hwaseong Day Tour','Everland Day Trip']
+};
+
 const goCategories=['Popular','Station','Hotel','Activity','OLIVE YOUNG'];
 const goData={
   Popular:['Gyeongbokgung','Gwanghwamun','N Seoul Tower','Gangnam','Seongsu-dong','Myeongdong','Hongdae Street'],
@@ -4672,6 +4683,7 @@ let selectedTo='';
 let selectedFood='';
 let selectedNear='';
 let selectedHow='';
+let selectedExperience='';
 
 function dots(){
   return '<span class="intent-dots" aria-label="..."><span class="intent-dot">.</span><span class="intent-dot">.</span><span class="intent-dot">.</span></span>';
@@ -4680,7 +4692,7 @@ function escapeHtml(value){
   return String(value).replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
 }
 function isChoosing(){
-  return ['go-from','go-to','eat-food','eat-near','how'].includes(step);
+  return ['go-from','go-to','eat-food','eat-near','how','experience'].includes(step);
 }
 function isComplete(){
   return step==='complete';
@@ -4731,6 +4743,12 @@ function renderPickerSentence(){
       html='<span class="sentence-line"><span class="sentence-soft">How do I</span></span>'+
            '<span class="sentence-line"><span class="sentence-focus">'+escapeHtml(howAnswer)+'</span></span>';
     }
+  }else if(flow==='experience'){
+    if(step==='experience'){
+      html='<span class="sentence-line"><span class="sentence-soft">I want to </span><span class="sentence-focus">experience'+dots()+'</span></span>';
+    }else if(step==='complete'){
+      html='<span class="sentence-line"><span class="sentence-soft">I want to experience</span></span><span class="sentence-line"><span class="sentence-focus">'+escapeHtml(selectedExperience)+'</span></span>';
+    }
   }
 
   pickerSentence.innerHTML=html;
@@ -4759,6 +4777,8 @@ function renderSentence(){
     sentence.innerHTML='<span class="sentence-line"><span class="sentence-soft">I want to eat '+escapeHtml(selectedFood)+' </span><span class="sentence-focus">near'+dots()+'</span></span>';
   }else if(step==='how'){
     sentence.innerHTML='<span class="sentence-line"><span class="sentence-focus">How do I'+dots()+'</span></span>';
+  }else if(step==='experience'){
+    sentence.innerHTML='<span class="sentence-line"><span class="sentence-soft">I want to </span><span class="sentence-focus">experience'+dots()+'</span></span>';
   }
 }
 function updatePickerLabel(){
@@ -4769,6 +4789,7 @@ function updatePickerLabel(){
   else if(step==='eat-food') label='Choose what you want to eat';
   else if(step==='eat-near') label='Choose where you want to eat';
   else if(step==='how') label='Choose what you want to know';
+  else if(step==='experience') label='Choose an activity in Seoul';
   else if(step==='complete') label='Your selection';
   picker.dataset.label=label;
   if(pickerStepGuide){
@@ -4786,13 +4807,17 @@ function currentConfig(){
   if(step==='eat-near'||(flow==='eat'&&step==='complete')){
     return {categories:nearCategories,data:nearData,suggested:'',selected:step==='complete'?selectedNear:''};
   }
+  if(step==='experience'||(flow==='experience'&&step==='complete')){
+    return {categories:experienceCategories,data:experienceData,suggested:'N Seoul Tower',selected:step==='complete'?selectedExperience:''};
+  }
   return {categories:howCategories,data:howData,suggested:'',selected:step==='complete'?selectedHow:''};
 }
 function categoryIcon(name){
   const icons={
     Popular:'★',Basics:'◫',Dining:'◉',Transport:'↔',Shopping:'▱',Stay:'⌂',Explore:'⌖',Help:'?',
     Station:'◉',Hotel:'H',Activity:'◇','OLIVE YOUNG':'＋',
-    Pork:'◒',Beef:'◆',Bar:'◇',Cafe:'◌','Street Food':'≋','Korean Dishes':'◎'
+    Pork:'◒',Beef:'◆',Bar:'◇',Cafe:'◌','Street Food':'≋','Korean Dishes':'◎',
+    Landmarks:'◇',Culture:'◈','Cruise & Night':'≈','K-Beauty':'✦',Shows:'◉','Day Trips':'↗'
   };
   return icons[name]||'•';
 }
@@ -4823,7 +4848,7 @@ function renderAll(){
 }
 function reset(){
   flow='idle'; step='idle'; category='Popular';
-  selectedFrom=''; selectedTo=''; selectedFood=''; selectedNear=''; selectedHow='';
+  selectedFrom=''; selectedTo=''; selectedFood=''; selectedNear=''; selectedHow=''; selectedExperience='';
   syncSheet(); renderSentence();
 }
 function startGo(){
@@ -4858,6 +4883,9 @@ window.KriendlyIntent=Object.assign(window.KriendlyIntent||{}, {
 function startHow(){
   flow='how'; step='how'; category='Popular'; selectedHow=''; renderAll();
 }
+function startExperience(){
+  flow='experience'; step='experience'; category='Popular'; selectedExperience=''; renderAll();
+}
 function goBack(){
   if(flow==='go'){
     if(step==='complete'){step='go-to'; category='Popular'; selectedTo='';}
@@ -4870,6 +4898,9 @@ function goBack(){
   }else if(flow==='how'){
     if(step==='complete'){step='how'; category='Popular'; selectedHow='';}
     else {reset(); return;}
+  }else if(flow==='experience'){
+    if(step==='complete'){step='experience'; category='Popular'; selectedExperience='';}
+    else {reset(); return;}
   }
   renderAll();
 }
@@ -4879,6 +4910,7 @@ actionButtons.forEach(button=>button.addEventListener('click',()=>{
   if(action==='go') startGo();
   else if(action==='eat') startEat();
   else if(action==='how') startHow();
+  else if(action==='experience') startExperience();
 }));
 backButton.addEventListener('click',goBack);
 cats.addEventListener('click',event=>{
@@ -4901,6 +4933,8 @@ places.addEventListener('click',event=>{
     selectedNear=value; step='complete';
   }else if(step==='how'){
     selectedHow=value; step='complete';
+  }else if(step==='experience'){
+    selectedExperience='N Seoul Tower'; step='complete';
   }else{
     return;
   }
@@ -4909,7 +4943,8 @@ places.addEventListener('click',event=>{
     const targetUrl={
       go:'https://max-test-y.github.io/test_pjt/GO.html',
       eat:'https://max-test-y.github.io/test_pjt/EAT.html',
-      how:'https://max-test-y.github.io/test_pjt/HOWDOI.html'
+      how:'https://max-test-y.github.io/test_pjt/HOWDOI.html',
+      experience:'https://max-test-y.github.io/test_pjt/experience.html'
     }[flow];
     if(targetUrl){
       requestAnimationFrame(()=>{

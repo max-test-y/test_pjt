@@ -1,0 +1,1752 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세상의 모든 시세</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #0f1720;
+    --surface: #17212c;
+    --surface-2: #1d2936;
+    --ink: #e6ebf0;
+    --muted: #93a0ad;
+    --line: #2a3644;
+    --open: #3ccf8e;
+    --idle: #5f6b78;
+    --soon: #e0a84a;
+    --focus: #7aa7ff;
+    --up: #ff6b63;
+    --down: #6f9fff;
+    --chart: #8fb8ff;
+    --scrim: rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size: 16px; line-height: 1.5; -webkit-font-smoothing: antialiased;
+  }
+  button { font: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  /* ── 메인 ───────────────────────── */
+  .main { max-width: 1080px; margin: 0 auto; padding: 48px 20px 64px; }
+  .main-top { display: flex; justify-content: flex-end; }
+  .pill {
+    color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+    border-radius: 999px; padding: 7px 14px; font-size: 14px; cursor: pointer;
+  }
+  h1 {
+    margin: 28px 0 10px; font-size: clamp(40px, 8vw, 84px); font-weight: 800;
+    letter-spacing: -0.045em; line-height: 1.02;
+  }
+  .lead { margin: 0; color: var(--muted); font-size: 17px; max-width: 46ch; }
+
+  .clocks { display: flex; flex-wrap: wrap; gap: 8px 20px; margin: 22px 0 0; font-size: 14px; color: var(--muted); }
+  .clock { display: inline-flex; align-items: center; gap: 8px; }
+  .clock .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--idle); }
+  .clock.is-open .dot { background: var(--open); }
+  .clock b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .clock.is-open [data-state] { color: var(--open); }
+
+  .cats { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; margin-top: 40px; }
+  .cat {
+    text-align: left; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--line); border-radius: 18px; padding: 20px 20px 18px;
+    cursor: pointer; display: grid; gap: 10px; min-height: 150px;
+    transition: border-color .15s, transform .15s;
+  }
+  .cat:hover { border-color: var(--ink); }
+  @media (prefers-reduced-motion: no-preference) { .cat:active { transform: scale(.99); } }
+  .cat-name { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .cat-items { color: var(--muted); font-size: 14px; line-height: 1.55; }
+  .cat-foot { display: flex; align-items: center; gap: 8px; margin-top: auto; font-size: 13px; color: var(--muted); }
+  .badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+  .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .badge.live { color: var(--open); }
+  .badge.mixed { color: var(--open); }
+  .badge.soon { color: var(--soon); }
+  .badge.none { color: var(--idle); }
+
+  .main-foot { margin-top: 44px; font-size: 13px; color: var(--muted); max-width: 70ch; }
+  .main-foot p { margin: 0 0 6px; }
+
+  /* ── 레이어 팝업 ─────────────────── */
+  dialog.layer {
+    border: 0; padding: 0; color: var(--ink); background: var(--bg);
+    width: min(760px, calc(100vw - 48px)); height: fit-content; max-height: calc(100dvh - 48px);
+    max-width: none; margin: auto; inset: 0; border-radius: 20px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,.28);
+  }
+  dialog.layer::backdrop { background: var(--scrim); }
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.layer[open] { animation: rise .2s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  }
+  .layer-inner { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
+  .layer-head {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px;
+    padding: 18px 20px; border-bottom: 1px solid var(--line); background: var(--surface);
+  }
+  .layer-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+  .layer-tools { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--bg); }
+  .seg button { color: var(--muted); background: none; border: 0; padding: 5px 11px; border-radius: 999px; cursor: pointer; font-size: 13px; }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+  .close {
+    margin-left: auto; flex: none; width: 44px; height: 44px; margin-right: -8px;
+    display: grid; place-items: center; border: 0; border-radius: 10px;
+    background: transparent; color: #ffffff; cursor: pointer; padding: 0;
+  }
+  .close svg { width: 22px; height: 22px; display: block; }
+  .close:hover { background: rgba(255, 255, 255, .08); }
+  .layer-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .layer-body { padding: 8px 20px 14px; }
+  .group { margin-top: 24px; }
+  .group h3 { margin: 0 0 10px; font-size: 17px; font-weight: 700; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; }
+
+  @media (max-width: 640px) {
+    dialog.layer { width: calc(100vw - 24px); height: fit-content; max-height: calc(100dvh - 24px); border-radius: 18px; margin: auto; }
+    .layer-inner { max-height: calc(100dvh - 24px); }
+    .layer-head { padding: 14px 16px; }
+    .layer-tools { width: 100%; justify-content: space-between; margin-left: 0; }
+    .layer-head .close { position: absolute; top: 8px; right: 14px; margin: 0; }
+    .layer-head { position: relative; padding-right: 64px; }
+    .layer-tools { padding-right: 0; }
+    .layer-body { padding: 4px 12px 12px; }
+  }
+
+  /* 카드 */
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    display: flex; flex-direction: column; overflow: hidden; min-width: 0;
+  }
+  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; padding: 12px 14px 0; }
+  .card-name { font-weight: 600; }
+  .card-unit { font-size: 12px; color: var(--muted); text-align: right; }
+  [hidden] { display: none !important; }
+  .chart-box { position: relative; }
+  .chart-seg { position: absolute; top: 8px; right: 10px; z-index: 2; background: rgba(15, 23, 32, .85); }
+  .chart-box > .widget { margin-top: 48px; }
+  .fx-chart.chart-box { padding-top: 48px; }
+  .widget { height: 200px; margin: 8px 10px 6px; border-radius: 10px; overflow: hidden; background: #131722; }
+  .widget iframe { color-scheme: dark; }
+  .widget .tradingview-widget-container, .widget .tradingview-widget-container__widget { height: 100%; }
+  .card-foot { padding: 0 14px 10px; font-size: 12px; color: var(--muted); }
+  .card-foot a { color: var(--muted); }
+
+  .card.link { padding-bottom: 14px; }
+  .card.link .card-body { padding: 8px 14px 0; display: grid; gap: 8px; color: var(--muted); font-size: 14px; }
+  .card.link .card-body p { margin: 0; }
+  .card.link .go {
+    justify-self: start; text-decoration: none; color: var(--ink); font-weight: 600; font-size: 14px;
+    border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px;
+  }
+  .card.link .go:hover { border-color: var(--ink); }
+  .tag { font-size: 12px; font-weight: 600; color: var(--soon); }
+
+  .card.snap { padding-bottom: 12px; }
+  .snap-date { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .snap-body { padding: 8px 14px 0; display: grid; gap: 4px; }
+  .snap-val { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+  .snap-num { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; line-height: 1.2; }
+  .snap-unit { font-size: 14px; color: var(--muted); }
+  .snap-chg { font-size: 13px; font-weight: 600; color: var(--muted); }
+  .snap-chg.up { color: var(--up); } .snap-chg.down { color: var(--down); }
+  .snap-note { font-size: 13px; color: var(--muted); }
+  .snap-foot { padding: 8px 14px 0; margin-top: auto; font-size: 12px; color: var(--muted); }
+  .snap-foot a { color: var(--muted); }
+  .badge.snap { color: var(--soon); }
+
+  /* 첫 화면 항목 버튼 */
+  .cat-list { display: grid; gap: 16px; margin-top: 36px; }
+  .cat-sec { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 18px 20px 10px; }
+  .cat-title { margin: 0 0 6px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .cat-empty { margin: 4px 0 12px; color: var(--muted); font-size: 14px; }
+  .chip-group { display: grid; grid-template-columns: 150px 1fr; gap: 8px 14px; align-items: start; padding: 12px 0; border-top: 1px solid var(--line); }
+  .cat-title + .chip-group { border-top: 0; }
+  .chip-label { margin: 7px 0 0; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    font: inherit; font-size: 15px; color: var(--ink); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; line-height: 1.3;
+  }
+  .chip:hover { border-color: var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  @media (max-width: 640px) {
+    .chip-group { grid-template-columns: 1fr; gap: 6px; }
+    .chip-label { margin: 0; }
+    .chip { font-size: 14px; padding: 7px 12px; }
+  }
+  .layer-titles { display: grid; gap: 2px; }
+  .layer-sub { margin: 0; font-size: 13px; color: var(--muted); }
+  .single { max-width: 680px; margin: 14px auto 0; }
+  .single .widget { height: 260px; }
+  .region-chips { padding: 12px 14px 0; gap: 6px; }
+  .region-chips .chip { font-size: 14px; padding: 6px 12px; }
+  .region-out { padding: 6px 0 0; }
+  .region-note { margin: 4px 14px 12px; font-size: 12px; color: var(--muted); }
+  .region-miss { padding: 10px 14px 14px; color: var(--muted); font-size: 14px; display: grid; gap: 10px; }
+  .region-miss a { justify-self: start; color: var(--ink); font-weight: 600; text-decoration: none; border: 1px solid var(--line); border-radius: 999px; padding: 7px 13px; }
+
+  .fx-chart .chart-seg { right: 14px; }
+  .fx-chart { padding: 8px 14px 0; }
+  .fx-svg { display: block; width: 100%; height: 160px; touch-action: pan-y; cursor: crosshair; }
+  .fx-svg { background: var(--surface-2); border-radius: 10px; }
+  .fx-line { fill: none; stroke: var(--chart); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .fx-area { fill: var(--chart); opacity: .14; stroke: none; }
+  .fx-svg.up .fx-area { fill: var(--up); }
+  .fx-svg.down .fx-area { fill: var(--down); }
+  .fx-svg.up .fx-line { stroke: var(--up); }
+  .fx-svg.down .fx-line { stroke: var(--down); }
+  .fx-guide { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+  .fx-axis { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; margin-top: 4px; }
+  .fx-readout { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; min-height: 1.4em; margin-top: 2px; }
+  .lego-body { padding: 14px; display: grid; gap: 10px; }
+  .lego-help, .lego-note { margin: 0; font-size: 13px; color: var(--muted); }
+  .lego-form { display: flex; gap: 8px; }
+  .lego-form input {
+    flex: 1; min-width: 0; font: inherit; font-size: 18px; letter-spacing: 0.02em; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px;
+  }
+  .lego-form button {
+    font: inherit; font-weight: 600; color: var(--bg); background: var(--ink);
+    border: 0; border-radius: 10px; padding: 0 18px; cursor: pointer;
+  }
+  .lego-msg { margin: 0; font-size: 13px; color: var(--down); min-height: 0; }
+  .lego-msg:empty { display: none; }
+  .lego-out { display: grid; gap: 12px; }
+  .lego-out:empty { display: none; }
+  .lego-title { margin: 4px 0 0; font-weight: 700; }
+  .lego-group h4 { margin: 0 0 6px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .lego-link { text-decoration: none; display: inline-block; }
+  .lego-fallback { display: grid; gap: 6px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 10px; font-size: 13px; color: var(--muted); }
+  .lego-fallback[hidden] { display: none; }
+  .lego-fallback p { margin: 0; }
+  .lego-fb-row { display: flex; gap: 6px; }
+  .lego-fb-row input { flex: 1; min-width: 0; font: inherit; font-size: 12px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; }
+  .lego-fb-row button { font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; cursor: pointer; }
+
+  .empty { margin-top: 40px; text-align: center; color: var(--muted); }
+  .empty strong { display: block; color: var(--ink); font-size: 18px; margin-bottom: 6px; }
+
+  /* 국내 금 추정가 */
+  .gk-body { padding: 6px 14px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .gk-price { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .gk-don, .gk-meta { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .gk-chg { font-size: 14px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .gk-chg.up { color: var(--up); } .gk-chg.down { color: var(--down); }
+  .gk-spark { width: 100%; height: 54px; margin: 4px 0; }
+  .gk-spark path { fill: none; stroke: var(--chart); stroke-width: 2.5; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+  .gk-spark.up path { stroke: var(--up); } .gk-spark.down path { stroke: var(--down); }
+  .gk-meta.err { color: var(--down); }
+  .gk-cal { margin-top: 6px; font-size: 13px; color: var(--muted); }
+  .gk-cal summary { cursor: pointer; color: var(--ink); }
+  .gk-cal p { margin: 6px 0; }
+  .gk-form { display: flex; gap: 6px; flex-wrap: wrap; }
+  .gk-form input { flex: 1 1 110px; min-width: 0; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+  .gk-form button, .gk-reset { color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+  .gk-reset { margin-top: 6px; border: 0; padding: 4px 0; background: none; color: var(--muted); text-decoration: underline; }
+
+  /* ═══ 물결 배경 + 유리 질감 ═════════════════════════════ */
+  body { position: relative; min-height: 100vh; overflow-x: hidden; }
+  .bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    background:
+      radial-gradient(1200px 700px at 85% -10%, rgba(122, 167, 255, .16), transparent 60%),
+      radial-gradient(900px 600px at -10% 30%, rgba(60, 207, 142, .07), transparent 60%),
+      var(--bg);
+  }
+  .bg canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+  .main { position: relative; z-index: 1; }
+  h1 {
+    background: linear-gradient(100deg, #ffffff 0%, #e6ebf0 40%, #9fc2ff 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .cat-sec, .card, .layer-head {
+    background: rgba(23, 33, 44, .50);
+    -webkit-backdrop-filter: blur(6px) saturate(140%);
+    backdrop-filter: blur(6px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, .08);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07), 0 12px 32px rgba(0, 0, 0, .28);
+  }
+  .layer-head { border-width: 0 0 1px; box-shadow: none; }
+  .cat-sec { position: relative; overflow: hidden; }
+  .cat-sec::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
+    background: linear-gradient(135deg, rgba(143, 184, 255, .10), transparent 38%);
+  }
+  .chip-group { border-top-color: rgba(255, 255, 255, .06); }
+  .chip {
+    background: rgba(15, 23, 32, .55); border-color: rgba(255, 255, 255, .10);
+    transition: border-color .15s, box-shadow .2s, background .15s;
+  }
+  .chip:hover { border-color: rgba(143, 184, 255, .7); box-shadow: 0 0 0 3px rgba(122, 167, 255, .14); background: rgba(29, 41, 54, .8); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); box-shadow: none; }
+  dialog.layer {
+    background: rgba(15, 23, 32, .78);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid rgba(255, 255, 255, .09);
+  }
+  dialog.layer::backdrop { background: rgba(5, 9, 14, .55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  .layer-body .card { background: rgba(29, 41, 54, .55); }
+  .seg { background: rgba(15, 23, 32, .6); border-color: rgba(255, 255, 255, .10); }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .cat-sec, .card, .layer-head { background: var(--surface); }
+    dialog.layer { background: var(--bg); }
+  }
+
+  /* ═══ 가운데 정렬 레이아웃 ═══════════════════════════════ */
+  .main { text-align: center; padding-top: 64px; }
+  h1 { margin: 0 auto 14px; }
+  .lead { margin: 0 auto; max-width: 25em; text-wrap: balance; word-break: keep-all; }
+  .clocks { justify-content: center; gap: 10px; margin-top: 24px; }
+  .clock {
+    padding: 6px 14px; border-radius: 999px;
+    background: rgba(23, 33, 44, .55); border: 1px solid rgba(255, 255, 255, .08);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+
+  .jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 4px; margin: 28px auto 0; max-width: 760px; }
+  .jump-btn {
+    font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer;
+    padding: 6px 10px; border-radius: 8px; position: relative;
+  }
+  .jump-btn + .jump-btn::before {
+    content: ""; position: absolute; left: -3px; top: 50%; width: 3px; height: 3px; margin-top: -1.5px;
+    border-radius: 50%; background: rgba(143, 184, 255, .45);
+  }
+  .jump-btn:hover { color: var(--ink); background: rgba(255, 255, 255, .05); }
+
+  .cat-list { margin-top: 32px; gap: 18px; }
+  .cat-sec { padding: 22px 24px 14px; scroll-margin-top: 24px; }
+  .cat-title {
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    margin: 0 0 4px; font-size: 22px;
+  }
+  .cat-title::before, .cat-title::after {
+    content: ""; flex: 0 1 72px; height: 2px;
+    background-image: radial-gradient(circle, rgba(143, 184, 255, .55) 1px, transparent 1.2px);
+    background-size: 6px 2px; background-repeat: repeat-x; background-position: center;
+  }
+  .chip-group { display: block; padding: 14px 0 12px; }
+  .chip-label { margin: 0 0 10px; font-size: 12px; letter-spacing: .04em; }
+  .chips { justify-content: center; }
+  .cat-empty { margin: 8px auto 12px; max-width: 34ch; }
+
+  .cat-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .cat-pair .cat-sec { display: flex; flex-direction: column; justify-content: flex-start; }
+  .cat-pair .cat-sec > .chip-group:only-of-type { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+  .main-foot {
+    padding: 14px 18px; border-radius: 14px;
+    background: rgba(15, 23, 32, .62); border: 1px solid rgba(255, 255, 255, .06);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+
+  @keyframes flash { 0% { box-shadow: 0 0 0 2px rgba(143, 184, 255, .55), 0 12px 32px rgba(0,0,0,.28); } 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 12px 32px rgba(0,0,0,.28); } }
+  .cat-sec.flash { animation: flash 1.2s ease-out; }
+  @media (prefers-reduced-motion: reduce) { .cat-sec.flash { animation: none; } }
+
+  .main-foot { margin: 44px auto 0; text-align: center; max-width: 40em; word-break: keep-all; text-wrap: balance; }
+
+  @media (max-width: 640px) {
+    .main { padding-top: 40px; }
+    .cat-pair { grid-template-columns: 1fr; }
+    .cat-sec { padding: 18px 16px 10px; }
+    .cat-title::before, .cat-title::after { flex-basis: 36px; }
+    .jump-btn { font-size: 13px; padding: 5px 8px; }
+  }
+  /* 팝업 안은 읽기 편하게 왼쪽 정렬 유지 */
+  dialog.layer { text-align: left; }
+
+  /* ═══ 묶음 칸(3열) ═══════════════════════════════════════ */
+  .group-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 14px; }
+  .group-grid .chip-group {
+    grid-column: span var(--span-d, 2);
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding: 14px 12px 16px; border: 1px solid rgba(255, 255, 255, .07); border-radius: 14px;
+    background: rgba(12, 19, 27, .42); min-width: 0;
+  }
+  .group-grid .chip-group .chip-label { margin: 0 0 12px; }
+  .group-grid .chips { gap: 6px; }
+  .group-grid .chip { font-size: 14px; padding: 7px 12px; }
+  .cat-pair .cat-sec > .group-grid { flex: 1; }
+  .cat-pair .group-grid .chip-group { justify-content: center; }
+  @media (max-width: 900px) {
+    .group-grid .chip-group { grid-column: span var(--span-t, 3); }
+  }
+  @media (max-width: 560px) {
+    .group-grid { gap: 8px; }
+    .group-grid .chip-group { grid-column: span 6; padding: 12px 10px 14px; }
+  }
+
+  /* ═══ 광고 배너 ═══════════════════════════════════════════ */
+  .ad-slot {
+    position: relative; margin: 28px auto 0; max-width: 712px; padding: 28px 16px 14px;
+    border-radius: 14px; border: 1px solid rgba(255, 255, 255, .07);
+    background: rgba(12, 19, 27, .55);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .ad-layer { margin: 0 20px 18px; max-width: none; }
+  .ad-page { max-width: none; padding-left: 12px; padding-right: 12px; }
+  .ad-tag {
+    position: absolute; top: 6px; left: 12px; font-size: 11px; letter-spacing: .06em;
+    color: var(--muted); opacity: .8;
+  }
+  .ad-fit { width: 100%; height: calc(140px * var(--ad-scale, 1)); overflow: hidden; display: flex; justify-content: center; }
+  .ad-frame { width: var(--ad-w, 680px); height: 140px; flex: none; transform: scale(var(--ad-scale, 1)); transform-origin: top center; border-radius: 8px; overflow: hidden; }
+  .ad-frame iframe { display: block; max-width: none; }
+  .ad-slot.ad-empty { display: none; }
+  @media (max-width: 640px) {
+    .ad-slot { padding: 26px 10px 10px; }
+    .ad-layer { margin: 0 12px 12px; }
+  }
+
+  /* 항목 버튼: 크게, 흰색 */
+  .group-grid .chip { font-size: 16px; padding: 8px 14px; color: #ffffff; }
+  .chip { color: #ffffff; }
+  .chip[aria-pressed="true"] { color: var(--bg); }
+  @media (max-width: 560px) {
+    .group-grid .chip { font-size: 15px; padding: 8px 13px; }
+  }
+
+  /* ═══ 항목 툴팁 ═══ */
+  .tip {
+    position: fixed; z-index: 60; pointer-events: none; max-width: 280px; min-width: 150px;
+    padding: 10px 12px; border-radius: 12px; text-align: left;
+    background: rgba(17, 26, 36, .94); border: 1px solid rgba(143, 184, 255, .22);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .45);
+    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .tip:not([hidden]) { animation: tipIn .14s ease-out; }
+    @keyframes tipIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+  }
+  .tip-name { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .tip-val { display: flex; align-items: baseline; gap: 5px; flex-wrap: wrap; }
+  .tip-num { font-size: 20px; font-weight: 700; color: #fff; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+  .tip-unit { font-size: 12px; color: var(--muted); }
+  .tip-chg { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .tip-chg.up { color: var(--up); } .tip-chg.down { color: var(--down); }
+  .tip-meta { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: .85; }
+  .tip-note { font-size: 13px; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true"><canvas id="bgCanvas"></canvas></div>
+<script>
+// ═══ 배경: 점 격자 물결면 + 노드 연결선 + 계측 눈금 ═══════════════════
+(function () {
+  var cv = document.getElementById('bgCanvas');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var W = 0, H = 0, DPR = 1, small = false;
+  var COLS, ROWS, grid = [], nodes = [], floaters = [], last = 0, raf = 0, t0 = performance.now();
+
+  function setup() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    small = W < 700;
+    COLS = small ? 84 : 150; ROWS = small ? 18 : 28;
+    grid = [];
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        grid.push({ u: c / (COLS - 1) * 2 - 1, v: r / (ROWS - 1) });   // u: 좌우 -1~1, v: 앞(0)~뒤(1)
+      }
+    }
+    // 노드: 격자 위 임의의 점에 붙어 물결을 따라 움직임
+    nodes = [];
+    var n = small ? 8 : 14;
+    for (var i = 0; i < n; i++) {
+      var rr = 2 + Math.floor(Math.random() * (ROWS - 6));
+      var cc = Math.floor(COLS * 0.08) + Math.floor(Math.random() * COLS * 0.84);
+      nodes.push({ idx: rr * COLS + cc, phase: Math.random() * Math.PI * 2, label: Math.random() < 0.4, seed: Math.random() * 1000 });
+    }
+    // 위쪽 공간에 떠다니는 노드 (시스템 연결망)
+    floaters = [];
+    var m = small ? 0 : 16;   // 휴대폰에서는 제목을 가리지 않도록 생략
+    for (var k = 0; k < m; k++) {
+      var leftSide = k % 2 === 0;
+      var lo = small ? 0.02 : (leftSide ? 0.02 : 0.78), hi = small ? 0.98 : (leftSide ? 0.22 : 0.98);
+      floaters.push({ x: lo + Math.random() * (hi - lo), y: 0.06 + Math.random() * 0.36, minX: lo, maxX: hi, vx: (Math.random() - 0.5) * 0.006, vy: (Math.random() - 0.5) * 0.004,
+        phase: Math.random() * Math.PI * 2, label: Math.random() < 0.3, seed: Math.random() * 1000 });
+    }
+  }
+
+  // 여러 파동을 겹친 비선형 높이 함수
+  function height(u, v, t) {
+    var x = u * 3.2, z = v * 4.0;
+    return 0.55 * Math.sin(x * 1.3 + t * 0.35 + z * 0.6)
+         + 0.35 * Math.sin(z * 2.1 - t * 0.27 + Math.sin(x * 0.7 + t * 0.11) * 1.6)
+         + 0.22 * Math.sin((x + z) * 2.7 + t * 0.52)
+         + 0.12 * Math.sin(x * 5.3 - z * 3.1 - t * 0.8);
+  }
+
+  function project(u, v, y) {
+    var depth = 1 + v * 4.2;                      // 1(앞) ~ 5.2(뒤)
+    var horizon = H * 0.44;
+    var sx = W / 2 + u * W * 1.15 / depth;
+    var sy = horizon + (1 - y * 0.28) * H * 0.58 / depth;
+    return { x: sx, y: sy, s: 1 / depth };
+  }
+
+  function drawTicks() {
+    ctx.fillStyle = 'rgba(143,184,255,0.22)';
+    var step = 24;
+    for (var x = step; x < W; x += step) {
+      var big = (x / step) % 8 === 0;
+      ctx.fillRect(x, 14, big ? 2 : 1, big ? 2 : 1);
+      ctx.fillRect(x, H - 16, big ? 2 : 1, big ? 2 : 1);
+    }
+    for (var y = step; y < H; y += step) {
+      var big2 = (y / step) % 8 === 0;
+      ctx.fillRect(14, y, big2 ? 2 : 1, big2 ? 2 : 1);
+      ctx.fillRect(W - 16, y, big2 ? 2 : 1, big2 ? 2 : 1);
+    }
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (document.hidden || document.body.classList.contains('layer-open')) return;
+    var minGap = small ? 1000 / 24 : 1000 / 30;
+    if (now - last < minGap) return;
+    last = now;
+    render((now - t0) / 1000);
+  }
+
+  function render(t) {
+    ctx.clearRect(0, 0, W, H);
+    drawTicks();
+
+    // 점 격자 물결면 (뒤에서 앞으로)
+    var pts = new Array(grid.length);
+    for (var i = grid.length - 1; i >= 0; i--) {
+      var g = grid[i];
+      var y = height(g.u, g.v, t);
+      var p = project(g.u, g.v, y);
+      pts[i] = p;
+      if (p.x < -10 || p.x > W + 10 || p.y < -10 || p.y > H + 10) continue;
+      var crest = (y + 1.2) / 2.4;                // 0~1, 마루일수록 밝게
+      var a = (0.16 + 0.62 * p.s) * (0.40 + 0.90 * crest);
+      var r = 0.8 + 1.8 * p.s + crest * 0.6;
+      ctx.fillStyle = 'rgba(143,184,255,' + Math.min(a, 0.85).toFixed(3) + ')';
+      ctx.fillRect(p.x - r / 2, p.y - r / 2, r, r);
+    }
+
+    // 노드와 점선 연결
+    var np = nodes.map(function (n) {
+      var p = pts[n.idx];
+      return { x: p.x, y: p.y - 26 * p.s - 6, s: p.s, n: n, anchored: true };
+    });
+    floaters.forEach(function (f) {
+      f.x += f.vx / 30; f.y += f.vy / 30;
+      if (f.x < f.minX || f.x > f.maxX) f.vx *= -1;
+      if (f.y < 0.05 || f.y > 0.45) f.vy *= -1;
+      np.push({ x: f.x * W + Math.sin(t * 0.3 + f.phase) * 12, y: f.y * H + Math.cos(t * 0.25 + f.phase) * 8, s: 0.45, n: f, anchored: false });
+    });
+    ctx.setLineDash([1, 5]);
+    ctx.lineWidth = 1;
+    var maxD = small ? 150 : 230;
+    for (var a1 = 0; a1 < np.length; a1++) {
+      for (var b1 = a1 + 1; b1 < np.length; b1++) {
+        var dx = np[a1].x - np[b1].x, dy = np[a1].y - np[b1].y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d > maxD) continue;
+        var al = (1 - d / maxD) * 0.55;
+        ctx.strokeStyle = 'rgba(122,167,255,' + al.toFixed(3) + ')';
+        ctx.beginPath(); ctx.moveTo(np[a1].x, np[a1].y); ctx.lineTo(np[b1].x, np[b1].y); ctx.stroke();
+      }
+    }
+    // 노드에서 수면까지 내려오는 점선
+    ctx.setLineDash([1, 3]);
+    np.forEach(function (q) {
+      if (!q.anchored) return;
+      var base = pts[q.n.idx];
+      ctx.strokeStyle = 'rgba(143,184,255,0.18)';
+      ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(base.x, base.y); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    np.forEach(function (q) {
+      var pulse = 0.5 + 0.5 * Math.sin(t * 1.4 + q.n.phase);
+      var r = 1.6 + 2.2 * q.s;
+      ctx.fillStyle = 'rgba(200,220,255,' + (0.35 + 0.4 * pulse).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(122,167,255,' + (0.25 * (1 - pulse)).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r + 4 + 8 * pulse, 0, Math.PI * 2); ctx.stroke();
+      if (q.n.label && !small) {
+        var val = (Math.sin(t * 0.6 + q.n.seed) * 3.5).toFixed(2);
+        ctx.fillStyle = 'rgba(143,184,255,0.30)';
+        ctx.fillText((val >= 0 ? '+' : '') + val, q.x + 8, q.y - 6);
+      }
+    });
+  }
+
+  setup();
+  window.addEventListener('resize', function () { setup(); if (reduce) render(8); });
+  if (reduce) render(8);
+  else raf = requestAnimationFrame(frame);
+})();
+</script>
+<main class="main">
+  <h1>세상의 모든 시세</h1>
+  <p class="lead">환율과 증시부터 장바구니 물가, 집값, 원자재까지. 항목을 누르면 시세를 볼 수 있어요.</p>
+
+  <div class="clocks" aria-live="polite">
+    <span class="clock" id="clock-seoul"><span class="dot" aria-hidden="true"></span>서울 <b data-time>--:--</b> <span data-state></span></span>
+    <span class="clock" id="clock-ny"><span class="dot" aria-hidden="true"></span>뉴욕 <b data-time>--:--</b> <span data-state></span></span>
+  </div>
+
+  <nav class="jump" id="jump" aria-label="분류 바로가기"></nav>
+  <div class="cat-list" id="cats"></div>
+
+  <aside class="ad-slot ad-page" aria-label="광고">
+    <span class="ad-tag">광고</span>
+    <div class="ad-fit"><div class="ad-frame" id="adPageFrame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	// 화면이 넓으면 1040px 배너, 좁으면(태블릿·휴대폰) 680px 배너를 넣고, 둘 다 칸 폭에 맞춰 늘고 줄어요.
+	(function () {
+		var wide = (window.innerWidth || document.documentElement.clientWidth) >= 760;
+		var frame = document.getElementById('adPageFrame');
+		frame.setAttribute('data-w', wide ? '1040' : '680');
+		frame.style.setProperty('--ad-w', (wide ? 1040 : 680) + 'px');
+		if (wide) {
+			new PartnersCoupang.G({"id":1049550,"template":"carousel","trackingCode":"AF6707602","width":"1040","height":"140","tsource":""});
+		} else {
+			new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+		}
+	})();
+</script>
+    </div></div>
+  </aside>
+</main>
+
+<dialog class="layer" id="layer" aria-labelledby="layerTitle">
+  <div class="layer-inner">
+    <header class="layer-head">
+      <div class="layer-titles"><p class="layer-sub" id="layerSub"></p><h2 class="layer-title" id="layerTitle">항목</h2></div>
+      <button type="button" class="close" id="closeBtn" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="layer-scroll" id="layerScroll">
+      <div class="layer-body" id="layerBody"></div>
+      <aside class="ad-slot ad-layer" aria-label="광고">
+        <span class="ad-tag">광고</span>
+        <div class="ad-fit"><div class="ad-frame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+</script>
+        </div></div>
+      </aside>
+    </div>
+  </div>
+</dialog>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// 시세 목록
+//   tv    : TradingView 위젯 (symbol)
+//   goldkr: 국내 금 추정가 (국제 시세 × 환율 × 프리미엄)
+//   link  : 공식 출처 링크
+//   snap  : 기준일이 있는 값
+//   region: 시·도를 골라 보는 값
+// 위젯 종목이 "TradingView에서만 볼 수 있음"으로 나오면 symbol만 바꾸면 돼요.
+// ═══════════════════════════════════════════════════════════════
+var CATEGORIES = [
+  {
+    id: 'finance', name: '금융·투자',
+    summary: '환율, 금·은·백금, 비트코인, 코스피, 나스닥, 국채금리, 유가 등',
+    groups: [
+      { name: '환율', items: [
+        { type: 'tv', name: '원/달러', unit: '원/1달러', symbol: 'FX_IDC:USDKRW' },
+        { type: 'fx', name: '원/엔', unit: '원/100엔', base: 'JPY', mult: 100 },
+        { type: 'tv', name: '원/유로', unit: '원/1유로', symbol: 'FX_IDC:EURKRW' },
+        { type: 'tv', name: '원/위안', unit: '원/1위안', symbol: 'FX_IDC:CNYKRW' }
+      ]},
+      { name: '귀금속', items: [
+        { type: 'tv', name: '국제 금', unit: '달러/온스', symbol: 'OANDA:XAUUSD' },
+        { type: 'goldkr', name: '국내 금 추정가', unit: '원/g' },
+        { type: 'tv', name: '은', unit: '달러/온스', symbol: 'OANDA:XAGUSD' },
+        { type: 'tv', name: '백금', unit: '달러/온스', symbol: 'OANDA:XPTUSD' }
+      ]},
+      { name: '가상자산', items: [
+        { type: 'tv', name: '비트코인', unit: '원 (업비트)', symbol: 'UPBIT:BTCKRW' },
+        { type: 'tv', name: '이더리움', unit: '원 (업비트)', symbol: 'UPBIT:ETHKRW' }
+      ]},
+      { name: '증시', items: [
+        { type: 'tv', name: '코스피', unit: '포인트', symbol: 'KRX:KOSPI' },
+        { type: 'tv', name: '코스닥', unit: '포인트', symbol: 'KRX:KOSDAQ' },
+        { type: 'tv', name: '나스닥 종합', unit: '포인트', symbol: 'NASDAQ:IXIC' },
+        { type: 'tv', name: 'S&P 500', unit: '포인트 (CFD)', symbol: 'FOREXCOM:SPXUSD' }
+      ]},
+      { name: '금리·유가', items: [
+        { type: 'tv', name: '미국 국채 10년', unit: '금리 %', symbol: 'TVC:US10Y' },
+        { type: 'tv', name: '미국 국채 2년', unit: '금리 %', symbol: 'TVC:US02Y' },
+        { type: 'tv', name: '국제 유가 (WTI)', unit: '달러/배럴', symbol: 'TVC:USOIL' },
+        { type: 'tv', name: '국제 유가 (브렌트)', unit: '달러/배럴', symbol: 'TVC:UKOIL' }
+      ]}
+    ]
+  },
+  {
+    id: 'living', name: '생활물가',
+    summary: '휘발유·경유·LPG, 쌀, 계란, 배추, 사과, 삼겹살, 한우, 고등어, 커피 원두 등',
+    groups: [
+      { name: '연료 (전국 주유소 평균)', items: [
+        { type: 'snap', name: '휘발유', value: '1,855.04', unit: '원/L', date: '2026-11-12', note: '서울 1,900원, 대구 1,827원', source: '오피넷 (한국석유공사)', url: 'https://www.opinet.co.kr' },
+        { type: 'snap', name: '경유', value: '1,841.41', unit: '원/L', date: '2026-11-12', note: '전일과 거의 같음', source: '오피넷 (한국석유공사)', url: 'https://www.opinet.co.kr' },
+        { type: 'snap', name: 'LPG (자동차용 부탄)', value: '1,177.83', unit: '원/L', date: '2026-11-12', note: '전일과 거의 같음', source: '오피넷 (한국석유공사)', url: 'https://www.opinet.co.kr' }
+      ]},
+      { name: '곡물·채소·과일 (소매)', items: [
+        { type: 'snap', name: '쌀 (상품)', value: '63,243', unit: '원/20kg', date: '2026-11-11', chg: 0.14, chgText: '전일보다 87원(0.14%) 오름', note: '평년보다 13.7% 높고, 1년 전보다 1.1% 낮음', source: 'KAMIS 소매가격', url: 'https://www.kamis.or.kr/customer/info/retail/period.do' },
+        { type: 'snap', name: '배추', value: '2,749', unit: '원/1포기', date: '2026-11-09', chg: -26.5, chgText: '1년 전보다 26.5% 낮음', source: 'aT 김장 재료 조사', url: 'https://www.kamis.or.kr' },
+        { type: 'snap', name: '사과 (후지·상품)', value: '27,331', unit: '원/10개', date: '2026', avg: true, note: '올해 평균 소매가, 전년 평균보다 2.6% 낮음', source: 'KAMIS 농산물유통정보', url: 'https://www.kamis.or.kr' }
+      ]},
+      { name: '축산 (전국 평균 소비자가)', items: [
+        { type: 'snap', name: '계란 (특란 XL)', value: '7,354', unit: '원/30개', date: '2026-11-11', chg: 13.2, chgText: '1년 전 같은 달보다 13.2% 높음', source: '축산물품질평가원', url: 'https://www.ekapepia.com' },
+        { type: 'snap', name: '삼겹살', value: '2,862', unit: '원/100g', date: '2026-11-11', chg: -0.2, chgText: '전일보다 6원 내림', source: '축산물품질평가원', url: 'https://www.ekapepia.com' },
+        { type: 'snap', name: '한우 등심 (1등급)', value: '12,186', unit: '원/100g', date: '2026-11-11', chg: -1, chgText: '전일보다 125원 내림', source: '축산물품질평가원', url: 'https://www.ekapepia.com' },
+        { type: 'snap', name: '닭고기 (육계)', value: '5,656', unit: '원/kg', date: '2026-11-11', chg: 1.5, chgText: '전일보다 82원 오름', source: '축산물품질평가원', url: 'https://www.ekapepia.com' }
+      ]},
+      { name: '수산 (소매)', items: [
+        { type: 'snap', name: '고등어 (국산 신선·대)', value: '4,538', unit: '원/1마리', date: '2026', avg: true, note: '올해 평균 소매가, 전년 평균보다 3.2% 낮음', source: 'KAMIS 수산물 소매가격', url: 'https://www.kamis.or.kr' },
+        { type: 'link', name: '오징어', unit: '원/1마리 · 소매', source: 'KAMIS 수산물 소매가격', url: 'https://www.kamis.or.kr', why: '최근 조사값을 찾지 못했어요' }
+      ]},
+      { name: '국제 식품 원자재', items: [
+        { type: 'tv', name: '커피 원두 (아라비카)', unit: '센트/파운드 (CFD)', symbol: 'CAPITALCOM:COFFEEARABICA' },
+        { type: 'tv', name: '설탕', unit: '센트/파운드 (CFD)', symbol: 'CAPITALCOM:SUGAR' },
+        { type: 'tv', name: '밀', unit: '센트/부셸 (CFD)', symbol: 'CAPITALCOM:WHEAT' }
+      ]}
+    ]
+  },
+  {
+    id: 'housing', name: '부동산·주거',
+    summary: '서울 아파트 평균 매매·전세가, 가격 변동률, 전세가율, 대출·예금 금리',
+    groups: [
+      { name: '아파트 시세', items: [
+        { type: 'region', name: '아파트 매매', kind: 'sale', fallbackUrl: 'https://rt.molit.go.kr', data: {
+          '서울': { value: '11억 2,376만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 19,290건 · KB 시세 기준 평균은 16억 3,546만원(10월)', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '경기': { value: '5억 7,791만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 52,243건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '인천': { value: '4억 3,222만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 7,858건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '부산': { value: '4억 1,914만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 11,947건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '대구': { value: '3억 8,042만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 8,059건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '대전': { value: '3억 8,147만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 5,991건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '울산': { value: '3억 5,678만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 4,667건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '세종': { value: '5억 2,354만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 2,068건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '강원': { value: '2억 2,358만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 5,700건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '충북': { value: '2억 4,506만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 6,727건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '충남': { value: '2억 3,711만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 8,792건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '전북': { value: '2억 2,932만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 7,001건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '경북': { value: '1억 9,748만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 7,719건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '경남': { value: '2억 7,525만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 12,135건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' },
+          '제주': { value: '3억 3,800만', unit: '원', date: '2026년 6~11월 실거래 평균', note: '거래 705건', source: '국토교통부 실거래가 (MJY RUN COCO 집계)', url: 'https://realestate.mjyruncoco.com/apartments' }
+        }},
+        { type: 'region', name: '아파트 전세', kind: 'jeonse', fallbackUrl: 'https://rt.molit.go.kr', data: {
+          '전국': { value: '3억 4,000만', unit: '원', date: '10월 26일 주간 평균', source: 'KB부동산 주간 통계', url: 'https://data.kbland.kr' },
+          '서울': { value: '6억 4,100만', unit: '원', date: '2026년 9월 평균', note: '1년 전보다 10.7% 오름', source: '한국부동산원 월간 주택가격동향', url: 'https://www.reb.or.kr/r-one' }
+        }},
+        { type: 'region', name: '아파트 월세', kind: 'wolse', fallbackUrl: 'https://rt.molit.go.kr', data: {
+          '서울': { value: '166만 1천', unit: '원/월', date: '2026년 9월 평균', note: '평균 보증금 1억 9,568만원 · 1년 전보다 15.1% 오름', source: '한국부동산원 월간 주택가격동향', url: 'https://www.reb.or.kr/r-one' }
+        }},
+        { type: 'link', name: '오피스텔', unit: '실거래가 · 지역별', source: '국토교통부 실거래가 공개시스템', url: 'https://rt.molit.go.kr', why: '지역·면적별 편차가 커서 대표값이 없어요' }
+      ]},
+      { name: '지표', items: [
+        { type: 'region', name: '아파트 매매가격 (주간 변동)', data: {
+          '전국': { value: '+0.07', unit: '%', date: '11월 9일 기준', chg: 0.07, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '서울': { value: '+0.07', unit: '%', date: '11월 9일 기준', chg: 0.07, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '경기': { value: '+0.21', unit: '%', date: '11월 9일 기준', chg: 0.21, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '인천': { value: '-0.01', unit: '%', date: '11월 9일 기준', chg: -0.01, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '부산': { value: '-0.01', unit: '%', date: '11월 9일 기준', chg: -0.01, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '대구': { value: '+0.01', unit: '%', date: '11월 9일 기준', chg: 0.01, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '대전': { value: '+0.02', unit: '%', date: '11월 9일 기준', chg: 0.02, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '울산': { value: '+0.02', unit: '%', date: '11월 9일 기준', chg: 0.02, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '세종': { value: '+0.16', unit: '%', date: '11월 9일 기준', chg: 0.16, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '전남광주': { value: '-0.01', unit: '%', date: '11월 9일 기준', chg: -0.01, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '강원': { value: '-0.04', unit: '%', date: '11월 9일 기준', chg: -0.04, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '충북': { value: '+0.02', unit: '%', date: '11월 9일 기준', chg: 0.02, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '충남': { value: '-0.02', unit: '%', date: '11월 9일 기준', chg: -0.02, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '전북': { value: '+0.02', unit: '%', date: '11월 9일 기준', chg: 0.02, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '경북': { value: '+0.01', unit: '%', date: '11월 9일 기준', chg: 0.01, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '경남': { value: '+0.03', unit: '%', date: '11월 9일 기준', chg: 0.03, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '제주': { value: '-0.06', unit: '%', date: '11월 9일 기준', chg: -0.06, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' }
+        }},
+        { type: 'region', name: '아파트 전세가격 (주간 변동)', data: {
+          '전국': { value: '+0.10', unit: '%', date: '11월 9일 기준', chg: 0.1, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '서울': { value: '+0.17', unit: '%', date: '11월 9일 기준', chg: 0.17, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '경기': { value: '+0.17', unit: '%', date: '11월 9일 기준', chg: 0.17, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '인천': { value: '+0.11', unit: '%', date: '11월 9일 기준', chg: 0.11, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '부산': { value: '+0.05', unit: '%', date: '11월 9일 기준', chg: 0.05, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '대구': { value: '+0.04', unit: '%', date: '11월 9일 기준', chg: 0.04, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '대전': { value: '+0.02', unit: '%', date: '11월 9일 기준', chg: 0.02, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '울산': { value: '+0.05', unit: '%', date: '11월 9일 기준', chg: 0.05, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '세종': { value: '+0.25', unit: '%', date: '11월 9일 기준', chg: 0.25, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '전남광주': { value: '-0.01', unit: '%', date: '11월 9일 기준', chg: -0.01, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '강원': { value: '+0.02', unit: '%', date: '11월 9일 기준', chg: 0.02, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '충북': { value: '+0.04', unit: '%', date: '11월 9일 기준', chg: 0.04, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '충남': { value: '+0.05', unit: '%', date: '11월 9일 기준', chg: 0.05, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '전북': { value: '+0.02', unit: '%', date: '11월 9일 기준', chg: 0.02, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '경북': { value: '-0.02', unit: '%', date: '11월 9일 기준', chg: -0.02, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '경남': { value: '+0.07', unit: '%', date: '11월 9일 기준', chg: 0.07, chgText: '전주 대비 상승', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' },
+          '제주': { value: '-0.04', unit: '%', date: '11월 9일 기준', chg: -0.04, chgText: '전주 대비 하락', source: '한국부동산원 주간 아파트가격 동향', url: 'https://www.reb.or.kr/r-one' }
+        }},
+        { type: 'region', name: '아파트 전세가율', data: {
+          '전국': { value: '68.8', unit: '%', date: '10월 26일 주간', note: '매매가 대비 전세가 비율', source: 'KB부동산 주간 통계', url: 'https://data.kbland.kr' },
+          '서울': { value: '50.29', unit: '%', date: '2026년 10월', note: '매매가 대비 전세가 비율', source: 'KB부동산 월간 통계', url: 'https://data.kbland.kr' },
+          '경기': { value: '59.4', unit: '%', date: '2026년 9월', note: '매매가 대비 전세가 비율 · 31개 시군 중 23곳이 60% 이상', source: '부동산R114', url: 'https://www.r114.com' }
+        }},
+        { type: 'link', name: '지역별 아파트 평당 가격', unit: '만원/3.3㎡', source: '한국부동산원 R-ONE', url: 'https://www.reb.or.kr/r-one', why: '지역별로 봐야 의미가 있어 출처에서 확인해 주세요' }
+      ]},
+      { name: '금리 (은행 신규 취급 평균)', items: [
+        { type: 'snap', name: '주택담보대출 금리', value: '4.88', unit: '% (연)', date: '2026-09', chg: 0.22, chgText: '전월보다 0.22%p 오름 · 고정형 5.11%', source: '한국은행 가중평균금리', url: 'https://ecos.bok.or.kr' },
+        { type: 'snap', name: '전세자금대출 금리', value: '4.57', unit: '% (연)', date: '2026-09', chg: 0.22, chgText: '전월보다 0.22%p 오름', source: '한국은행 가중평균금리', url: 'https://ecos.bok.or.kr' },
+        { type: 'snap', name: '예금 금리 (저축성 수신)', value: '3.45', unit: '% (연)', date: '2026-09', chg: 0.24, chgText: '전월보다 0.24%p 오름', source: '한국은행 가중평균금리', url: 'https://ecos.bok.or.kr' }
+      ]}
+    ]
+  },
+  {
+    id: 'used', name: '중고시세',
+    summary: '상품명을 입력해 국내 중고 거래 사이트의 시세를 한 번에 찾아봐요.',
+    groups: [
+      { name: '전체 품목', items: [
+        { type: 'used', name: '중고 시세 검색' }
+      ]}
+    ]
+  },
+  {
+    id: 'industry', name: '원자재·산업',
+    summary: '구리, 알루미늄, 니켈, 천연가스, 철근, 해상운임, 리튬, 철스크랩, 시멘트, 목재',
+    groups: [
+      { name: '비철금속·에너지', items: [
+        { type: 'tv', name: '구리', unit: '달러/파운드', symbol: 'CAPITALCOM:COPPER' },
+        { type: 'tv', name: '알루미늄', unit: '달러/톤', symbol: 'CAPITALCOM:ALUMINUM' },
+        { type: 'tv', name: '니켈', unit: '달러/톤', symbol: 'CAPITALCOM:NICKEL' },
+        { type: 'tv', name: '천연가스 (LNG 참고)', unit: '달러/MMBtu', symbol: 'CAPITALCOM:NATURALGAS' }
+      ]},
+      { name: '건설·산업 자재', items: [
+        { type: 'snap', name: '철근 (SD400 10mm 유통)', value: '76만~77만', unit: '원/톤', date: '2026-11-10', chg: -2.6, chgText: '전주보다 2만원 내림 · 11월 기준가 96만 3천원', source: '철강금속신문', url: 'https://www.snmnews.com' },
+        { type: 'link', name: '철스크랩', unit: '원/톤 · 국내', source: '철강금속신문', url: 'https://www.snmnews.com', why: '공신력 있는 최신 수치를 찾지 못했어요' },
+        { type: 'link', name: '시멘트', unit: '원/톤 · 국내', source: '한국물가정보', url: 'https://www.kpi.or.kr', why: '공개된 최신 수치를 찾지 못했어요' },
+        { type: 'link', name: '목재', unit: '원/㎥ · 국내', source: '한국임업진흥원', url: 'https://www.kofpi.or.kr', why: '공개된 최신 수치를 찾지 못했어요' },
+        { type: 'link', name: '리튬 (탄산리튬)', unit: '달러/kg', source: '한국자원정보서비스 KOMIS', url: 'https://www.komis.or.kr', why: '최근 수치를 찾지 못했어요' }
+      ]},
+      { name: '물류', items: [
+        { type: 'snap', name: '해상운임 (SCFI)', value: '3,633.45', unit: '포인트', date: '2026-11-06', chg: -1.46, chgText: '전주보다 53.9p(1.46%) 내림 · 부산발 KCCI 4,668p', source: '상하이해운거래소 · 한국해양진흥공사', url: 'https://www.kobc.or.kr' }
+      ]}
+    ]
+  },
+  {
+    id: 'niche', name: '특수·틈새',
+    summary: '금반지·금니 매입 시세, 레고 중고 시세',
+    groups: [
+      { name: '귀금속 매입 (팔 때 받는 값)', items: [
+        { type: 'snap', name: '금반지 (순금 24K)', value: '642,000', unit: '원/3.75g', date: '2026-11-12', chg: -1.56, chgText: '전일보다 10,000원(1.56%) 내림', note: '살 때는 753,000원', source: '한국금거래소', url: 'https://www.koreagoldx.co.kr' },
+        { type: 'snap', name: '18K 금', value: '471,900', unit: '원/3.75g', date: '2026-11-12', chg: -1.57, chgText: '전일보다 7,400원(1.57%) 내림', note: '금니 매입가 참고용', source: '한국금거래소', url: 'https://www.koreagoldx.co.kr' },
+        { type: 'snap', name: '14K 금', value: '366,000', unit: '원/3.75g', date: '2026-11-12', chg: -1.56, chgText: '전일보다 5,700원(1.56%) 내림', note: '금니는 함량·업체별로 매입가가 달라요', source: '한국금거래소', url: 'https://www.koreagoldx.co.kr' }
+      ]},
+      { name: '수집품', items: [
+        { type: 'lego', name: '레고 중고 시세' }
+      ]}
+    ]
+  }
+];
+</script>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var layer = document.getElementById('layer');
+  var layerTitle = document.getElementById('layerTitle');
+  var layerBody = document.getElementById('layerBody');
+  var range = '1D';
+  var current = null;
+  var cleanups = [];
+
+  // ── 저장소 ──
+  function readLS(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function writeLS(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  var layerSub = document.getElementById('layerSub');
+
+  // ── 항목마다 id 부여 ──
+  var ITEMS = {};
+  CATEGORIES.forEach(function (c) {
+    var n = 0;
+    c.groups.forEach(function (g) {
+      g.items.forEach(function (it) { n++; it.id = c.id + '-' + n; it.cat = c; it.group = g.name; ITEMS[it.id] = it; });
+    });
+  });
+
+  // ── 첫 화면: 분류별 항목 버튼 ──
+  var cats = document.getElementById('cats');
+  var jump = document.getElementById('jump');
+  var PAIRED = ['used', 'niche'];          // 항목이 적은 분류는 나란히
+  function buildSection(c) {
+    var sec = el('section', 'cat-sec');
+    sec.id = 'sec-' + c.id;
+    var title = el('h2', 'cat-title');
+    title.appendChild(el('span', null, c.name));
+    sec.appendChild(title);
+    if (!c.groups.length) {
+      sec.appendChild(el('p', 'cat-empty', '아직 항목이 없어요. ' + c.summary));
+      return sec;
+    }
+    var gridEl = el('div', 'group-grid');
+    var n = c.groups.length;
+    // 칸 너비: 6칸 격자에서 데스크톱은 2칸씩(3열), 태블릿은 3칸씩(2열). 마지막 줄이 비지 않게 남은 칸을 넓혀요.
+    function spanFor(i, cols) {
+      var per = 6 / cols, rem = n % cols, lastStart = n - rem;
+      if (rem && i >= lastStart) return 6 / rem;
+      return per;
+    }
+    c.groups.forEach(function (g, i) {
+      var row = el('div', 'chip-group');
+      row.style.setProperty('--span-d', spanFor(i, 3));
+      row.style.setProperty('--span-t', spanFor(i, 2));
+      row.appendChild(el('h3', 'chip-label', g.name));
+      var wrap = el('div', 'chips');
+      g.items.forEach(function (it) {
+        var b = el('button', 'chip', it.name);
+        b.type = 'button';
+        b.setAttribute('aria-haspopup', 'dialog');
+        b.setAttribute('data-item', it.id);
+        b.addEventListener('click', function () { openItem(it.id, true); });
+        wrap.appendChild(b);
+      });
+      row.appendChild(wrap);
+      gridEl.appendChild(row);
+    });
+    sec.appendChild(gridEl);
+    return sec;
+  }
+  var ordered = CATEGORIES.filter(function (c) { return PAIRED.indexOf(c.id) < 0; })
+    .concat(CATEGORIES.filter(function (c) { return PAIRED.indexOf(c.id) >= 0; }));
+  var pair = el('div', 'cat-pair');
+  ordered.forEach(function (c) {
+    var sec = buildSection(c);
+    if (PAIRED.indexOf(c.id) >= 0) pair.appendChild(sec); else cats.appendChild(sec);
+  });
+  if (pair.children.length) cats.appendChild(pair);
+
+  // 분류 바로가기
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  ordered.forEach(function (c) {
+    var b = el('button', 'jump-btn', c.name);
+    b.type = 'button';
+    b.addEventListener('click', function () {
+      var t = document.getElementById('sec-' + c.id);
+      if (!t) return;
+      t.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      t.classList.remove('flash'); void t.offsetWidth; t.classList.add('flash');
+    });
+    jump.appendChild(b);
+  });
+
+  // ── 카드 만들기 ──
+  function tvCard(item) {
+    var card = el('article', 'card');
+    var head = el('div', 'card-head');
+    head.append(el('span', 'card-name', item.name), el('span', 'card-unit', item.unit));
+    var chartBox = el('div', 'chart-box');
+    var seg = el('div', 'seg chart-seg');
+    seg.setAttribute('role', 'group');
+    seg.setAttribute('aria-label', '차트 기간');
+    var w = el('div', 'widget');
+    w.setAttribute('data-symbol', item.symbol);
+    [['1D', '1일'], ['1M', '1개월'], ['3M', '3개월'], ['12M', '1년']].forEach(function (r) {
+      var b = el('button', null, r[1]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', r[0] === range ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        if (r[0] === range) return;
+        range = r[0];
+        seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        mountWidget(w);
+      });
+      seg.appendChild(b);
+    });
+    chartBox.append(seg, w);
+    var foot = el('div', 'card-foot');
+    var a = el('a', null, 'TradingView에서 크게 보기');
+    a.href = 'https://www.tradingview.com/symbols/' + item.symbol.replace(':', '-') + '/';
+    a.target = '_blank'; a.rel = 'noopener';
+    foot.appendChild(a);
+    card.append(head, chartBox, foot);
+    return card;
+  }
+  function mountWidget(w) {
+    w.innerHTML = '';
+    var box = el('div', 'tradingview-widget-container');
+    box.appendChild(el('div', 'tradingview-widget-container__widget'));
+    var s = document.createElement('script');
+    s.async = true;
+    s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js';
+    s.text = JSON.stringify({
+      symbol: w.getAttribute('data-symbol'), width: '100%', height: '100%', locale: 'kr',
+      dateRange: range, colorTheme: 'dark',
+      isTransparent: false, autosize: true, largeChartUrl: '', chartOnly: false, noTimeScale: false
+    });
+    box.appendChild(s);
+    w.appendChild(box);
+  }
+  function fmtDate(d) {
+    var p = String(d).split('-');
+    if (p.length === 3) return (+p[1]) + '월 ' + (+p[2]) + '일';
+    if (p.length === 2) return p[0] + '년 ' + (+p[1]) + '월';
+    return p[0] + '년';
+  }
+  function valueBlock(v) {
+    var body = el('div', 'snap-body');
+    var row = el('div', 'snap-val');
+    row.append(el('span', 'snap-num', v.value), el('span', 'snap-unit', v.unit));
+    body.appendChild(row);
+    if (v.chgText) {
+      var c = el('div', 'snap-chg' + (v.chg > 0 ? ' up' : v.chg < 0 ? ' down' : ''));
+      c.textContent = (v.chg > 0 ? '▲ ' : v.chg < 0 ? '▼ ' : '') + v.chgText;
+      body.appendChild(c);
+    }
+    if (v.note) body.appendChild(el('div', 'snap-note', v.note));
+    return body;
+  }
+  function sourceFoot(v) {
+    var foot = el('div', 'snap-foot');
+    var a = el('a', null, v.source);
+    a.href = v.url; a.target = '_blank'; a.rel = 'noopener';
+    foot.append(el('span', null, '출처 '), a);
+    return foot;
+  }
+  function snapCard(item) {
+    var card = el('article', 'card snap');
+    var head = el('div', 'card-head');
+    head.append(el('span', 'card-name', item.name), el('span', 'snap-date', item.avg ? fmtDate(item.date) + ' 평균' : fmtDate(item.date) + ' 기준'));
+    card.append(head, valueBlock(item), sourceFoot(item));
+    return card;
+  }
+  function linkCard(item) {
+    var card = el('article', 'card link');
+    var head = el('div', 'card-head');
+    head.append(el('span', 'card-name', item.name));
+    var body = el('div', 'card-body');
+    body.append(el('p', null, item.unit));
+    if (item.why) body.appendChild(el('p', null, item.why));
+    body.appendChild(el('p', null, '출처: ' + item.source));
+    var a = el('a', 'go', '출처에서 보기');
+    a.href = item.url; a.target = '_blank'; a.rel = 'noopener';
+    body.appendChild(a);
+    card.append(head, body);
+    return card;
+  }
+
+  // ── 아파트 시·도 선택 카드 ──
+  var REGIONS = ['전국', '서울', '경기', '인천', '부산', '대구', '대전', '울산', '세종', '전남광주', '강원', '충북', '충남', '전북', '경북', '경남', '제주'];
+  function regionCard(item) {
+    var card = el('article', 'card region');
+    var avail = REGIONS.filter(function (r) { return item.data[r]; });
+    var chips = el('div', 'chips region-chips');
+    chips.setAttribute('role', 'group');
+    chips.setAttribute('aria-label', '지역 선택');
+    var out = el('div', 'region-out');
+    var sel = readLS('apt-region');
+    if (avail.indexOf(sel) < 0) sel = avail.indexOf('서울') >= 0 ? '서울' : avail[0];
+    var btns = [];
+    function show(r) {
+      btns.forEach(function (b) { b.setAttribute('aria-pressed', b.textContent === r ? 'true' : 'false'); });
+      out.innerHTML = '';
+      var v = item.data[r];
+      var head = el('div', 'card-head');
+      head.append(el('span', 'card-name', r), el('span', 'snap-date', v.date));
+      out.append(head, valueBlock(v), sourceFoot(v));
+    }
+    avail.forEach(function (r) {
+      var b = el('button', 'chip', r);
+      b.type = 'button';
+      b.addEventListener('click', function () { sel = r; writeLS('apt-region', r); show(r); });
+      btns.push(b);
+      chips.appendChild(b);
+    });
+    card.append(chips, out);
+    if (avail.length < REGIONS.length - 1) {
+      card.appendChild(el('p', 'region-note', '값을 확인한 지역만 표시돼요.'));
+    }
+    show(sel);
+    return card;
+  }
+
+  // ── 환율 카드 (유럽중앙은행 기준환율, 무료 API) ──
+  var FX_HOSTS = ['https://api.frankfurter.dev/v1/', 'https://api.frankfurter.app/'];
+  function ymd(d) { return d.toISOString().slice(0, 10); }
+  function fetchSeries(base, days) {
+    var key = 'fx-' + base + '-' + days;
+    try {
+      var c = JSON.parse(localStorage.getItem(key) || 'null');
+      if (c && Date.now() - c.at < 6 * 3600 * 1000) return Promise.resolve(c.rows);
+    } catch (e) {}
+    var start = ymd(new Date(Date.now() - days * 86400000));
+    var path = start + '..?from=' + base + '&to=KRW';
+    var tryHost = function (i) {
+      if (i >= FX_HOSTS.length) return Promise.reject(new Error('fx'));
+      return fetch(FX_HOSTS[i] + path)
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (d) {
+          var rows = Object.keys(d.rates || {}).sort().map(function (k) { return { d: k, v: d.rates[k].KRW }; })
+            .filter(function (r) { return isFinite(r.v); });
+          if (rows.length < 2) throw 0;
+          return rows;
+        })
+        .catch(function () { return tryHost(i + 1); });
+    };
+    return tryHost(0).then(function (rows) {
+      try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows: rows })); } catch (e) {}
+      return rows;
+    });
+  }
+  function fxCard(item) {
+    var card = el('article', 'card fx');
+    var head = el('div', 'card-head');
+    var date = el('span', 'snap-date', '');
+    head.append(el('span', 'card-name', item.name + ' (' + item.unit + ')'), date);
+    var body = el('div', 'snap-body');
+    var row = el('div', 'snap-val');
+    var num = el('span', 'snap-num', '—');
+    row.append(num, el('span', 'snap-unit', '원'));
+    var chg = el('div', 'snap-chg', '불러오는 중');
+    body.append(row, chg);
+
+    var seg = el('div', 'seg fx-seg');
+    seg.setAttribute('role', 'group');
+    seg.setAttribute('aria-label', '차트 기간');
+    var spans = [[31, '1개월'], [92, '3개월'], [366, '1년']];
+    var days = 31;
+    spans.forEach(function (s) {
+      var b = el('button', null, s[1]);
+      b.type = 'button';
+      b.setAttribute('aria-pressed', s[0] === days ? 'true' : 'false');
+      b.addEventListener('click', function () {
+        days = s[0];
+        seg.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+        load();
+      });
+      seg.appendChild(b);
+    });
+
+    var chartWrap = el('div', 'fx-chart chart-box');
+    var svgNS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(svgNS, 'svg');
+    svg.setAttribute('viewBox', '0 0 600 160');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    svg.setAttribute('class', 'fx-svg');
+    svg.setAttribute('role', 'img');
+    var readout = el('div', 'fx-readout', '\u00a0');
+    var axis = el('div', 'fx-axis');
+    seg.classList.add('chart-seg');
+    chartWrap.append(seg, svg, axis, readout);
+
+    var foot = el('div', 'snap-foot');
+    var a = el('a', null, '유럽중앙은행 기준환율 (Frankfurter)');
+    a.href = 'https://frankfurter.dev'; a.target = '_blank'; a.rel = 'noopener';
+    foot.append(el('span', null, '출처 '), a, el('span', null, ' · 영업일 하루 한 번 갱신'));
+
+    card.append(head, body, chartWrap, foot);
+
+    var alive = true;
+    function fmt(v) { return v.toLocaleString('ko-KR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function md(s) { var p = s.split('-'); return (+p[1]) + '/' + (+p[2]); }
+    function draw(rows) {
+      var pts = rows.map(function (r) { return { d: r.d, v: r.v * item.mult }; });
+      var last = pts[pts.length - 1], prev = pts[pts.length - 2];
+      num.textContent = fmt(last.v);
+      var p = last.d.split('-');
+      date.textContent = (+p[1]) + '월 ' + (+p[2]) + '일 기준';
+      var diff = last.v - prev.v, pct = diff / prev.v * 100;
+      chg.className = 'snap-chg' + (diff > 0 ? ' up' : diff < 0 ? ' down' : '');
+      chg.textContent = (diff > 0 ? '▲ ' : diff < 0 ? '▼ ' : '– ') + fmt(Math.abs(diff)) + '원 (' + (diff >= 0 ? '+' : '-') + Math.abs(pct).toFixed(2) + '%) 전 영업일 대비';
+
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      var vals = pts.map(function (q) { return q.v; });
+      var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), span = hi - lo || 1;
+      var X = function (i) { return pts.length === 1 ? 0 : i / (pts.length - 1) * 600; };
+      var Y = function (v) { return 150 - (v - lo) / span * 140; };
+      var first = pts[0].v, dir = last.v > first ? 'up' : last.v < first ? 'down' : '';
+      svg.setAttribute('class', 'fx-svg ' + dir);
+      svg.setAttribute('aria-label', item.name + ' ' + md(pts[0].d) + '부터 ' + md(last.d) + '까지 추이, 최저 ' + fmt(lo) + '원, 최고 ' + fmt(hi) + '원');
+      var path = document.createElementNS(svgNS, 'path');
+      path.setAttribute('d', pts.map(function (q, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(q.v).toFixed(1); }).join(' '));
+      path.setAttribute('class', 'fx-line');
+      var area = document.createElementNS(svgNS, 'path');
+      area.setAttribute('d', path.getAttribute('d') + ' L600 160 L0 160 Z');
+      area.setAttribute('class', 'fx-area');
+      svg.appendChild(area);
+      svg.appendChild(path);
+      var guide = document.createElementNS(svgNS, 'line');
+      guide.setAttribute('class', 'fx-guide');
+      guide.setAttribute('y1', 0); guide.setAttribute('y2', 160);
+      guide.style.display = 'none';
+      svg.appendChild(guide);
+
+      axis.innerHTML = '';
+      axis.append(el('span', null, md(pts[0].d)), el('span', null, '최저 ' + fmt(lo) + ' · 최고 ' + fmt(hi)), el('span', null, md(last.d)));
+      readout.textContent = '\u00a0';
+
+      svg.onpointermove = function (e) {
+        var box = svg.getBoundingClientRect();
+        var i = Math.round((e.clientX - box.left) / box.width * (pts.length - 1));
+        i = Math.max(0, Math.min(pts.length - 1, i));
+        guide.setAttribute('x1', X(i)); guide.setAttribute('x2', X(i));
+        guide.style.display = '';
+        readout.textContent = md(pts[i].d) + '  ' + fmt(pts[i].v) + '원';
+      };
+      svg.onpointerdown = svg.onpointermove;
+      svg.onpointerleave = function () { guide.style.display = 'none'; readout.textContent = '\u00a0'; };
+    }
+    function load() {
+      chg.className = 'snap-chg';
+      if (num.textContent === '—') chg.textContent = '불러오는 중';
+      fetchSeries(item.base, days)
+        .then(function (rows) { if (alive) draw(rows); })
+        .catch(function () {
+          if (!alive) return;
+          chg.className = 'snap-chg down';
+          chg.textContent = '환율을 받아오지 못했어요. 잠시 후 다시 열어 주세요.';
+        });
+    }
+    load();
+    return { card: card, stop: function () { alive = false; } };
+  }
+
+  // ── 검색어 입력 → 중고 시장 검색 (레고, 중고 시세 공통) ──
+  var MARKETS = [
+    { name: '번개장터', url: function (q) { return 'https://m.bunjang.co.kr/search/products?q=' + encodeURIComponent(q); } },
+    { name: '당근', url: function (q) { return 'https://www.daangn.com/search/' + encodeURIComponent(q); } },
+    { name: '중고나라', url: function (q) { return 'https://web.joongna.com/search/' + encodeURIComponent(q); } },
+    { name: '네이버 검색', url: function (q) { return 'https://search.naver.com/search.naver?query=' + encodeURIComponent(q + ' 중고'); } }
+  ];
+  var SEARCHERS = {
+    lego: {
+      help: '레고 상자나 설명서에 적힌 제품번호를 입력하세요. 예: 10305, 42115, 75192',
+      placeholder: '제품번호', label: '레고 제품번호', numeric: true, ls: 'lego-last',
+      check: function (v) { return /^\d{3,7}(-\d{1,2})?$/.test(v.replace(/\s+/g, '')) ? v.replace(/\s+/g, '') : null; },
+      bad: '숫자로 된 제품번호를 입력해 주세요. (예: 10305)',
+      title: function (n) { return '레고 ' + n + ' 중고 시세 보기'; },
+      groups: [
+        { group: '국내 중고 거래', query: function (n) { return '레고 ' + n; }, sites: MARKETS },
+        { group: '해외 시세', query: function (n) { return n; }, sites: [
+          { name: 'BrickEconomy', url: function (n) { return 'https://www.brickeconomy.com/search?query=' + encodeURIComponent(n); } },
+          { name: 'Brick Owl', url: function (n) { return 'https://www.brickowl.com/search/catalog?query=' + encodeURIComponent(n); } },
+          { name: 'eBay 판매완료', url: function (n) { return 'https://www.ebay.com/sch/i.html?_nkw=' + encodeURIComponent('lego ' + n) + '&LH_Sold=1&LH_Complete=1'; } }
+        ]}
+      ],
+      note: '국내 사이트는 매물 가격(판매 희망가)이고, eBay 판매완료는 실제 거래된 가격이에요. 상자·설명서 유무와 부품 누락 여부에 따라 시세 차이가 커요.'
+    },
+    used: {
+      help: '찾고 싶은 물건의 이름을 모델명까지 구체적으로 입력하세요. 예: 아이폰 15 프로 256, 다이슨 V15, 닌텐도 스위치 OLED',
+      placeholder: '상품명', label: '중고 시세를 찾을 상품명', numeric: false, ls: 'used-last',
+      check: function (v) { var t = v.trim().replace(/\s+/g, ' '); return t.length >= 2 && t.length <= 60 ? t : null; },
+      bad: '상품명을 두 글자 이상 입력해 주세요.',
+      title: function (q) { return '‘' + q + '’ 중고 시세 보기'; },
+      groups: [
+        { group: '국내 중고 거래', query: function (q) { return q; }, sites: MARKETS }
+      ],
+      note: '보이는 값은 판매자가 올린 희망가예요. 실제 거래가는 보통 이보다 조금 낮고, 상태·구성품·보증 기간에 따라 차이가 커요. 번개장터와 중고나라는 검색 결과에서 판매완료 상품만 따로 볼 수 있어요.'
+    }
+  };
+  function searchCard(kind) {
+    var cfg = SEARCHERS[kind];
+    var card = el('article', 'card lego');
+    var body = el('div', 'lego-body');
+    body.appendChild(el('p', 'lego-help', cfg.help));
+    var form = el('div', 'lego-form');
+    var input = el('input');
+    input.type = 'text';
+    if (cfg.numeric) input.inputMode = 'numeric';
+    input.autocomplete = 'off';
+    input.placeholder = cfg.placeholder;
+    input.setAttribute('aria-label', cfg.label);
+    input.value = readLS(cfg.ls) || '';
+    var go = el('button', null, '조회');
+    go.type = 'button';
+    form.append(input, go);
+    var msg = el('p', 'lego-msg');
+    var out = el('div', 'lego-out');
+    var fb = el('div', 'lego-fallback');
+    fb.hidden = true;
+    body.append(form, msg, out, fb);
+    card.appendChild(body);
+
+    function showFallback(name, url) {
+      fb.innerHTML = '';
+      fb.hidden = false;
+      fb.appendChild(el('p', null, '이 화면에서는 새 탭을 열 수 없어요. 아래 주소를 복사해 브라우저에 붙여넣어 주세요. (' + name + ')'));
+      var row = el('div', 'lego-fb-row');
+      var box = el('input');
+      box.type = 'text'; box.readOnly = true; box.value = url;
+      box.setAttribute('aria-label', name + ' 검색 주소');
+      var copy = el('button', null, '복사');
+      copy.type = 'button';
+      copy.addEventListener('click', function () {
+        box.focus(); box.select();
+        var done = function () { copy.textContent = '복사됨'; setTimeout(function () { copy.textContent = '복사'; }, 1500); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(done, function () { try { document.execCommand('copy'); done(); } catch (e) {} });
+        } else { try { document.execCommand('copy'); done(); } catch (e) {} }
+      });
+      row.append(box, copy);
+      fb.appendChild(row);
+      box.select();
+    }
+    function show(v) {
+      out.innerHTML = '';
+      out.appendChild(el('p', 'lego-title', cfg.title(v)));
+      cfg.groups.forEach(function (g) {
+        var sec = el('div', 'lego-group');
+        if (cfg.groups.length > 1) sec.appendChild(el('h4', null, g.group));
+        var row = el('div', 'chips');
+        g.sites.forEach(function (s) {
+          var a = el('a', 'chip lego-link', s.name + ' ↗');
+          a.href = s.url(g.query(v)); a.target = '_blank'; a.rel = 'noopener';
+          a.addEventListener('click', function (e) {
+            e.preventDefault();
+            var w = null;
+            try { w = window.open(a.href, '_blank'); } catch (err) { w = null; }
+            if (w) { try { w.opener = null; } catch (err) {} return; }
+            showFallback(s.name, a.href);
+          });
+          row.appendChild(a);
+        });
+        sec.appendChild(row);
+        out.appendChild(sec);
+      });
+      out.appendChild(el('p', 'lego-note', cfg.note));
+    }
+    function run() {
+      var v = cfg.check(input.value);
+      if (!v) { msg.textContent = cfg.bad; out.innerHTML = ''; fb.hidden = true; input.focus(); return; }
+      msg.textContent = '';
+      fb.hidden = true;
+      writeLS(cfg.ls, v);
+      show(v);
+    }
+    go.addEventListener('click', run);
+    input.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && !e.isComposing) { e.preventDefault(); run(); }
+    });
+    var saved = input.value && cfg.check(input.value);
+    if (saved) show(saved);
+    setTimeout(function () { input.focus(); }, 50);
+    return card;
+  }
+
+  // ── 주소(#항목) 변경: 미리보기처럼 막힌 환경에서는 조용히 건너뜀 ──
+  var historyOk = true;
+  function safeHistory(kind, state, hash) {
+    if (!historyOk) return false;
+    try { history[kind](state, '', hash); return true; }
+    catch (e) { historyOk = false; return false; }
+  }
+
+  // ── 레이어 열기/닫기 ──
+  function openItem(id, push) {
+    var it = ITEMS[id];
+    if (!it) return;
+    current = it;
+    layerTitle.textContent = it.name;
+    layerSub.textContent = it.cat.name + ' · ' + it.group;
+    render();
+    if (!layer.open) layer.showModal();
+    document.body.classList.add('layer-open');
+    document.getElementById('layerScroll').scrollTop = 0;
+    if (window.fitAds) window.fitAds();
+    if (push) safeHistory('pushState', { item: id }, '#' + id);
+  }
+  function render() {
+    teardown();
+    layerBody.innerHTML = '';
+    var it = current, node;
+    if (it.type === 'tv') node = tvCard(it);
+    else if (it.type === 'snap') node = snapCard(it);
+    else if (it.type === 'region') node = regionCard(it);
+    else if (it.type === 'lego') node = searchCard('lego');
+    else if (it.type === 'used') node = searchCard('used');
+    else if (it.type === 'fx') { var fx = fxCard(it); node = fx.card; cleanups.push(fx.stop); }
+    else if (it.type === 'goldkr') { var gk = goldKrCard(); node = gk.card; cleanups.push(gk.stop); }
+    else node = linkCard(it);
+    var wrap = el('div', 'single');
+    wrap.appendChild(node);
+    layerBody.appendChild(wrap);
+    layerBody.querySelectorAll('.widget[data-symbol]').forEach(mountWidget);
+  }
+  function teardown() {
+    cleanups.forEach(function (f) { try { f(); } catch (e) {} });
+    cleanups = [];
+  }
+  function closeLayer() {
+    if (historyOk && history.state && history.state.item && location.hash) { history.back(); return; }
+    finishClose();
+  }
+  function finishClose() {
+    teardown();
+    layerBody.innerHTML = '';
+    current = null;
+    if (layer.open) layer.close();
+    document.body.classList.remove('layer-open');
+  }
+
+  document.getElementById('closeBtn').addEventListener('click', closeLayer);
+  layer.addEventListener('cancel', function (e) { e.preventDefault(); closeLayer(); });
+  layer.addEventListener('click', function (e) { if (e.target === layer) closeLayer(); });
+  window.addEventListener('popstate', function () {
+    var id = location.hash.slice(1);
+    if (ITEMS[id]) openItem(id, false);
+    else finishClose();
+  });
+
+
+  var initial = location.hash.slice(1);
+  if (ITEMS[initial]) {
+    safeHistory('replaceState', { item: initial }, '#' + initial);
+    openItem(initial, false);
+  }
+
+  // ── 항목 버튼 툴팁 (마우스를 쓰는 화면에서만) ──
+  (function () {
+    var canHover = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+    if (!canHover) return;
+    var tip = el('div', 'tip');
+    tip.setAttribute('role', 'tooltip');
+    tip.hidden = true;
+    document.body.appendChild(tip);
+    var cache = {};          // API로 받은 값: { at, data }
+    var current = null, showTimer = 0;
+
+    function nf(v, d) { return Number(v).toLocaleString('ko-KR', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+    function hm(t) { var d = new Date(t); return (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes(); }
+    function cached(key, ttl, loader) {
+      var c = cache[key];
+      if (c && Date.now() - c.at < ttl) return Promise.resolve(c.data);
+      return loader().then(function (d) { cache[key] = { at: Date.now(), data: d }; return d; });
+    }
+    function json(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
+
+    var UPBIT = { 'UPBIT:BTCKRW': 'KRW-BTC', 'UPBIT:ETHKRW': 'KRW-ETH' };
+    var METAL = { 'OANDA:XAUUSD': 'XAU', 'OANDA:XAGUSD': 'XAG', 'OANDA:XPTUSD': 'XPT' };
+
+    // 툴팁 내용: { label, value, unit, chg, chgText, meta } 또는 { note }
+    function content(it) {
+      if (it.type === 'snap') {
+        return Promise.resolve({ value: it.value, unit: it.unit, chg: it.chg, chgText: it.chgText,
+          meta: (it.avg ? fmtDate(it.date) + ' 평균' : fmtDate(it.date) + ' 기준') + ' · ' + it.source });
+      }
+      if (it.type === 'region') {
+        var keys = REGIONS.filter(function (r) { return it.data[r]; });
+        var r = it.data['서울'] ? '서울' : keys[0], v = it.data[r];
+        return Promise.resolve({ label: r, value: v.value, unit: v.unit, chg: v.chg, chgText: v.chgText,
+          meta: v.date + (keys.length > 1 ? ' · 외 ' + (keys.length - 1) + '개 지역' : '') });
+      }
+      if (it.type === 'fx') {
+        return fetchSeries(it.base, 31).then(function (rows) {
+          var a = rows[rows.length - 1], b = rows[rows.length - 2];
+          var last = a.v * it.mult, diff = last - b.v * it.mult, p = a.d.split('-');
+          return { value: nf(last, 2), unit: '원 (' + it.unit.replace('원/', '') + ')', chg: diff,
+            chgText: nf(Math.abs(diff), 2) + '원 전 영업일 대비',
+            meta: (+p[1]) + '월 ' + (+p[2]) + '일 · 유럽중앙은행 기준환율' };
+        });
+      }
+      if (it.type === 'goldkr') {
+        return cached('goldkr', 60000, function () {
+          return Promise.all([
+            json('https://api.gold-api.com/price/XAU').then(function (d) { return d.price; }),
+            json('https://open.er-api.com/v6/latest/USD').then(function (d) { return d.rates.KRW; })
+          ]);
+        }).then(function (r) {
+          var prem = null;
+          try { prem = JSON.parse(localStorage.getItem('gold-kr-premium') || 'null'); } catch (e) {}
+          var pct = prem && isFinite(prem.pct) ? prem.pct : DEFAULT_PREMIUM_PCT;
+          var est = Math.round(r[0] * r[1] / OZ_TO_G * (1 + pct / 100));
+          return { value: nf(est), unit: '원/g', chgText: '한 돈 ' + nf(Math.round(est * 3.75)) + '원',
+            meta: hm(Date.now()) + ' 계산 · 프리미엄 ' + (pct >= 0 ? '+' : '') + pct.toFixed(2) + '% 적용' };
+        });
+      }
+      if (it.type === 'tv' && UPBIT[it.symbol]) {
+        return cached(it.symbol, 15000, function () { return json('https://api.upbit.com/v1/ticker?markets=' + UPBIT[it.symbol]); })
+          .then(function (d) {
+            var t = d[0];
+            return { value: nf(t.trade_price), unit: '원', chg: t.signed_change_rate,
+              chgText: (Math.abs(t.signed_change_rate) * 100).toFixed(2) + '% 전일 대비',
+              meta: hm(Date.now()) + ' · 업비트' };
+          });
+      }
+      if (it.type === 'tv' && METAL[it.symbol]) {
+        return cached(it.symbol, 60000, function () { return json('https://api.gold-api.com/price/' + METAL[it.symbol]); })
+          .then(function (d) {
+            return { value: '$' + nf(d.price, 2), unit: '/온스', meta: hm(Date.now()) + ' · gold-api.com' };
+          });
+      }
+      if (it.type === 'tv') return Promise.resolve({ note: '실시간 차트 · 눌러서 보기' });
+      if (it.type === 'lego') return Promise.resolve({ note: '제품번호로 중고 시세 검색' });
+      if (it.type === 'used') return Promise.resolve({ note: '상품명으로 중고 시세 검색' });
+      return Promise.resolve({ note: '값은 출처에서 확인 · ' + it.source });
+    }
+
+    function paint(it, c) {
+      tip.innerHTML = '';
+      tip.appendChild(el('div', 'tip-name', it.name + (c && c.label ? ' · ' + c.label : '')));
+      if (!c) { tip.appendChild(el('div', 'tip-note', '불러오는 중…')); return; }
+      if (c.note) { tip.appendChild(el('div', 'tip-note', c.note)); return; }
+      var row = el('div', 'tip-val');
+      row.append(el('span', 'tip-num', c.value), el('span', 'tip-unit', c.unit || ''));
+      tip.appendChild(row);
+      if (c.chgText) {
+        var cls = c.chg > 0 ? ' up' : c.chg < 0 ? ' down' : '';
+        tip.appendChild(el('div', 'tip-chg' + cls, (c.chg > 0 ? '▲ ' : c.chg < 0 ? '▼ ' : '') + c.chgText));
+      }
+      if (c.meta) tip.appendChild(el('div', 'tip-meta', c.meta));
+    }
+    function place(btn) {
+      var r = btn.getBoundingClientRect();
+      tip.hidden = false;
+      var tw = tip.offsetWidth, th = tip.offsetHeight;
+      var x = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 8);
+      var y = r.top - th - 10;
+      tip.classList.toggle('below', y < 8);
+      if (y < 8) y = r.bottom + 10;
+      tip.style.left = x + 'px';
+      tip.style.top = y + 'px';
+    }
+    function show(btn) {
+      var it = ITEMS[btn.getAttribute('data-item')];
+      if (!it) return;
+      current = btn;
+      paint(it, null);
+      place(btn);
+      content(it).then(function (c) {
+        if (current !== btn) return;
+        paint(it, c); place(btn);
+      }).catch(function () {
+        if (current !== btn) return;
+        paint(it, { note: '값을 불러오지 못했어요 · 눌러서 보기' }); place(btn);
+      });
+    }
+    function hide() { current = null; clearTimeout(showTimer); tip.hidden = true; }
+
+    cats.addEventListener('mouseover', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (!b || b === current) return;
+      clearTimeout(showTimer);
+      showTimer = setTimeout(function () { show(b); }, 120);
+    });
+    cats.addEventListener('mouseout', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (b && !b.contains(e.relatedTarget)) hide();
+    });
+    cats.addEventListener('focusin', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (b && b.matches(':focus-visible')) show(b);
+    });
+    cats.addEventListener('focusout', hide);
+    cats.addEventListener('click', hide);
+    window.addEventListener('scroll', hide, { passive: true });
+  })();
+
+  // ── 서울·뉴욕 시계 ──
+  var markets = [
+    { id: 'clock-seoul', tz: 'Asia/Seoul', open: 540, close: 930 },
+    { id: 'clock-ny', tz: 'America/New_York', open: 570, close: 960 }
+  ];
+  function partsIn(tz) {
+    var o = {};
+    new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false, weekday: 'short', hour: '2-digit', minute: '2-digit' })
+      .formatToParts(new Date()).forEach(function (p) { o[p.type] = p.value; });
+    return { wd: o.weekday, h: parseInt(o.hour, 10) % 24, m: parseInt(o.minute, 10) };
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function left(mins) { var h = Math.floor(mins / 60), m = mins % 60; return h ? h + '시간 ' + m + '분' : m + '분'; }
+  function tick() {
+    markets.forEach(function (mk) {
+      var e = document.getElementById(mk.id), p = partsIn(mk.tz), now = p.h * 60 + p.m;
+      var weekend = p.wd === 'Sat' || p.wd === 'Sun';
+      var open = !weekend && now >= mk.open && now < mk.close;
+      e.querySelector('[data-time]').textContent = pad(p.h) + ':' + pad(p.m);
+      e.querySelector('[data-state]').textContent =
+        open ? '거래 중, 마감까지 ' + left(mk.close - now)
+        : weekend ? '주말 휴장'
+        : now < mk.open ? '개장까지 ' + left(mk.open - now) : '장 마감';
+      e.classList.toggle('is-open', open);
+    });
+  }
+  tick(); setInterval(tick, 20000);
+
+  // ═══ 국내 금 추정가 카드 ═══════════════════════════════════════
+  // 국제 현물 × 달러 환율 ÷ 31.1035 × (1 + 프리미엄)
+  // 기본 프리미엄 2.36%: 2026-11-11 KRX 종가 174,890원/g 과 국제 현물 3,984.97달러, 환율 1,333.6원으로 계산
+  var DEFAULT_PREMIUM_PCT = 2.36, DEFAULT_PREMIUM_DATE = '2026-11-11', OZ_TO_G = 31.1035;
+
+  function goldKrCard() {
+    var card = el('article', 'card');
+    card.innerHTML =
+      '<div class="card-head"><span class="card-name">국내 금 추정가</span><span class="card-unit">원/g</span></div>' +
+      '<div class="gk-body">' +
+      '<div class="gk-price" data-gk="price">—</div>' +
+      '<div class="gk-don">한 돈(3.75g) <span data-gk="don">—</span>원</div>' +
+      '<div class="gk-chg" data-gk="chg">&nbsp;</div>' +
+      '<svg class="gk-spark" data-gk="spark" viewBox="0 0 300 54" preserveAspectRatio="none" role="img" aria-label="오늘 계산한 국내 금 추정가 추이"></svg>' +
+      '<div class="gk-meta" data-gk="calc">불러오는 중</div>' +
+      '<div class="gk-meta" data-gk="meta">&nbsp;</div>' +
+      '<details class="gk-cal"><summary data-gk="prem">프리미엄</summary>' +
+      '<p>지금의 KRX 금 가격(원/g)을 입력하면 현재 국제 시세와 비교해 프리미엄을 다시 계산해요. 국내 장중에 입력할수록 정확해요.</p>' +
+      '<div class="gk-form"><input type="number" inputmode="numeric" min="1" step="10" placeholder="예: 174890" aria-label="현재 KRX 금 가격, 원/g" data-gk="krx">' +
+      '<button type="button" data-gk="apply">프리미엄 다시 계산</button></div>' +
+      '<button type="button" class="gk-reset" data-gk="reset">기본값으로 되돌리기</button></details>' +
+      '</div>';
+    var $ = function (k) { return card.querySelector('[data-gk="' + k + '"]'); };
+    var latest = null, timer = null;
+
+    function store(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+    function read(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
+    function fmt(n, d) { return Number(n).toLocaleString('ko-KR', { minimumFractionDigits: d || 0, maximumFractionDigits: d || 0 }); }
+    function seoul() {
+      var o = {};
+      new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
+        .formatToParts(new Date()).forEach(function (p) { o[p.type] = p.value; });
+      var hh = parseInt(o.hour, 10) % 24;
+      return { date: o.year + '-' + o.month + '-' + o.day, hm: pad(hh) + ':' + o.minute };
+    }
+    function premium() {
+      var p = read('gold-kr-premium');
+      return p && isFinite(p.pct) ? p : { pct: DEFAULT_PREMIUM_PCT, date: DEFAULT_PREMIUM_DATE, custom: false };
+    }
+    function getGold() {
+      return fetch('https://api.gold-api.com/price/XAU', { cache: 'no-store' })
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (d) { if (!isFinite(d.price)) throw 0; return d.price; })
+        .catch(function () {
+          return fetch('https://xaus.com/api/v1/spot', { cache: 'no-store' })
+            .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+            .then(function (d) { if (!isFinite(d.spot_usd_oz)) throw 0; return d.spot_usd_oz; });
+        });
+    }
+    function getFx() {
+      var c = read('gold-kr-fx');
+      if (c && Date.now() - c.at < 3600000) return Promise.resolve(c.krw);
+      return fetch('https://open.er-api.com/v6/latest/USD')
+        .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (d) { var v = d.rates && d.rates.KRW; if (!isFinite(v)) throw 0; return v; })
+        .catch(function () {
+          return fetch('https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json')
+            .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+            .then(function (d) { var v = d.usd && d.usd.krw; if (!isFinite(v)) throw 0; return v; });
+        })
+        .then(function (v) { store('gold-kr-fx', { krw: v, at: Date.now() }); return v; });
+    }
+    function series(date) { var r = read('gold-kr-est'); return r && r.date === date ? r.points : []; }
+    function spark(points, dir) {
+      var svg = $('spark');
+      svg.setAttribute('class', 'gk-spark ' + dir);
+      while (svg.firstChild) svg.removeChild(svg.firstChild);
+      if (points.length < 2) return;
+      var vals = points.map(function (p) { return p.v; });
+      var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals), span = hi - lo || 1;
+      var d = points.map(function (p, i) {
+        return (i ? 'L' : 'M') + (i / (points.length - 1) * 300).toFixed(1) + ' ' + (50 - (p.v - lo) / span * 44).toFixed(1);
+      }).join(' ');
+      var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', d);
+      svg.appendChild(path);
+    }
+    function draw() {
+      if (!latest) return;
+      var s = seoul(), prem = premium();
+      var est = Math.round(latest.usd * latest.krw / OZ_TO_G * (1 + prem.pct / 100));
+      $('price').textContent = fmt(est);
+      $('don').textContent = fmt(Math.round(est * 3.75));
+      var pts = series(s.date);
+      if (!pts.length || pts[pts.length - 1].v !== est) pts.push({ t: s.hm, v: est });
+      pts = pts.slice(-600);
+      store('gold-kr-est', { date: s.date, points: pts });
+      var diff = est - pts[0].v, dir = diff > 0 ? 'up' : diff < 0 ? 'down' : '';
+      $('chg').className = 'gk-chg ' + dir;
+      $('chg').textContent = pts.length > 1
+        ? (diff > 0 ? '▲ ' : diff < 0 ? '▼ ' : '– ') + fmt(Math.abs(diff)) + ' (' + (diff >= 0 ? '+' : '-') + Math.abs(diff / pts[0].v * 100).toFixed(2) + '%) 오늘 ' + pts[0].t + ' 대비'
+        : '오늘 첫 계산이에요. 이후 변동을 표시해요.';
+      spark(pts, dir);
+      $('calc').className = 'gk-meta';
+      $('calc').textContent = '국제 현물 $' + fmt(latest.usd, 2) + ' × ' + fmt(latest.krw, 2) + '원 ÷ 31.1035';
+      $('meta').textContent = s.hm + ' 계산, 1분마다 갱신';
+      var p = prem.date.split('-');
+      $('prem').textContent = '프리미엄 ' + (prem.pct >= 0 ? '+' : '') + prem.pct.toFixed(2) + '% 적용 (' + (+p[1]) + '/' + (+p[2]) + (prem.custom ? ' 직접 입력)' : ' 기본값)');
+    }
+    function fail(msg) {
+      $('calc').className = 'gk-meta err';
+      $('calc').textContent = msg + (latest ? ' 마지막 값을 표시하고 있어요.' : '');
+    }
+    function load() {
+      Promise.all([getGold(), getFx()])
+        .then(function (r) { latest = { usd: r[0], krw: r[1] }; draw(); })
+        .catch(function () { fail('국제 시세를 받아오지 못했어요. 1분 뒤 다시 시도해요.'); });
+    }
+    $('apply').addEventListener('click', function () {
+      var krx = Number($('krx').value);
+      if (!latest) { fail('국제 시세를 먼저 받아와야 계산할 수 있어요.'); return; }
+      if (!(krx > 0)) { $('krx').focus(); return; }
+      var pct = Math.round((krx / (latest.usd * latest.krw / OZ_TO_G) - 1) * 10000) / 100;
+      store('gold-kr-premium', { pct: pct, date: seoul().date, custom: true });
+      store('gold-kr-est', null);
+      $('krx').value = '';
+      draw();
+    });
+    $('reset').addEventListener('click', function () {
+      try { localStorage.removeItem('gold-kr-premium'); } catch (e) {}
+      store('gold-kr-est', null);
+      draw();
+    });
+    var saved = series(seoul().date);
+    if (saved.length > 1) spark(saved, '');
+    load();
+    timer = setInterval(function () { if (!document.hidden) load(); }, 60000);
+    return { card: card, stop: function () { clearInterval(timer); } };
+  }
+})();
+</script>
+<script>
+// ═══ 광고 배너: 화면 폭에 맞춰 비율 축소, 불러오지 못하면 접기 ═══
+(function () {
+  var slots = Array.prototype.slice.call(document.querySelectorAll('.ad-slot'));
+  function fit() {
+    slots.forEach(function (s) {
+      var box = s.querySelector('.ad-fit');
+      var w = box.clientWidth;
+      if (!w) return;                         // 닫힌 팝업 안에서는 열릴 때 다시 계산
+      var frame = s.querySelector('.ad-frame');
+      var base = parseFloat(frame.getAttribute('data-w')) || 680;
+      var k = Math.min(1, w / base);
+      s.style.setProperty('--ad-scale', k.toFixed(4));
+    });
+  }
+  window.fitAds = fit;
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(fit);
+    slots.forEach(function (s) { ro.observe(s.querySelector('.ad-fit')); });
+  }
+  fit();
+  // 스크립트가 막혔거나 광고 차단으로 배너가 없으면 칸을 접어요.
+  setTimeout(function () {
+    slots.forEach(function (s) {
+      var f = s.querySelector('iframe');
+      if (!f) s.classList.add('ad-empty');
+    });
+  }, 5000);
+})();
+</script>
+</body>
+</html>

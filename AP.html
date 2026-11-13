@@ -400,8 +400,8 @@
     position: absolute; top: 6px; left: 12px; font-size: 11px; letter-spacing: .06em;
     color: var(--muted); opacity: .8;
   }
-  .ad-fit { width: 100%; height: calc(140px * var(--ad-scale, 1)); overflow: hidden; display: flex; justify-content: center; }
-  .ad-frame { width: var(--ad-w, 680px); height: 140px; flex: none; transform: scale(var(--ad-scale, 1)); transform-origin: top center; border-radius: 8px; overflow: hidden; }
+  .ad-fit { width: 100%; height: calc(var(--ad-h, 140px) * var(--ad-scale, 1)); overflow: hidden; display: flex; justify-content: center; }
+  .ad-frame { width: var(--ad-w, 680px); height: var(--ad-h, 140px); flex: none; transform: scale(var(--ad-scale, 1)); transform-origin: top center; border-radius: 8px; overflow: hidden; }
   .ad-frame iframe { display: block; max-width: none; }
   .ad-slot.ad-empty { display: none; }
   @media (max-width: 640px) {
@@ -437,6 +437,48 @@
   .tip-chg.up { color: var(--up); } .tip-chg.down { color: var(--down); }
   .tip-meta { font-size: 11px; color: var(--muted); margin-top: 4px; opacity: .85; }
   .tip-note { font-size: 13px; color: #fff; }
+
+  /* ═══ 광고 팝업 ═══ */
+  dialog.ad-gate {
+    border: 0; padding: 0; background: transparent; color: #fff; overflow: visible;
+    width: min(440px, calc(100vw - 24px)); height: fit-content; max-height: calc(100dvh - 24px); margin: auto; inset: 0;
+  }
+  dialog.ad-gate::backdrop { background: rgba(5, 9, 14, .72); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .ad-gate-inner {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 14px 14px 10px; border-radius: 18px;
+    background: rgba(17, 26, 36, .92); border: 1px solid rgba(255, 255, 255, .1);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, .5);
+  }
+  .ad-gate-inner:focus { outline: none; }
+  .ad-gate-tag { margin: 0; align-self: flex-start; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .ad-gate-slot { margin: 0; padding: 0; width: 100%; max-width: 400px; border: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  .ad-gate-slot .ad-frame { border-radius: 10px; }
+  .ad-gate-wait { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: #ffffff; }
+  .ad-gate-bar { width: 100%; max-width: 400px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; margin-bottom: 6px; }
+  .ad-gate-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #7aa7ff, #8fb8ff); border-radius: inherit; }
+  .ad-gate-bar span.run { animation: gateFill 3s linear forwards; }
+  @keyframes gateFill { from { width: 0; } to { width: 100%; } }
+  .ad-gate-close {
+    font: inherit; font-size: 15px; font-weight: 600; color: #ffffff; background: none; border: 0;
+    padding: 10px 28px; border-radius: 10px; cursor: pointer;
+  }
+  .ad-gate-close:hover { background: rgba(255, 255, 255, .08); }
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.ad-gate[open] { animation: rise .2s ease-out; }
+  }
+
+  /* ═══ 값 카드 가운데 정렬 ═══ */
+  .value-card { text-align: center; }
+  .value-card .card-head { flex-direction: column; align-items: center; gap: 2px; padding-top: 16px; }
+  .value-card .snap-body, .value-card .gk-body { align-items: center; justify-items: center; }
+  .value-card .snap-val { justify-content: center; }
+  .value-card .snap-foot { text-align: center; padding-bottom: 4px; }
+  .value-card .region-chips { justify-content: center; padding-top: 16px; }
+  .value-card .region-out { padding-top: 10px; }
+  .value-card .gk-cal { text-align: left; }
+  .value-card .gk-cal summary { text-align: center; }
+  .value-card .fx-axis { text-align: left; }
 </style>
 </head>
 <body>
@@ -655,6 +697,22 @@
   </div>
 </dialog>
 
+<dialog class="ad-gate" id="adGate" aria-label="광고">
+  <div class="ad-gate-inner" tabindex="-1">
+    <p class="ad-gate-tag">광고</p>
+    <div class="ad-slot ad-gate-slot" style="--ad-w:400px; --ad-h:400px;">
+      <div class="ad-fit"><div class="ad-frame" data-w="400">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049552,"template":"carousel","trackingCode":"AF6707602","width":"400","height":"400","tsource":""});
+</script>
+      </div></div>
+    </div>
+    <p class="ad-gate-wait" aria-live="polite">잠시만 기다려 주세요.</p>
+    <div class="ad-gate-bar" aria-hidden="true"><span id="adGateBar"></span></div>
+  </div>
+</dialog>
+
 <script>
 // ═══════════════════════════════════════════════════════════════
 // 시세 목록
@@ -668,33 +726,44 @@
 var CATEGORIES = [
   {
     id: 'finance', name: '금융·투자',
-    summary: '환율, 금·은·백금, 비트코인, 코스피, 나스닥, 국채금리, 유가 등',
+    summary: '환율, 금·은, 비트코인, 코스피, 나스닥, 아시아 증시, 국채금리, 유가 등',
     groups: [
       { name: '환율', items: [
         { type: 'tv', name: '원/달러', unit: '원/1달러', symbol: 'FX_IDC:USDKRW' },
         { type: 'fx', name: '원/엔', unit: '원/100엔', base: 'JPY', mult: 100 },
         { type: 'tv', name: '원/유로', unit: '원/1유로', symbol: 'FX_IDC:EURKRW' },
-        { type: 'tv', name: '원/위안', unit: '원/1위안', symbol: 'FX_IDC:CNYKRW' }
+        { type: 'tv', name: '원/위안', unit: '원/1위안', symbol: 'FX_IDC:CNYKRW' },
+        { type: 'fx', name: '원/베트남 동', unit: '원/1만 동', base: 'VND', mult: 10000, src: 'latest' },
+        { type: 'fx', name: '원/태국 바트', unit: '원/1바트', base: 'THB', mult: 1 },
+        { type: 'fx', name: '원/대만 달러', unit: '원/1대만달러', base: 'TWD', mult: 1, src: 'latest' },
+        { type: 'fx', name: '원/홍콩 달러', unit: '원/1홍콩달러', base: 'HKD', mult: 1 }
       ]},
       { name: '귀금속', items: [
         { type: 'tv', name: '국제 금', unit: '달러/온스', symbol: 'OANDA:XAUUSD' },
         { type: 'goldkr', name: '국내 금 추정가', unit: '원/g' },
         { type: 'tv', name: '은', unit: '달러/온스', symbol: 'OANDA:XAGUSD' },
-        { type: 'tv', name: '백금', unit: '달러/온스', symbol: 'OANDA:XPTUSD' }
+        { type: 'tv', name: '백금', unit: '달러/온스', symbol: 'OANDA:XPTUSD' },
+        { type: 'tv', name: '팔라듐', unit: '달러/온스', symbol: 'CAPITALCOM:PALLADIUM' }
       ]},
       { name: '가상자산', items: [
         { type: 'tv', name: '비트코인', unit: '원 (업비트)', symbol: 'UPBIT:BTCKRW' },
         { type: 'tv', name: '이더리움', unit: '원 (업비트)', symbol: 'UPBIT:ETHKRW' }
       ]},
-      { name: '증시', items: [
-        { type: 'tv', name: '코스피', unit: '포인트', symbol: 'KRX:KOSPI' },
-        { type: 'tv', name: '코스닥', unit: '포인트', symbol: 'KRX:KOSDAQ' },
-        { type: 'tv', name: '나스닥 종합', unit: '포인트', symbol: 'NASDAQ:IXIC' },
-        { type: 'tv', name: 'S&P 500', unit: '포인트 (CFD)', symbol: 'FOREXCOM:SPXUSD' }
+      { name: '국내·미국 증시', items: [
+        { type: 'snap', name: '코스피', value: '5,342.73', unit: '포인트', date: '2026-11-12', chg: -0.61, chgText: '전일보다 32.63p(0.61%) 내림', note: '종가 기준', source: '한국거래소 (뉴스1 보도)', url: 'https://data.krx.co.kr' },
+        { type: 'snap', name: '코스닥', value: '696.53', unit: '포인트', date: '2026-11-12', chg: -1.22, chgText: '전일보다 8.57p(1.22%) 내림', note: '종가 기준', source: '한국거래소 (뉴시스 보도)', url: 'https://data.krx.co.kr' },
+        { type: 'tv', name: '나스닥 100', unit: '포인트 (CFD)', symbol: 'FOREXCOM:NSXUSD' },
+        { type: 'tv', name: 'S&P 500', unit: '포인트 (CFD)', symbol: 'FOREXCOM:SPXUSD' },
+        { type: 'tv', name: '다우존스', unit: '포인트 (CFD)', symbol: 'FOREXCOM:DJI' }
+      ]},
+      { name: '아시아 증시', items: [
+        { type: 'tv', name: '닛케이225', unit: '포인트 (CFD)', symbol: 'FOREXCOM:JP225' },
+        { type: 'tv', name: '항셍', unit: '포인트 (CFD)', symbol: 'CAPITALCOM:HK50' },
+        { type: 'tv', name: '중국 A50', unit: '포인트 (CFD)', symbol: 'CAPITALCOM:CN50' }
       ]},
       { name: '금리·유가', items: [
-        { type: 'tv', name: '미국 국채 10년', unit: '금리 %', symbol: 'TVC:US10Y' },
-        { type: 'tv', name: '미국 국채 2년', unit: '금리 %', symbol: 'TVC:US02Y' },
+        { type: 'snap', name: '미국 국채 10년', value: '4.98', unit: '% (연)', date: '2026-11-10', chg: 0.10, chgText: '전일보다 0.10%p 오름', note: '11일 재향군인의 날 휴장 · 12일 아시아 거래 4.991%', source: '미국 재무부 일별 수익률', url: 'https://home.treasury.gov' },
+        { type: 'snap', name: '미국 국채 2년', value: '4.73', unit: '% (연)', date: '2026-11-10', chg: 0.17, chgText: '전일보다 0.17%p 오름', note: '12일 아시아 거래 4.765%', source: '미국 재무부 일별 수익률', url: 'https://home.treasury.gov' },
         { type: 'tv', name: '국제 유가 (WTI)', unit: '달러/배럴', symbol: 'TVC:USOIL' },
         { type: 'tv', name: '국제 유가 (브렌트)', unit: '달러/배럴', symbol: 'TVC:UKOIL' }
       ]}
@@ -702,8 +771,28 @@ var CATEGORIES = [
   },
   {
     id: 'living', name: '생활물가',
-    summary: '휘발유·경유·LPG, 쌀, 계란, 배추, 사과, 삼겹살, 한우, 고등어, 커피 원두 등',
+    summary: '소비자물가, 외식 8대 메뉴, 휘발유, 쌀, 계란, 김장 재료, 전기·가스 요금 등',
     groups: [
+      { name: '물가 지표', items: [
+        { type: 'snap', name: '소비자물가 상승률', value: '2.8', unit: '% (전년 같은 달 대비)', date: '2026-10', chg: -0.1, chgText: '9월(2.9%)보다 0.1%p 낮아짐 · 두 달 연속 2%대', note: '생활물가 2.6% · 신선식품 −6.2% · 가공식품 2.9% · 외식 2.9%', source: '국가데이터처 소비자물가동향', url: 'https://kosis.kr' },
+        { type: 'snap', name: '최저임금 (시급)', value: '10,320', unit: '원', date: '2026', note: '2027년 10,700원(+3.7%) 확정 · 월 환산 2,156,880원(2026년)', source: '고용노동부 고시', url: 'https://www.minimumwage.go.kr' }
+      ]},
+      { name: '외식 (서울 평균)', items: [
+        { type: 'snap', name: '김밥', value: '3,923', unit: '원/1줄', date: '2026-09', chg: 8.3, chgText: '1년 전보다 300원(8.3%) 오름 · 8개 메뉴 중 상승률 1위', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '자장면', value: '7,808', unit: '원/1그릇', date: '2026-09', chg: 2.0, chgText: '작년 12월보다 2.0% 오름', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '김치찌개 백반', value: '8,846', unit: '원/1인분', date: '2026-09', chg: 2.2, chgText: '작년 12월보다 2.2% 오름', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '칼국수', value: '10,038', unit: '원/1인분', date: '2026-06', chg: 3.6, chgText: '1년 전보다 3.6% 오름 · 4월 처음 1만원 돌파', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '비빔밥', value: '12,000', unit: '원/1그릇', date: '2026-09', chg: 3.7, chgText: '1년 전보다 423원(3.7%) 오름 · 처음 1만 2천원대', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '냉면', value: '12,692', unit: '원/1그릇', date: '2026-09', chg: 1.5, chgText: '작년 12월보다 1.5% 오름', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '삼계탕', value: '18,269', unit: '원/1그릇', date: '2026-09', chg: 1.5, chgText: '작년 12월보다 1.5% 오름', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '삼겹살 (외식)', value: '21,321', unit: '원/200g', date: '2026-09', chg: 2.3, chgText: '작년 12월보다 471원(2.3%) 오름', note: '200g 환산 기준', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' }
+      ]},
+      { name: '가공식품·기호품', items: [
+        { type: 'snap', name: '라면 (신라면 5개입)', value: '4,587', unit: '원', date: '2026-11', note: '판매점 평균 · 최저 3,490원~최고 5,200원 · 조사일은 출처에서 확인', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '소주 (참이슬 360ml)', value: '1,545', unit: '원', date: '2026-11', note: '판매점 평균 · 최저 1,240원~최고 1,900원 · 조사일은 출처에서 확인', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '맥주 (카스 500ml)', value: '2,378', unit: '원', date: '2026-11', note: '판매점 평균 · 최저 1,930원~최고 2,800원 · 조사일은 출처에서 확인', source: '한국소비자원 참가격', url: 'https://www.price.go.kr' },
+        { type: 'snap', name: '아메리카노 (스타벅스 톨)', value: '4,700', unit: '원', date: '2026-06', note: '그란데 5,300원 · 벤티 6,100원 · 저가 브랜드 1,700~2,000원', source: '스타벅스 코리아 (언론 보도)', url: 'https://www.starbucks.co.kr' }
+      ]},
       { name: '연료 (전국 주유소 평균)', items: [
         { type: 'snap', name: '휘발유', value: '1,855.04', unit: '원/L', date: '2026-11-12', note: '서울 1,900원, 대구 1,827원', source: '오피넷 (한국석유공사)', url: 'https://www.opinet.co.kr' },
         { type: 'snap', name: '경유', value: '1,841.41', unit: '원/L', date: '2026-11-12', note: '전일과 거의 같음', source: '오피넷 (한국석유공사)', url: 'https://www.opinet.co.kr' },
@@ -712,7 +801,8 @@ var CATEGORIES = [
       { name: '곡물·채소·과일 (소매)', items: [
         { type: 'snap', name: '쌀 (상품)', value: '63,243', unit: '원/20kg', date: '2026-11-11', chg: 0.14, chgText: '전일보다 87원(0.14%) 오름', note: '평년보다 13.7% 높고, 1년 전보다 1.1% 낮음', source: 'KAMIS 소매가격', url: 'https://www.kamis.or.kr/customer/info/retail/period.do' },
         { type: 'snap', name: '배추', value: '2,749', unit: '원/1포기', date: '2026-11-09', chg: -26.5, chgText: '1년 전보다 26.5% 낮음', source: 'aT 김장 재료 조사', url: 'https://www.kamis.or.kr' },
-        { type: 'snap', name: '사과 (후지·상품)', value: '27,331', unit: '원/10개', date: '2026', avg: true, note: '올해 평균 소매가, 전년 평균보다 2.6% 낮음', source: 'KAMIS 농산물유통정보', url: 'https://www.kamis.or.kr' }
+        { type: 'snap', name: '사과 (후지·상품)', value: '21,571', unit: '원/10개', date: '2026-11-03', chg: -21.0, chgText: '1년 전보다 21.0% 낮음 · 생산량 10.8% 증가', note: '올해 평균은 27,331원', source: 'aT 농산물유통정보', url: 'https://www.kamis.or.kr' },
+        { type: 'snap', name: '감귤 (노지·중품)', value: '4,131', unit: '원/10개', date: '2026-11-03', chg: 24.4, chgText: '1년 전보다 24.4% 높음', note: '12월 성출하기에 내려갈 전망', source: 'aT 농산물유통정보', url: 'https://www.kamis.or.kr' }
       ]},
       { name: '축산 (전국 평균 소비자가)', items: [
         { type: 'snap', name: '계란 (특란 XL)', value: '7,354', unit: '원/30개', date: '2026-11-11', chg: 13.2, chgText: '1년 전 같은 달보다 13.2% 높음', source: '축산물품질평가원', url: 'https://www.ekapepia.com' },
@@ -720,9 +810,19 @@ var CATEGORIES = [
         { type: 'snap', name: '한우 등심 (1등급)', value: '12,186', unit: '원/100g', date: '2026-11-11', chg: -1, chgText: '전일보다 125원 내림', source: '축산물품질평가원', url: 'https://www.ekapepia.com' },
         { type: 'snap', name: '닭고기 (육계)', value: '5,656', unit: '원/kg', date: '2026-11-11', chg: 1.5, chgText: '전일보다 82원 오름', source: '축산물품질평가원', url: 'https://www.ekapepia.com' }
       ]},
+      { name: '김장 재료 (할인 반영)', items: [
+        { type: 'snap', name: '4인 가족 김장비용', value: '19만 9,456', unit: '원', date: '2026-11-09', chg: -9.0, chgText: '1년 전보다 9.0% 낮음 · 평년보다 13.4% 낮음', note: '배추 20포기 기준 13개 품목', source: 'aT 김장재료 구입비용 조사', url: 'https://www.kamis.or.kr' },
+        { type: 'snap', name: '무', value: '1,839', unit: '원/1개', date: '2026-11-09', chg: -5.6, chgText: '1년 전보다 5.6% 낮음', source: 'aT 김장재료 구입비용 조사', url: 'https://www.kamis.or.kr' },
+        { type: 'snap', name: '대파', value: '2,337', unit: '원/0.9kg', date: '2026-11-09', chg: -10.3, chgText: '1년 전보다 10.3% 낮음', source: 'aT 김장재료 구입비용 조사', url: 'https://www.kamis.or.kr' },
+        { type: 'snap', name: '깐마늘', value: '15,571', unit: '원/1.3kg', date: '2026-11-09', chg: 21.6, chgText: '1년 전보다 21.6% 높음', note: '생산량 감소 영향', source: 'aT 김장재료 구입비용 조사', url: 'https://www.kamis.or.kr' },
+        { type: 'snap', name: '고춧가루', value: '59,416', unit: '원/2kg', date: '2026-11-09', chg: -1.8, chgText: '1년 전보다 1.8% 낮음', source: 'aT 김장재료 구입비용 조사', url: 'https://www.kamis.or.kr' }
+      ]},
+      { name: '공공요금', items: [
+        { type: 'snap', name: '전기요금 (주택용)', value: '120.0', unit: '원/kWh', date: '2026-11', chg: 0, chgText: '4분기(10~12월) 동결 · 14분기 연속', note: '저압 200kWh 이하 구간 · 연료비조정단가 +5원/kWh', source: '한국전력', url: 'https://cyber.kepco.co.kr' },
+        { type: 'snap', name: '도시가스 (서울 주택용)', value: '22.5268', unit: '원/MJ', date: '2026-11', chg: 0, chgText: '11월 주택용 도매요금 동결', note: '기본요금 월 1,250원 · 지역별로 달라요', source: '서울도시가스 · 한국가스공사', url: 'https://www.seoulgas.co.kr' }
+      ]},
       { name: '수산 (소매)', items: [
-        { type: 'snap', name: '고등어 (국산 신선·대)', value: '4,538', unit: '원/1마리', date: '2026', avg: true, note: '올해 평균 소매가, 전년 평균보다 3.2% 낮음', source: 'KAMIS 수산물 소매가격', url: 'https://www.kamis.or.kr' },
-        { type: 'link', name: '오징어', unit: '원/1마리 · 소매', source: 'KAMIS 수산물 소매가격', url: 'https://www.kamis.or.kr', why: '최근 조사값을 찾지 못했어요' }
+        { type: 'snap', name: '고등어 (국산 신선·대)', value: '4,538', unit: '원/1마리', date: '2026', avg: true, note: '올해 평균 소매가, 전년 평균보다 3.2% 낮음', source: 'KAMIS 수산물 소매가격', url: 'https://www.kamis.or.kr' }
       ]},
       { name: '국제 식품 원자재', items: [
         { type: 'tv', name: '커피 원두 (아라비카)', unit: '센트/파운드 (CFD)', symbol: 'CAPITALCOM:COFFEEARABICA' },
@@ -760,7 +860,12 @@ var CATEGORIES = [
         { type: 'region', name: '아파트 월세', kind: 'wolse', fallbackUrl: 'https://rt.molit.go.kr', data: {
           '서울': { value: '166만 1천', unit: '원/월', date: '2026년 9월 평균', note: '평균 보증금 1억 9,568만원 · 1년 전보다 15.1% 오름', source: '한국부동산원 월간 주택가격동향', url: 'https://www.reb.or.kr/r-one' }
         }},
-        { type: 'link', name: '오피스텔', unit: '실거래가 · 지역별', source: '국토교통부 실거래가 공개시스템', url: 'https://rt.molit.go.kr', why: '지역·면적별 편차가 커서 대표값이 없어요' }
+        { type: 'region', name: '오피스텔 (평균 매매가)', data: {
+          '전국': { value: '2억 2,086만', unit: '원', date: '2026년 9월 평균', note: '전세 1억 7,777만원 · 월세 81만 9천원', source: '한국부동산원 오피스텔 가격동향', url: 'https://www.reb.or.kr/r-one' },
+          '서울': { value: '2억 8,219만', unit: '원', date: '2026년 9월 평균', note: '전세 2억 2,423만원 · 월세 96만 1천원', source: '한국부동산원 오피스텔 가격동향', url: 'https://www.reb.or.kr/r-one' },
+          '경기': { value: '2억 2,375만', unit: '원', date: '2026년 9월 평균', note: '전세 1억 8,282만원 · 월세 85만 9천원', source: '한국부동산원 오피스텔 가격동향', url: 'https://www.reb.or.kr/r-one' },
+          '부산': { value: '1억 6,347만', unit: '원', date: '2026년 9월 평균', source: '한국부동산원 오피스텔 가격동향', url: 'https://www.reb.or.kr/r-one' }
+        }}
       ]},
       { name: '지표', items: [
         { type: 'region', name: '아파트 매매가격 (주간 변동)', data: {
@@ -806,7 +911,24 @@ var CATEGORIES = [
           '서울': { value: '50.29', unit: '%', date: '2026년 10월', note: '매매가 대비 전세가 비율', source: 'KB부동산 월간 통계', url: 'https://data.kbland.kr' },
           '경기': { value: '59.4', unit: '%', date: '2026년 9월', note: '매매가 대비 전세가 비율 · 31개 시군 중 23곳이 60% 이상', source: '부동산R114', url: 'https://www.r114.com' }
         }},
-        { type: 'link', name: '지역별 아파트 평당 가격', unit: '만원/3.3㎡', source: '한국부동산원 R-ONE', url: 'https://www.reb.or.kr/r-one', why: '지역별로 봐야 의미가 있어 출처에서 확인해 주세요' }
+        { type: 'region', name: '지역별 아파트 평당 가격', data: {
+          '서울': { value: '6,505만', unit: '원/3.3㎡', date: '2026년 10월', chg: 0.73, chgText: '전월보다 0.73% 오름 · 통계상 처음 6,500만원 돌파', note: '전용면적 기준 · 수도권 평균 3,636만원', source: 'KB부동산 월간 통계', url: 'https://data.kbland.kr' },
+          '경기': { value: '2,625만', unit: '원/3.3㎡', date: '2026년 10월', note: '전용면적 기준', source: 'KB부동산 월간 통계', url: 'https://data.kbland.kr' },
+          '인천': { value: '1,780만', unit: '원/3.3㎡', date: '2026년 10월', note: '전용면적 기준', source: 'KB부동산 월간 통계', url: 'https://data.kbland.kr' }
+        }},
+        { type: 'snap', name: '아파트 평균 분양가', value: '2,873만', unit: '원/3.3㎡', date: '2026-09', note: '전국 민간 아파트 · 12개월 이동평균, 역대 최고 · 서울 전용 84㎡ 20억원대', source: '리얼하우스 (HUG 자료 분석)', url: 'https://www.khug.or.kr' },
+        { type: 'region', name: '미분양 주택', data: {
+          '전국': { value: '6만 5,941', unit: '가구', date: '2026년 9월 말', chg: -4.6, chgText: '전월보다 3,193가구(4.6%) 감소', note: '준공 후 미분양 2만 7,549가구 · 수도권 1만 8,057 · 지방 4만 7,884', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '서울': { value: '996', unit: '가구', date: '2026년 9월 말', chg: 10.9, chgText: '전월보다 98가구 증가', note: '준공 후 미분양 683가구', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '부산': { value: '6,928', unit: '가구', date: '2026년 9월 말', chg: -8.8, chgText: '전월보다 8.8% 감소', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '울산': { value: '1,728', unit: '가구', date: '2026년 9월 말', chg: 45.2, chgText: '전월보다 45.2% 증가', note: '준공 후 미분양 630가구', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '대구': { value: '3,889', unit: '가구', date: '2026년 9월 말', note: '이 중 준공 후 미분양 3,077가구(79.1%)', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '충남': { value: '9,209', unit: '가구', date: '2026년 9월 말', chg: -3.9, chgText: '전월보다 3.9% 감소', note: '준공 후 미분양 2,652가구(전월보다 15.9% 증가)', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '전북': { value: '1,611', unit: '가구', date: '2026년 9월 말', chg: 5.4, chgText: '전월보다 5.4% 증가', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '경북': { value: '5,722', unit: '가구', date: '2026년 9월 말', chg: -2.7, chgText: '전월보다 157가구(2.7%) 감소', note: '준공 후 미분양 2,778가구', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '경남': { value: '5,819', unit: '가구', date: '2026년 9월 말', chg: -8.0, chgText: '전월보다 8.0% 감소', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' },
+          '제주': { value: '3,251', unit: '가구', date: '2026년 9월 말', note: '이 중 준공 후 미분양 2,321가구(71.4%)', source: '국토교통부 주택통계', url: 'https://stat.molit.go.kr' }
+        }}
       ]},
       { name: '금리 (은행 신규 취급 평균)', items: [
         { type: 'snap', name: '주택담보대출 금리', value: '4.88', unit: '% (연)', date: '2026-09', chg: 0.22, chgText: '전월보다 0.22%p 오름 · 고정형 5.11%', source: '한국은행 가중평균금리', url: 'https://ecos.bok.or.kr' },
@@ -817,16 +939,17 @@ var CATEGORIES = [
   },
   {
     id: 'used', name: '중고시세',
-    summary: '상품명을 입력해 국내 중고 거래 사이트의 시세를 한 번에 찾아봐요.',
+    summary: '상품명이나 차종을 입력해 중고 시세를 한 번에 찾아봐요.',
     groups: [
       { name: '전체 품목', items: [
-        { type: 'used', name: '중고 시세 검색' }
+        { type: 'used', name: '중고 시세 검색' },
+        { type: 'car', name: '중고차 시세 검색' }
       ]}
     ]
   },
   {
     id: 'industry', name: '원자재·산업',
-    summary: '구리, 알루미늄, 니켈, 천연가스, 철근, 해상운임, 리튬, 철스크랩, 시멘트, 목재',
+    summary: '구리, 알루미늄, 니켈, 천연가스, 옥수수, 대두, 철광석, 철근, 해상운임',
     groups: [
       { name: '비철금속·에너지', items: [
         { type: 'tv', name: '구리', unit: '달러/파운드', symbol: 'CAPITALCOM:COPPER' },
@@ -834,15 +957,41 @@ var CATEGORIES = [
         { type: 'tv', name: '니켈', unit: '달러/톤', symbol: 'CAPITALCOM:NICKEL' },
         { type: 'tv', name: '천연가스 (LNG 참고)', unit: '달러/MMBtu', symbol: 'CAPITALCOM:NATURALGAS' }
       ]},
+      { name: '곡물·철광석', items: [
+        { type: 'tv', name: '옥수수', unit: '센트/부셸 (CFD)', symbol: 'CAPITALCOM:CORN' },
+        { type: 'tv', name: '대두', unit: '센트/부셸 (CFD)', symbol: 'CAPITALCOM:SOYBEANS' },
+        { type: 'tv', name: '철광석', unit: '달러/톤 (CFD)', symbol: 'CAPITALCOM:IRONORE' }
+      ]},
       { name: '건설·산업 자재', items: [
-        { type: 'snap', name: '철근 (SD400 10mm 유통)', value: '76만~77만', unit: '원/톤', date: '2026-11-10', chg: -2.6, chgText: '전주보다 2만원 내림 · 11월 기준가 96만 3천원', source: '철강금속신문', url: 'https://www.snmnews.com' },
-        { type: 'link', name: '철스크랩', unit: '원/톤 · 국내', source: '철강금속신문', url: 'https://www.snmnews.com', why: '공신력 있는 최신 수치를 찾지 못했어요' },
-        { type: 'link', name: '시멘트', unit: '원/톤 · 국내', source: '한국물가정보', url: 'https://www.kpi.or.kr', why: '공개된 최신 수치를 찾지 못했어요' },
-        { type: 'link', name: '목재', unit: '원/㎥ · 국내', source: '한국임업진흥원', url: 'https://www.kofpi.or.kr', why: '공개된 최신 수치를 찾지 못했어요' },
-        { type: 'link', name: '리튬 (탄산리튬)', unit: '달러/kg', source: '한국자원정보서비스 KOMIS', url: 'https://www.komis.or.kr', why: '최근 수치를 찾지 못했어요' }
+        { type: 'snap', name: '철근 (SD400 10mm 유통)', value: '76만~77만', unit: '원/톤', date: '2026-11-10', chg: -2.6, chgText: '전주보다 2만원 내림 · 11월 기준가 96만 3천원', source: '철강금속신문', url: 'https://www.snmnews.com' }
       ]},
       { name: '물류', items: [
         { type: 'snap', name: '해상운임 (SCFI)', value: '3,633.45', unit: '포인트', date: '2026-11-06', chg: -1.46, chgText: '전주보다 53.9p(1.46%) 내림 · 부산발 KCCI 4,668p', source: '상하이해운거래소 · 한국해양진흥공사', url: 'https://www.kobc.or.kr' }
+      ]}
+    ]
+  },
+  {
+    id: 'it', name: 'IT·전자',
+    summary: '그래픽카드, 램 가격과 메모리 시장 시세',
+    groups: [
+      { name: '그래픽카드 (미국 최저가 원화 환산)', items: [
+        { type: 'snap', name: 'RTX 5090', value: '922만', unit: '원', date: '2026-11-03', note: '$6,919 · 11월 13일 매매기준율 1,332.4원 환산 · 출시가 $1,999의 3.46배 · 국내 판매가는 관세·부가세로 더 높을 수 있어요', source: "Tom's Hardware 최저가 추적", url: 'https://www.tomshardware.com' },
+        { type: 'snap', name: 'RTX 5080', value: '266만', unit: '원', date: '2026-11-03', note: '$1,999 · 11월 13일 매매기준율 1,332.4원 환산 · 출시가 $999의 2배', source: "Tom's Hardware 최저가 추적", url: 'https://www.tomshardware.com' },
+        { type: 'snap', name: 'RTX 5070 Ti', value: '186만', unit: '원', date: '2026-11-03', note: '$1,399 · 11월 13일 매매기준율 1,332.4원 환산 · 미국 판매처 최저가', source: "Tom's Hardware 최저가 추적", url: 'https://www.tomshardware.com' },
+        { type: 'snap', name: 'RTX 5070', value: '120만', unit: '원', date: '2026-11-03', note: '$899 · 11월 13일 매매기준율 1,332.4원 환산 · 출시가 $549의 1.64배', source: "Tom's Hardware 최저가 추적", url: 'https://www.tomshardware.com' }
+      ]},
+      { name: '메모리 시장 (국제 현물가 환산)', items: [
+        { type: 'snap', name: 'DDR5 16Gb 칩', value: '80,250', unit: '원/개', date: '2026-11-12', chg: 0.11, chgText: '전일보다 0.11% 오름', note: '$60.23 · 11월 13일 매매기준율 1,332.4원 환산 · 4800/5600 · 1년 전보다 약 5배 수준', source: 'TrendForce (D램익스체인지)', url: 'https://www.trendforce.com' },
+        { type: 'snap', name: 'DDR4 16Gb 칩', value: '106,419', unit: '원/개', date: '2026-11-12', chg: -0.15, chgText: '전일보다 0.15% 내림', note: '$79.87 · 11월 13일 매매기준율 1,332.4원 환산 · 3200 · 9월 고점보다 낮아짐', source: 'TrendForce (D램익스체인지)', url: 'https://www.trendforce.com' },
+        { type: 'snap', name: 'DDR4 8Gb 칩', value: '59,811', unit: '원/개', date: '2026-11-12', chg: -0.24, chgText: '전일보다 0.24% 내림', note: '$44.89 · 11월 13일 매매기준율 1,332.4원 환산 · 3200', source: 'TrendForce (D램익스체인지)', url: 'https://www.trendforce.com' },
+        { type: 'snap', name: 'DDR5 16GB 모듈', value: '324,213', unit: '원/개', date: '2026-11-02', chg: 0.69, chgText: '전주보다 0.69% 오름', note: '$243.33 · 11월 13일 매매기준율 1,332.4원 환산 · 데스크톱용 UDIMM 4800/5600 현물가', source: 'TrendForce (D램익스체인지)', url: 'https://www.trendforce.com' }
+      ]},
+      { name: '램 판매가 (미국 가격 환산)', items: [
+        { type: 'snap', name: 'DDR5 16GB (8GB×2)', value: '333,087', unit: '원', date: '2026-11-10', note: '$249.99 · 11월 13일 매매기준율 1,332.4원 환산 · DDR5-6000 · GB당 약 2만 800원', source: 'BottleneckPC 가격 조사', url: 'https://bottleneckpc.com/blog/best-ram-deals' },
+        { type: 'snap', name: 'DDR5 32GB (16GB×2)', value: '65만', unit: '원 안팎', date: '2026-11-10', note: '약 $490 · 11월 13일 매매기준율 1,332.4원 환산 · DDR5-6000 CL30 기준', source: 'BottleneckPC 가격 조사', url: 'https://bottleneckpc.com/blog/best-ram-deals' }
+      ]},
+      { name: '국내 가격 검색', items: [
+        { type: 'pc', name: '그래픽카드·램 가격 검색' }
       ]}
     ]
   },
@@ -922,7 +1071,7 @@ var CATEGORIES = [
         b.type = 'button';
         b.setAttribute('aria-haspopup', 'dialog');
         b.setAttribute('data-item', it.id);
-        b.addEventListener('click', function () { openItem(it.id, true); });
+        b.addEventListener('click', function () { requestOpen(it.id); });
         wrap.appendChild(b);
       });
       row.appendChild(wrap);
@@ -1087,6 +1236,32 @@ var CATEGORIES = [
   // ── 환율 카드 (유럽중앙은행 기준환율, 무료 API) ──
   var FX_HOSTS = ['https://api.frankfurter.dev/v1/', 'https://api.frankfurter.app/'];
   function ymd(d) { return d.toISOString().slice(0, 10); }
+  // 유럽중앙은행 목록에 없는 통화는 currency-api 최신값과 전날 값을 받아 비교해요(차트 없음).
+  function fetchLatestPair(base) {
+    var b = base.toLowerCase();
+    var key = 'fxl-' + base;
+    try {
+      var c = JSON.parse(localStorage.getItem(key) || 'null');
+      if (c && Date.now() - c.at < 3 * 3600 * 1000) return Promise.resolve(c.rows);
+    } catch (e) {}
+    var url = function (tag) { return 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@' + tag + '/v1/currencies/' + b + '.json'; };
+    return fetch(url('latest')).then(function (r) { if (!r.ok) throw 0; return r.json(); }).then(function (d) {
+      var v = d[b] && d[b].krw;
+      if (!isFinite(v)) throw 0;
+      var last = { d: d.date, v: v };
+      var prevDay = new Date(d.date + 'T00:00:00Z');
+      prevDay.setUTCDate(prevDay.getUTCDate() - 1);
+      var tag = prevDay.toISOString().slice(0, 10);
+      return fetch(url(tag)).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+        .then(function (p) { var pv = p[b] && p[b].krw; return isFinite(pv) ? [{ d: tag, v: pv }, last] : [last]; })
+        .catch(function () { return [last]; });
+    }).then(function (rows) {
+      try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), rows: rows })); } catch (e) {}
+      return rows;
+    });
+  }
+  function fxRows(item, days) { return item.src === 'latest' ? fetchLatestPair(item.base) : fetchSeries(item.base, days); }
+
   function fetchSeries(base, days) {
     var key = 'fx-' + base + '-' + days;
     try {
@@ -1154,9 +1329,12 @@ var CATEGORIES = [
     chartWrap.append(seg, svg, axis, readout);
 
     var foot = el('div', 'snap-foot');
-    var a = el('a', null, '유럽중앙은행 기준환율 (Frankfurter)');
-    a.href = 'https://frankfurter.dev'; a.target = '_blank'; a.rel = 'noopener';
-    foot.append(el('span', null, '출처 '), a, el('span', null, ' · 영업일 하루 한 번 갱신'));
+    var latestOnly = item.src === 'latest';
+    var a = el('a', null, latestOnly ? '공개 환율 데이터 (currency-api)' : '유럽중앙은행 기준환율 (Frankfurter)');
+    a.href = latestOnly ? 'https://github.com/fawazahmed0/exchange-api' : 'https://frankfurter.dev';
+    a.target = '_blank'; a.rel = 'noopener';
+    foot.append(el('span', null, '출처 '), a, el('span', null, latestOnly ? ' · 하루 한 번 갱신 · 추이 차트 없음' : ' · 영업일 하루 한 번 갱신'));
+    if (latestOnly) chartWrap.hidden = true;
 
     card.append(head, body, chartWrap, foot);
 
@@ -1165,13 +1343,15 @@ var CATEGORIES = [
     function md(s) { var p = s.split('-'); return (+p[1]) + '/' + (+p[2]); }
     function draw(rows) {
       var pts = rows.map(function (r) { return { d: r.d, v: r.v * item.mult }; });
-      var last = pts[pts.length - 1], prev = pts[pts.length - 2];
+      var last = pts[pts.length - 1], prev = pts.length > 1 ? pts[pts.length - 2] : null;
       num.textContent = fmt(last.v);
       var p = last.d.split('-');
       date.textContent = (+p[1]) + '월 ' + (+p[2]) + '일 기준';
+      if (!prev) { chg.className = 'snap-chg'; chg.textContent = '전일 값 없음'; return; }
       var diff = last.v - prev.v, pct = diff / prev.v * 100;
       chg.className = 'snap-chg' + (diff > 0 ? ' up' : diff < 0 ? ' down' : '');
-      chg.textContent = (diff > 0 ? '▲ ' : diff < 0 ? '▼ ' : '– ') + fmt(Math.abs(diff)) + '원 (' + (diff >= 0 ? '+' : '-') + Math.abs(pct).toFixed(2) + '%) 전 영업일 대비';
+      chg.textContent = (diff > 0 ? '▲ ' : diff < 0 ? '▼ ' : '– ') + fmt(Math.abs(diff)) + '원 (' + (diff >= 0 ? '+' : '-') + Math.abs(pct).toFixed(2) + '%) ' + (latestOnly ? '전일 대비' : '전 영업일 대비');
+      if (latestOnly) return;
 
       while (svg.firstChild) svg.removeChild(svg.firstChild);
       var vals = pts.map(function (q) { return q.v; });
@@ -1213,7 +1393,7 @@ var CATEGORIES = [
     function load() {
       chg.className = 'snap-chg';
       if (num.textContent === '—') chg.textContent = '불러오는 중';
-      fetchSeries(item.base, days)
+      fxRows(item, days)
         .then(function (rows) { if (alive) draw(rows); })
         .catch(function () {
           if (!alive) return;
@@ -1248,6 +1428,45 @@ var CATEGORIES = [
         ]}
       ],
       note: '국내 사이트는 매물 가격(판매 희망가)이고, eBay 판매완료는 실제 거래된 가격이에요. 상자·설명서 유무와 부품 누락 여부에 따라 시세 차이가 커요.'
+    },
+    pc: {
+      help: '모델명을 입력하세요. 예: RTX 5070, RX 9070 XT, DDR5 32GB 6000, 삼성 DDR5 16GB',
+      placeholder: '모델명', label: '가격을 찾을 그래픽카드·램 모델명', numeric: false, ls: 'pc-last',
+      check: function (v) { var t = v.trim().replace(/\s+/g, ' '); return t.length >= 2 && t.length <= 60 ? t : null; },
+      bad: '모델명을 두 글자 이상 입력해 주세요.',
+      title: function (q) { return '‘' + q + '’ 가격 보기'; },
+      groups: [
+        { group: '새 제품 최저가', query: function (q) { return q; }, sites: [
+          { name: '다나와', url: function (q) { return 'https://search.danawa.com/dsearch.php?query=' + encodeURIComponent(q); } },
+          { name: '에누리', url: function (q) { return 'https://www.enuri.com/search.jsp?keyword=' + encodeURIComponent(q); } },
+          { name: '네이버쇼핑', url: function (q) { return 'https://search.shopping.naver.com/search/all?query=' + encodeURIComponent(q); } }
+        ]},
+        { group: '중고', query: function (q) { return q; }, sites: [
+          { name: '번개장터', url: function (q) { return 'https://m.bunjang.co.kr/search/products?q=' + encodeURIComponent(q); } },
+          { name: '당근', url: function (q) { return 'https://www.daangn.com/search/' + encodeURIComponent(q); } },
+          { name: '퀘이사존 장터', url: function (q) { return 'https://www.google.com/search?q=' + encodeURIComponent('site:quasarzone.com ' + q); } },
+          { name: '쿨엔조이 장터', url: function (q) { return 'https://www.google.com/search?q=' + encodeURIComponent('site:coolenjoy.net ' + q); } }
+        ]}
+      ],
+      note: '그래픽카드는 같은 칩이라도 제조사·쿨러에 따라 수십만 원씩 차이가 나요. 퀘이사존·쿨엔조이는 구글 검색으로 해당 커뮤니티 글만 모아 보여줘요.'
+    },
+    car: {
+      help: '차종과 연식을 함께 입력하세요. 예: 쏘렌토 2022, 그랜저 하이브리드 2023, 아반떼 CN7',
+      placeholder: '차종·연식', label: '중고차 시세를 찾을 차종과 연식', numeric: false, ls: 'car-last',
+      check: function (v) { var t = v.trim().replace(/\s+/g, ' '); return t.length >= 2 && t.length <= 60 ? t : null; },
+      bad: '차종을 두 글자 이상 입력해 주세요.',
+      title: function (q) { return '‘' + q + '’ 중고차 시세 보기'; },
+      groups: [
+        { group: '중고차 전문', query: function (q) { return q; }, sites: [
+          { name: '엔카', url: function (q) { return 'https://www.google.com/search?q=' + encodeURIComponent('site:encar.com ' + q); } },
+          { name: 'KB차차차', url: function (q) { return 'https://www.google.com/search?q=' + encodeURIComponent('site:kbchachacha.com ' + q); } }
+        ]},
+        { group: '일반 검색·직거래', query: function (q) { return q; }, sites: [
+          { name: '네이버 검색', url: function (q) { return 'https://search.naver.com/search.naver?query=' + encodeURIComponent(q + ' 중고차 시세'); } },
+          { name: '당근', url: function (q) { return 'https://www.daangn.com/search/' + encodeURIComponent(q); } }
+        ]}
+      ],
+      note: '매물 가격은 주행거리, 사고 이력, 옵션에 따라 차이가 커요. 엔카와 KB차차차는 구글 검색으로 해당 사이트의 매물만 모아 보여줘요.'
     },
     used: {
       help: '찾고 싶은 물건의 이름을 모델명까지 구체적으로 입력하세요. 예: 아이폰 15 프로 256, 다이슨 V15, 닌텐도 스위치 OLED',
@@ -1347,6 +1566,61 @@ var CATEGORIES = [
     return card;
   }
 
+  // ── 세부 팝업을 열 때 무작위 회차(간격 1~10)마다 광고 팝업을 먼저 표시 ──
+  //   클릭 여부와 상관없이 '닫기'로 닫을 수 있고, 닫으면 원래 열려던 항목이 열려요.
+  var adGate = document.getElementById('adGate');
+  var pendingId = null, gateTimer = 0;
+  var GATE_MS = 3000;          // 광고 팝업 노출 시간
+  function todayKey() {
+    var d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+  }
+  // 다음 광고까지 간격: 1~10 중 무작위
+  function randGap() { return 1 + Math.floor(Math.random() * 10); }
+  // 이번 열기가 광고 차례인지 판단하고, 광고가 나오면 다음 차례를 다시 뽑아요. 날짜가 바뀌면 처음부터.
+  function isAdTurn() {
+    var rec = null;
+    try { rec = JSON.parse(localStorage.getItem('ad-gate-count') || 'null'); } catch (e) {}
+    if (!rec || rec.date !== todayKey() || !rec.next) rec = { date: todayKey(), n: 0, next: randGap() };
+    rec.n += 1;
+    var due = rec.n >= rec.next;
+    if (due) rec.next = rec.n + randGap();
+    try { localStorage.setItem('ad-gate-count', JSON.stringify(rec)); } catch (e) {}
+    return due;
+  }
+  function adReady() {
+    var slot = adGate.querySelector('.ad-gate-slot');
+    return !slot.classList.contains('ad-empty') && !!slot.querySelector('iframe');
+  }
+  function requestOpen(id) {
+    if (isAdTurn() && adReady()) {
+      pendingId = id;
+      adGate.showModal();
+      document.body.classList.add('layer-open');
+      if (window.fitAds) window.fitAds();
+      adGate.querySelector('.ad-gate-inner').focus();
+      var bar = document.getElementById('adGateBar');
+      bar.style.animationDuration = GATE_MS + 'ms';
+      bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run');
+      // 막대가 끝까지 차는 순간 닫기. 애니메이션이 멈춘 환경을 대비해 시간으로도 한 번 더 확인해요.
+      bar.onanimationend = function () { setTimeout(closeGate, 120); };
+      clearTimeout(gateTimer);
+      gateTimer = setTimeout(closeGate, GATE_MS + 400);
+      return;
+    }
+    openItem(id, true);
+  }
+  function closeGate() {
+    clearTimeout(gateTimer);
+    if (!adGate.open) return;
+    adGate.close();
+    var id = pendingId;
+    pendingId = null;
+    if (id) openItem(id, true);
+    else document.body.classList.remove('layer-open');
+  }
+  adGate.addEventListener('cancel', function (e) { e.preventDefault(); closeGate(); });   // ESC
+
   // ── 주소(#항목) 변경: 미리보기처럼 막힌 환경에서는 조용히 건너뜀 ──
   var historyOk = true;
   function safeHistory(kind, state, hash) {
@@ -1378,9 +1652,12 @@ var CATEGORIES = [
     else if (it.type === 'region') node = regionCard(it);
     else if (it.type === 'lego') node = searchCard('lego');
     else if (it.type === 'used') node = searchCard('used');
+    else if (it.type === 'car') node = searchCard('car');
+    else if (it.type === 'pc') node = searchCard('pc');
     else if (it.type === 'fx') { var fx = fxCard(it); node = fx.card; cleanups.push(fx.stop); }
     else if (it.type === 'goldkr') { var gk = goldKrCard(); node = gk.card; cleanups.push(gk.stop); }
     else node = linkCard(it);
+    if (['snap', 'region', 'fx', 'goldkr'].indexOf(it.type) >= 0) node.classList.add('value-card');
     var wrap = el('div', 'single');
     wrap.appendChild(node);
     layerBody.appendChild(wrap);
@@ -1439,7 +1716,7 @@ var CATEGORIES = [
     function json(url) { return fetch(url, { cache: 'no-store' }).then(function (r) { if (!r.ok) throw 0; return r.json(); }); }
 
     var UPBIT = { 'UPBIT:BTCKRW': 'KRW-BTC', 'UPBIT:ETHKRW': 'KRW-ETH' };
-    var METAL = { 'OANDA:XAUUSD': 'XAU', 'OANDA:XAGUSD': 'XAG', 'OANDA:XPTUSD': 'XPT' };
+    var METAL = { 'OANDA:XAUUSD': 'XAU', 'OANDA:XAGUSD': 'XAG', 'OANDA:XPTUSD': 'XPT', 'CAPITALCOM:PALLADIUM': 'XPD' };
 
     // 툴팁 내용: { label, value, unit, chg, chgText, meta } 또는 { note }
     function content(it) {
@@ -1454,12 +1731,13 @@ var CATEGORIES = [
           meta: v.date + (keys.length > 1 ? ' · 외 ' + (keys.length - 1) + '개 지역' : '') });
       }
       if (it.type === 'fx') {
-        return fetchSeries(it.base, 31).then(function (rows) {
-          var a = rows[rows.length - 1], b = rows[rows.length - 2];
-          var last = a.v * it.mult, diff = last - b.v * it.mult, p = a.d.split('-');
-          return { value: nf(last, 2), unit: '원 (' + it.unit.replace('원/', '') + ')', chg: diff,
-            chgText: nf(Math.abs(diff), 2) + '원 전 영업일 대비',
-            meta: (+p[1]) + '월 ' + (+p[2]) + '일 · 유럽중앙은행 기준환율' };
+        return fxRows(it, 31).then(function (rows) {
+          var a = rows[rows.length - 1], b = rows.length > 1 ? rows[rows.length - 2] : null;
+          var last = a.v * it.mult, p = a.d.split('-');
+          var out = { value: nf(last, 2), unit: '원 (' + it.unit.replace('원/', '') + ')',
+            meta: (+p[1]) + '월 ' + (+p[2]) + '일 · ' + (it.src === 'latest' ? '공개 환율 데이터' : '유럽중앙은행 기준환율') };
+          if (b) { var diff = last - b.v * it.mult; out.chg = diff; out.chgText = nf(Math.abs(diff), 2) + '원 전일 대비'; }
+          return out;
         });
       }
       if (it.type === 'goldkr') {
@@ -1495,6 +1773,8 @@ var CATEGORIES = [
       if (it.type === 'tv') return Promise.resolve({ note: '실시간 차트 · 눌러서 보기' });
       if (it.type === 'lego') return Promise.resolve({ note: '제품번호로 중고 시세 검색' });
       if (it.type === 'used') return Promise.resolve({ note: '상품명으로 중고 시세 검색' });
+      if (it.type === 'car') return Promise.resolve({ note: '차종·연식으로 중고차 시세 검색' });
+      if (it.type === 'pc') return Promise.resolve({ note: '모델명으로 새 제품·중고 가격 검색' });
       return Promise.resolve({ note: '값은 출처에서 확인 · ' + it.source });
     }
 

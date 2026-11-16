@@ -1,0 +1,730 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세상의 모든 예절</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #f4f6fa;
+    --surface: #ffffff;
+    --surface-2: #eef2f8;
+    --ink: #18202c;
+    --muted: #5d6878;
+    --line: #dde3ec;
+    --focus: #3563d6;
+    --accent: #3563d6;
+    --good: #1f8a5a;
+    --bad: #c8463d;
+    --scrim: rgba(24, 32, 44, .32);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink); position: relative; min-height: 100vh; overflow-x: hidden;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; word-break: keep-all;
+  }
+  button { font: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    background:
+      radial-gradient(1100px 650px at 85% -10%, rgba(120, 160, 255, .20), transparent 60%),
+      radial-gradient(900px 600px at -10% 30%, rgba(255, 190, 150, .16), transparent 60%),
+      var(--bg);
+  }
+  .bg canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .main { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 64px 20px 64px; text-align: center; }
+  h1 {
+    margin: 0 auto 14px; font-size: clamp(40px, 8vw, 84px); font-weight: 800; letter-spacing: -0.045em; line-height: 1.02;
+    background: linear-gradient(100deg, #18202c 0%, #2c3a55 45%, #3563d6 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { margin: 0 auto; max-width: 26em; color: var(--muted); font-size: 17px; text-wrap: balance; }
+
+  .search { position: relative; max-width: 520px; margin: 26px auto 0; }
+  .search input {
+    width: 100%; font: inherit; font-size: 16px; color: var(--ink);
+    padding: 14px 44px 14px 46px; border-radius: 999px; border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .82); box-shadow: 0 6px 24px rgba(30, 50, 90, .08);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(53, 99, 214, .14); }
+  .search .ico { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-size: 17px; opacity: .65; pointer-events: none; }
+  .search .clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%;
+    border: 0; background: var(--surface-2); color: var(--muted); cursor: pointer; font-size: 14px;
+  }
+  .search-result { margin: 10px 0 0; font-size: 14px; color: var(--muted); min-height: 1.4em; }
+
+  .jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 4px; margin: 20px auto 0; max-width: 900px; }
+  .jump-btn { font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
+  .jump-btn:hover { color: var(--ink); background: rgba(24, 32, 44, .05); }
+
+  .cat-list { display: grid; gap: 18px; margin-top: 30px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 860px) { .cat-list { grid-template-columns: 1fr; } }
+  .cat-sec {
+    position: relative; overflow: hidden; border-radius: 20px; padding: 22px 24px 18px; scroll-margin-top: 24px;
+    background: rgba(255, 255, 255, .72); border: 1px solid rgba(24, 32, 44, .07);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 12px 32px rgba(30, 50, 90, .08);
+    -webkit-backdrop-filter: blur(8px) saturate(140%); backdrop-filter: blur(8px) saturate(140%);
+  }
+  .cat-sec::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: linear-gradient(135deg, rgba(53, 99, 214, .06), transparent 40%); }
+  .cat-title { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 14px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .cat-title::before, .cat-title::after {
+    content: ""; flex: 0 1 72px; height: 2px;
+    background-image: radial-gradient(circle, rgba(53, 99, 214, .5) 1px, transparent 1.2px); background-size: 6px 2px; background-repeat: repeat-x; background-position: center;
+  }
+  .cat-title .emo { font-size: 24px; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; position: relative; }
+  .chip {
+    font-size: 16px; color: var(--ink); background: rgba(255, 255, 255, .9); border: 1px solid var(--line);
+    border-radius: 999px; padding: 9px 15px; cursor: pointer; line-height: 1.3;
+    transition: border-color .15s, box-shadow .2s, background .15s;
+  }
+  .chip .e { margin-right: 5px; }
+  .chip:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(53, 99, 214, .12); }
+  .chip.hit { border-color: var(--accent); background: #eef3ff; }
+  .cat-sec.dim { display: none; }
+  .chip.dim { display: none; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 2px rgba(53, 99, 214, .45); } 100% { box-shadow: 0 12px 32px rgba(30, 50, 90, .08); } }
+  .cat-sec.flash { animation: flash 1.2s ease-out; }
+  .empty-result { display: none; margin: 30px auto 0; color: var(--muted); }
+  .empty-result.show { display: block; }
+
+  /* 레이어 */
+  dialog.layer {
+    border: 0; padding: 0; color: var(--ink); text-align: left;
+    width: min(760px, calc(100vw - 48px)); height: fit-content; max-height: calc(100dvh - 48px);
+    max-width: none; margin: auto; inset: 0; border-radius: 20px; overflow: hidden;
+    background: rgba(250, 251, 253, .94); border: 1px solid rgba(24, 32, 44, .08);
+    box-shadow: 0 24px 60px rgba(30, 50, 90, .22);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  }
+  dialog.layer::backdrop { background: var(--scrim); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.layer[open], dialog.ad-gate[open] { animation: rise .2s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  }
+  .layer-inner { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
+  .layer-inner:focus { outline: none; }
+  .layer-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .85); position: relative; }
+  .layer-emo { font-size: 34px; line-height: 1; }
+  .layer-titles { display: grid; gap: 2px; }
+  .layer-sub { margin: 0; font-size: 13px; color: var(--muted); }
+  .layer-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+  .close { margin-left: auto; flex: none; width: 44px; height: 44px; margin-right: -8px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; padding: 0; }
+  .close svg { width: 22px; height: 22px; }
+  .close:hover { background: rgba(24, 32, 44, .06); }
+  .layer-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .layer-body { padding: 18px 20px 14px; }
+
+  .guide-sum { margin: 0 0 16px; font-size: 17px; line-height: 1.6; text-align: center; padding: 14px 16px; border-radius: 14px; background: #eef3ff; color: #1f2f55; }
+  .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .box { border-radius: 14px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); }
+  .box h3 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .box ul { margin: 0; padding-left: 1.15em; display: grid; gap: 6px; font-size: 15px; }
+  .box.do h3 { color: var(--good); }
+  .box.dont h3 { color: var(--bad); }
+  .box.wear, .box.cash, .box.rule { grid-column: 1 / -1; }
+  .box.steps { grid-column: 1 / -1; background: #f3f8f5; border-color: #d3e8dc; }
+  .box.steps h3 { color: #1f6b48; }
+  .box.steps ol { margin: 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 8px; }
+  .box.steps li { counter-increment: st; position: relative; padding-left: 34px; font-size: 15px; line-height: 1.55; }
+  .box.steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: #1f8a5a; color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+  .box p { margin: 0; font-size: 15px; }
+  .box.wear { background: #f2f6ff; border-color: #d9e3fb; }
+  .box.wear h3 { color: #2f4f9e; }
+  .box.cash { background: #fff8ec; border-color: #f1dfbd; }
+  .box.cash h3 { color: #9a6514; }
+  .box.rule h3 { color: var(--muted); }
+  .badge { margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .badge.avg { background: #9a6514; color: #fff; }
+  .badge.range { background: #f1dfbd; color: #7a4f0e; }
+  .box .src { margin-top: 8px; font-size: 12px; color: #8a6a3a; }
+  .cash-sum { margin-bottom: 10px !important; }
+  .rel { display: grid; gap: 6px; }
+  .rel-row { background: rgba(255, 255, 255, .75); border: 1px solid #f1dfbd; border-radius: 10px; padding: 9px 12px; }
+  .rel-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rel-who { font-size: 14px; color: #6b4a14; min-width: 7.5em; }
+  .rel-amt { font-size: 16px; font-weight: 700; color: var(--ink); }
+  .rel-tag { margin-left: auto; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .rel-tag.avg { background: #9a6514; color: #fff; }
+  .rel-tag.range { background: #f1dfbd; color: #7a4f0e; }
+  .rel-note { margin: 4px 0 0 !important; font-size: 12.5px !important; color: #7a6342; }
+  .guide-note { margin: 14px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
+  @media (max-width: 640px) {
+    .guide-grid { grid-template-columns: 1fr; }
+    dialog.layer { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 18px; }
+    .layer-inner { max-height: calc(100dvh - 24px); }
+    .layer-body { padding: 14px 12px 12px; }
+    .main { padding-top: 40px; }
+    .cat-sec { padding: 18px 14px 14px; }
+    .cat-title::before, .cat-title::after { flex-basis: 36px; }
+    .chip { font-size: 15px; padding: 8px 13px; }
+  }
+
+  /* 툴팁 */
+  .tip { position: fixed; z-index: 60; pointer-events: none; max-width: 280px; padding: 10px 12px; border-radius: 12px; text-align: left; font-size: 13px; line-height: 1.5;
+    background: rgba(255, 255, 255, .97); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(30, 50, 90, .18); }
+  .tip b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+
+  /* 광고 */
+  .ad-slot { position: relative; margin: 28px auto 0; max-width: 712px; padding: 28px 16px 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, .7); }
+  .ad-page { max-width: none; padding-left: 12px; padding-right: 12px; }
+  .ad-layer { margin: 0 20px 18px; max-width: none; }
+  .ad-tag { position: absolute; top: 6px; left: 12px; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .ad-fit { width: 100%; height: calc(var(--ad-h, 140px) * var(--ad-scale, 1)); overflow: hidden; display: flex; justify-content: center; }
+  .ad-frame { width: var(--ad-w, 680px); height: var(--ad-h, 140px); flex: none; transform: scale(var(--ad-scale, 1)); transform-origin: top center; border-radius: 8px; overflow: hidden; }
+  .ad-frame iframe { display: block; max-width: none; }
+  .ad-slot.ad-empty { display: none; }
+  @media (max-width: 640px) { .ad-slot { padding: 26px 10px 10px; } .ad-layer { margin: 0 12px 12px; } }
+
+  dialog.ad-gate { border: 0; padding: 0; background: transparent; overflow: visible; width: min(440px, calc(100vw - 24px)); height: fit-content; max-height: calc(100dvh - 24px); margin: auto; inset: 0; }
+  dialog.ad-gate::backdrop { background: rgba(24, 32, 44, .45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .ad-gate-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 14px 10px; border-radius: 18px; background: rgba(255, 255, 255, .97); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(30, 50, 90, .3); }
+  .ad-gate-inner:focus { outline: none; }
+  .ad-gate-tag { margin: 0; align-self: flex-start; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .ad-gate-slot { margin: 0; padding: 0; width: 100%; max-width: 400px; border: 0; background: none; }
+  .ad-gate-wait { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .ad-gate-bar { width: 100%; max-width: 400px; height: 3px; border-radius: 3px; background: var(--surface-2); overflow: hidden; margin-bottom: 6px; }
+  .ad-gate-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #3563d6, #6f95f0); border-radius: inherit; }
+  .ad-gate-bar span.run { animation: gateFill 3s linear forwards; }
+  @keyframes gateFill { from { width: 0; } to { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><canvas id="bgCanvas"></canvas></div>
+<script>
+// ═══ 배경: 점 격자 물결면 + 노드 연결선 + 계측 눈금 ═══════════════════
+(function () {
+  var cv = document.getElementById('bgCanvas');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var W = 0, H = 0, DPR = 1, small = false;
+  var COLS, ROWS, grid = [], nodes = [], floaters = [], last = 0, raf = 0, t0 = performance.now();
+
+  function setup() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    small = W < 700;
+    COLS = small ? 84 : 150; ROWS = small ? 18 : 28;
+    grid = [];
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        grid.push({ u: c / (COLS - 1) * 2 - 1, v: r / (ROWS - 1) });   // u: 좌우 -1~1, v: 앞(0)~뒤(1)
+      }
+    }
+    // 노드: 격자 위 임의의 점에 붙어 물결을 따라 움직임
+    nodes = [];
+    var n = small ? 8 : 14;
+    for (var i = 0; i < n; i++) {
+      var rr = 2 + Math.floor(Math.random() * (ROWS - 6));
+      var cc = Math.floor(COLS * 0.08) + Math.floor(Math.random() * COLS * 0.84);
+      nodes.push({ idx: rr * COLS + cc, phase: Math.random() * Math.PI * 2, label: Math.random() < 0.4, seed: Math.random() * 1000 });
+    }
+    // 위쪽 공간에 떠다니는 노드 (시스템 연결망)
+    floaters = [];
+    var m = small ? 0 : 16;   // 휴대폰에서는 제목을 가리지 않도록 생략
+    for (var k = 0; k < m; k++) {
+      var leftSide = k % 2 === 0;
+      var lo = small ? 0.02 : (leftSide ? 0.02 : 0.78), hi = small ? 0.98 : (leftSide ? 0.22 : 0.98);
+      floaters.push({ x: lo + Math.random() * (hi - lo), y: 0.06 + Math.random() * 0.36, minX: lo, maxX: hi, vx: (Math.random() - 0.5) * 0.006, vy: (Math.random() - 0.5) * 0.004,
+        phase: Math.random() * Math.PI * 2, label: Math.random() < 0.3, seed: Math.random() * 1000 });
+    }
+  }
+
+  // 여러 파동을 겹친 비선형 높이 함수
+  function height(u, v, t) {
+    var x = u * 3.2, z = v * 4.0;
+    return 0.55 * Math.sin(x * 1.3 + t * 0.35 + z * 0.6)
+         + 0.35 * Math.sin(z * 2.1 - t * 0.27 + Math.sin(x * 0.7 + t * 0.11) * 1.6)
+         + 0.22 * Math.sin((x + z) * 2.7 + t * 0.52)
+         + 0.12 * Math.sin(x * 5.3 - z * 3.1 - t * 0.8);
+  }
+
+  function project(u, v, y) {
+    var depth = 1 + v * 4.2;                      // 1(앞) ~ 5.2(뒤)
+    var horizon = H * 0.44;
+    var sx = W / 2 + u * W * 1.15 / depth;
+    var sy = horizon + (1 - y * 0.28) * H * 0.58 / depth;
+    return { x: sx, y: sy, s: 1 / depth };
+  }
+
+  function drawTicks() {
+    ctx.fillStyle = 'rgba(70,100,170,0.16)';
+    var step = 24;
+    for (var x = step; x < W; x += step) {
+      var big = (x / step) % 8 === 0;
+      ctx.fillRect(x, 14, big ? 2 : 1, big ? 2 : 1);
+      ctx.fillRect(x, H - 16, big ? 2 : 1, big ? 2 : 1);
+    }
+    for (var y = step; y < H; y += step) {
+      var big2 = (y / step) % 8 === 0;
+      ctx.fillRect(14, y, big2 ? 2 : 1, big2 ? 2 : 1);
+      ctx.fillRect(W - 16, y, big2 ? 2 : 1, big2 ? 2 : 1);
+    }
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (document.hidden || document.body.classList.contains('layer-open')) return;
+    var minGap = small ? 1000 / 24 : 1000 / 30;
+    if (now - last < minGap) return;
+    last = now;
+    render((now - t0) / 1000);
+  }
+
+  function render(t) {
+    ctx.clearRect(0, 0, W, H);
+    drawTicks();
+
+    // 점 격자 물결면 (뒤에서 앞으로)
+    var pts = new Array(grid.length);
+    for (var i = grid.length - 1; i >= 0; i--) {
+      var g = grid[i];
+      var y = height(g.u, g.v, t);
+      var p = project(g.u, g.v, y);
+      pts[i] = p;
+      if (p.x < -10 || p.x > W + 10 || p.y < -10 || p.y > H + 10) continue;
+      var crest = (y + 1.2) / 2.4;                // 0~1, 마루일수록 밝게
+      var a = (0.16 + 0.62 * p.s) * (0.40 + 0.90 * crest);
+      var r = 0.8 + 1.8 * p.s + crest * 0.6;
+      ctx.fillStyle = 'rgba(64,104,196,' + Math.min(a * 0.62, 0.5).toFixed(3) + ')';
+      ctx.fillRect(p.x - r / 2, p.y - r / 2, r, r);
+    }
+
+    // 노드와 점선 연결
+    var np = nodes.map(function (n) {
+      var p = pts[n.idx];
+      return { x: p.x, y: p.y - 26 * p.s - 6, s: p.s, n: n, anchored: true };
+    });
+    floaters.forEach(function (f) {
+      f.x += f.vx / 30; f.y += f.vy / 30;
+      if (f.x < f.minX || f.x > f.maxX) f.vx *= -1;
+      if (f.y < 0.05 || f.y > 0.45) f.vy *= -1;
+      np.push({ x: f.x * W + Math.sin(t * 0.3 + f.phase) * 12, y: f.y * H + Math.cos(t * 0.25 + f.phase) * 8, s: 0.45, n: f, anchored: false });
+    });
+    ctx.setLineDash([1, 5]);
+    ctx.lineWidth = 1;
+    var maxD = small ? 150 : 230;
+    for (var a1 = 0; a1 < np.length; a1++) {
+      for (var b1 = a1 + 1; b1 < np.length; b1++) {
+        var dx = np[a1].x - np[b1].x, dy = np[a1].y - np[b1].y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d > maxD) continue;
+        var al = (1 - d / maxD) * 0.38;
+        ctx.strokeStyle = 'rgba(64,104,196,' + al.toFixed(3) + ')';
+        ctx.beginPath(); ctx.moveTo(np[a1].x, np[a1].y); ctx.lineTo(np[b1].x, np[b1].y); ctx.stroke();
+      }
+    }
+    // 노드에서 수면까지 내려오는 점선
+    ctx.setLineDash([1, 3]);
+    np.forEach(function (q) {
+      if (!q.anchored) return;
+      var base = pts[q.n.idx];
+      ctx.strokeStyle = 'rgba(64,104,196,0.14)';
+      ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(base.x, base.y); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    np.forEach(function (q) {
+      var pulse = 0.5 + 0.5 * Math.sin(t * 1.4 + q.n.phase);
+      var r = 1.6 + 2.2 * q.s;
+      ctx.fillStyle = 'rgba(64,104,196,' + (0.30 + 0.30 * pulse).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(64,104,196,' + (0.22 * (1 - pulse)).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r + 4 + 8 * pulse, 0, Math.PI * 2); ctx.stroke();
+    });
+  }
+
+  setup();
+  window.addEventListener('resize', function () { setup(); if (reduce) render(8); });
+  if (reduce) render(8);
+  else raf = requestAnimationFrame(frame);
+})();
+</script>
+<main class="main">
+  <h1>세상의 모든 예절</h1>
+  <p class="lead">결혼식부터 회식, 단톡방, 해외여행까지. 상황을 누르면 꼭 필요한 예절을 알려 드려요.</p>
+  <div class="search" role="search">
+    <span class="ico" aria-hidden="true">🔎</span>
+    <input type="search" id="q" placeholder="어떤 상황인가요? 예: 조문, 축의금, 회식" aria-label="예절 상황 검색" autocomplete="off">
+    <button type="button" class="clear" id="qClear" aria-label="검색어 지우기" hidden>✕</button>
+  </div>
+  <p class="search-result" id="qResult" aria-live="polite"></p>
+  <nav class="jump" id="jump" aria-label="분류 바로가기"></nav>
+  <div class="cat-list" id="cats"></div>
+  <p class="empty-result" id="noResult">찾는 상황이 없어요. 다른 단어로 검색해 보세요.</p>
+  <aside class="ad-slot ad-page" aria-label="광고">
+    <span class="ad-tag">광고</span>
+    <div class="ad-fit"><div class="ad-frame" id="adPageFrame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	// 화면이 넓으면 1040px 배너, 좁으면(태블릿·휴대폰) 680px 배너를 넣고, 둘 다 칸 폭에 맞춰 늘고 줄어요.
+	(function () {
+		var wide = (window.innerWidth || document.documentElement.clientWidth) >= 760;
+		var frame = document.getElementById('adPageFrame');
+		frame.setAttribute('data-w', wide ? '1040' : '680');
+		frame.style.setProperty('--ad-w', (wide ? 1040 : 680) + 'px');
+		if (wide) {
+			new PartnersCoupang.G({"id":1049550,"template":"carousel","trackingCode":"AF6707602","width":"1040","height":"140","tsource":""});
+		} else {
+			new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+		}
+	})();
+</script>
+    </div></div>
+  </aside>
+</main>
+<dialog class="layer" id="layer" aria-labelledby="layerTitle">
+  <div class="layer-inner" tabindex="-1">
+    <header class="layer-head">
+      <span class="layer-emo" id="layerEmo" aria-hidden="true"></span>
+      <div class="layer-titles"><p class="layer-sub" id="layerSub"></p><h2 class="layer-title" id="layerTitle">항목</h2></div>
+      <button type="button" class="close" id="closeBtn" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="layer-scroll" id="layerScroll">
+      <div class="layer-body" id="layerBody"></div>
+      <aside class="ad-slot ad-layer" aria-label="광고">
+        <span class="ad-tag">광고</span>
+        <div class="ad-fit"><div class="ad-frame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+</script>
+        </div></div>
+      </aside>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="ad-gate" id="adGate" aria-label="광고">
+  <div class="ad-gate-inner" tabindex="-1">
+    <p class="ad-gate-tag">광고</p>
+    <div class="ad-slot ad-gate-slot" style="--ad-w:400px; --ad-h:400px;">
+      <div class="ad-fit"><div class="ad-frame" data-w="400">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049552,"template":"carousel","trackingCode":"AF6707602","width":"400","height":"400","tsource":""});
+</script>
+      </div></div>
+    </div>
+    <p class="ad-gate-wait" aria-live="polite">잠시만 기다려 주세요.</p>
+    <div class="ad-gate-bar" aria-hidden="true"><span id="adGateBar"></span></div>
+  </div>
+</dialog>
+<script>
+var DATA = [{"id": "wedding", "emoji": "💍", "name": "결혼·경조사", "items": [{"e": "🤝", "n": "상견례", "s": "양가가 처음 만나는 자리예요. 주인공은 부모님이고, 두 사람은 연결 역할을 해요.", "d": ["두 사람이 미리 양가 분위기와 대화 주제를 공유해 둬요", "양가 부모님이 고르게 이야기할 수 있게 대화를 이끌어요", "상대 집안의 좋은 점을 자연스럽게 칭찬해요", "식사비는 누가 낼지 미리 정해 둬요"], "x": ["혼수·예단·집 문제 같은 민감한 이야기를 첫 자리에서 꺼내지 않아요", "정치·종교·집안 비교 이야기는 피해요", "휴대폰을 테이블에 올려 두지 않아요"], "w": "남성은 정장이나 단정한 재킷·셔츠, 여성은 원피스나 블라우스·스커트처럼 단정한 차림이 좋아요. 화려한 색, 노출, 운동복은 피해요.", "k": ["양가인사", "양가상견례", "결혼인사", "예비시댁", "예비처가", "상견례장소", "상견래", "상견례자리", "상견례순서", "상견례진행", "자리배치"], "o": ["두 사람이 날짜·장소·메뉴를 양가와 미리 조율해 예약해요", "약속 10~15분 전에 먼저 도착해 양가 부모님을 맞이해요", "양가 부모님이 마주 앉고, 두 사람은 각자 자기 부모님 옆에 앉는 경우가 많아요", "자녀가 자기 부모님을 상대 측에 먼저 소개하고, 서로 인사를 나눠요", "식사하며 가벼운 이야기로 분위기를 풀어요", "결혼 시기처럼 큰 틀만 이야기하고, 세부 사항은 다음으로 미뤄요", "미리 정한 대로 계산하고, 부모님을 배웅해요", "그날 저녁 상대 부모님께 감사 연락을 드려요"]}, {"e": "💒", "n": "결혼식", "s": "신랑·신부를 축하하러 가는 자리예요. 복장과 축의금, 식사 예절이 핵심이에요.", "d": ["밝은 표정으로 축하의 마음을 전해요", "신랑·신부는 바쁘니 인사는 짧게 해요", "SNS에 사진을 올릴 땐 신랑·신부가 원하는지 생각해요", "참석이 어려우면 미리 연락하고 계좌로 축의금을 보내요"], "x": ["흰색·아이보리 옷은 신부와 겹쳐 보여 피해요", "본식 중에 큰 소리로 통화하거나 식사하러 먼저 나가지 않아요", "축의금 봉투에 이름을 빠뜨리지 않아요"], "w": "세미 정장이나 원피스가 무난해요. 흰색·아이보리·연베이지는 신부와 겹쳐 보여 피하고, 지나친 노출이나 운동복도 피해요.", "$": {"k": "avg", "t": "전체 평균은 9만 7,900원이고, 10만원을 내는 사람이 65.3%로 가장 많아요. 2026년 서울 예식장 식대 중간값은 1인당 8만원 선이에요.", "src": "2026년 성인 1,500명 설문(조선일보 아무튼, 주말·틸리언 프로) · 한국소비자원", "label": "관계", "rows": [["얼굴만 아는 지인", "5만원", "range", ""], ["직장 동료", "10만원", "avg", "10만원 60.1%, 5만원 30.0% · 인크루트 직장인 설문(2025)"], ["친한 친구·동료", "10만~20만원", "avg", "친구 결혼식 직접 참석 적정액 미혼 평균 13만원, 기혼 29만원 · 가연 25~39세 설문(2026)"], ["가족·가까운 친척", "20만~50만원 이상", "range", "집안에서 정한 기준이 있으면 그에 맞춰요"], ["불참 시", "5만원", "range", "친한 사이면 참석할 때와 같은 금액을 보내기도 해요"]]}, "k": ["결혼", "예식", "웨딩", "청첩장", "하객", "축의금", "축의", "하객룩", "예식장", "결혼축하", "혼례", "결혼식장", "축의금액", "결혼식순서", "하객순서", "방명록", "식권"], "o": ["예식 20~30분 전에 도착해요", "축의금 접수대에서 방명록을 쓰고 이름을 적은 봉투를 낸 뒤 식권을 받아요", "신랑·신부(신부 대기실)와 혼주께 인사드려요", "안내에 따라 신랑 측·신부 측 하객석에 앉아요", "예식 중에는 자리를 지키며 박수로 축하해요", "단체 사진 촬영 순서에 함께하고, 친구 사진은 호명되면 나가요", "식권을 내고 식사한 뒤, 가능하면 다시 인사하고 돌아가요"]}, {"e": "🕯️", "n": "장례식", "s": "고인을 추모하고 유족을 위로하는 자리예요. 차분한 복장과 짧은 인사가 기본이에요.", "d": ["빈소에서는 목소리를 낮추고 휴대폰은 무음으로 해요", "오랜만에 만난 지인과도 반가운 티를 크게 내지 않아요", "유족이 먼저 꺼내지 않는 이야기는 묻지 않아요", "장례 후에도 한두 번 안부를 묻는 게 큰 위로가 돼요"], "x": ["화려한 옷, 짙은 향수, 밝은 색 넥타이는 피해요", "고인의 사인을 묻거나 유족에게 캐묻지 않아요", "장례식장에서 크게 웃거나 술에 취하지 않아요"], "m": "부의금은 3·5·7처럼 홀수 단위로 맞추는 관습이 있어요. 봉투 앞면에는 '부의(賻儀)', 뒷면에는 이름을 적어요.", "w": "검정·짙은 남색·회색 정장에 흰 셔츠, 검정 넥타이·양말·구두가 기본이에요. 화려한 장신구와 짙은 화장, 향수는 피해요.", "$": {"k": "avg", "t": "평균은 약 9만~11만원이에요(20대 8만 9,000원 ~ 60대 이상 10만 8,400원). 올해 송금 기록에서 처음으로 10만원이 5만원보다 많아졌어요.", "src": "2026년 성인 1,500명 설문(조선일보 아무튼, 주말·틸리언 프로) · 카카오페이 송금 분석", "label": "관계", "rows": [["얼굴만 아는 지인", "3만~5만원", "range", ""], ["직장 동료", "5만원", "range", "부서에서 함께 모아 내기도 해요"], ["친한 친구·동료", "10만원", "range", "아주 가까운 사이는 그 이상도 내요"], ["가족·가까운 친척", "10만~30만원", "range", "집안 기준을 먼저 확인해요"], ["빈소에 못 갈 때", "5만원", "range", "계좌로 보내고 위로 문자를 함께 남겨요"]]}, "k": ["장례", "상갓집", "상가집", "상가", "빈소", "문상", "부의금", "조의금", "부조", "부조금", "발인", "장례식장", "상주", "장례복장", "조의", "장례순서", "장례절차", "부고"], "o": ["부고를 받으면 빈소 위치, 조문 가능 시간, 발인 일시를 확인해요", "어두운 색 옷으로 갈아입고 부의금 봉투를 준비해요", "도착하면 조객록 작성과 부의금 전달 후 조문해요(조문 항목의 순서 참고)", "상주에게 짧게 위로하고, 식사를 권하면 간단히 들어요", "보통 30분~1시간 안에 자리에서 일어나요", "발인과 장지까지 함께하는 건 가까운 가족·친구가 하는 경우가 많아요"]}, {"e": "🙏", "n": "조문", "s": "빈소에 들어가 고인에게 예를 표하고 상주를 위로하는 순서예요.", "d": ["가능하면 부고를 받은 당일이나 다음 날 찾아가요", "상주의 손을 잡거나 어깨를 두드리기보다 짧은 말과 목례로 위로해요", "조문 후 식사를 권하면 간단히 들어 유족의 마음을 받아요", "가지 못하면 부의금과 함께 위로 문자를 보내요"], "x": ["향불을 입으로 불어 끄지 않고 손으로 가볍게 흔들어 꺼요", "상주에게 먼저 악수를 청하지 않아요", "유족이 경황이 없을 땐 긴 대화를 피해요"], "w": "장례식과 같아요. 퇴근길에 급히 가게 되면 밝은 겉옷을 벗거나 어두운 겉옷을 걸치고, 넥타이만 어두운 색으로 바꿔도 괜찮아요.", "$": {"k": "avg", "t": "부의금 평균은 약 9만~11만원이에요. 관계별 기준은 아래와 같아요.", "src": "2026년 성인 1,500명 설문(조선일보 아무튼, 주말·틸리언 프로)", "label": "관계", "rows": [["얼굴만 아는 지인", "3만~5만원", "range", ""], ["직장 동료", "5만원", "range", "부서에서 함께 모아 내기도 해요"], ["친한 친구·동료", "10만원", "range", "아주 가까운 사이는 그 이상도 내요"], ["가족·가까운 친척", "10만~30만원", "range", "집안 기준을 먼저 확인해요"], ["빈소에 못 갈 때", "5만원", "range", "계좌로 보내고 위로 문자를 함께 남겨요"]]}, "k": ["상갓집", "상가집", "상가", "문상", "조문객", "빈소", "분향", "헌화", "조문인사", "부의", "부의금", "조의금", "위로", "조문예절", "분향", "헌화", "향", "국화", "절", "절하는법", "재배", "공수", "손모양", "맞절", "조문순서", "조문방법"], "o": ["빈소 입구에서 외투와 모자를 벗고, 조객록에 이름을 쓴 뒤 부의금을 내요", "상주와 가볍게 목례하고 영정 앞으로 나아가요", "분향할 때는 향 하나를 집어 촛불에 붙인 뒤 손으로 가볍게 흔들어 불을 끄고(입으로 불지 않아요) 향로에 꽂아요", "헌화할 때는 국화를 두 손으로 들고 꽃송이가 영정 쪽을 향하게 놓아요", "영정 앞에서 두 번 절해요. 손은 남자는 오른손, 여자는 왼손이 위로 가게 모아요(평소와 반대인 상례 방식)", "상주와 맞절을 한 번 하거나 목례하고, 짧게 위로의 말을 건네요", "두세 걸음 뒤로 물러난 뒤 돌아서서 나와요", "기독교·천주교식 빈소이거나 절이 어려우면 헌화 후 묵념이나 기도로 대신해도 돼요"], "m": "집안·종교에 따라 방식이 다를 수 있어요. 상주가 안내하는 방식이 있으면 그걸 따르면 돼요."}, {"e": "🎂", "n": "돌잔치", "s": "아이의 첫 생일을 축하하는 가족 중심 행사예요.", "d": ["시간 맞춰 도착하고, 돌잡이 순서에는 함께 박수로 응원해요", "현금이나 금반지, 아이 옷·장난감 같은 실용적인 선물을 준비해요", "아이 사진은 부모 허락을 받고 찍어요"], "x": ["아이의 발달이나 외모를 다른 아이와 비교하지 않아요", "아이를 부모 허락 없이 안거나 음식을 먹이지 않아요"], "w": "깔끔한 캐주얼 정장이나 원피스면 충분해요. 아이를 안아 줄 수 있으니 장식이 많거나 날카로운 액세서리는 피해요.", "$": {"k": "range", "t": "", "label": "관계", "rows": [["지인·직장 동료", "5만원", "range", ""], ["친한 친구", "5만~10만원", "range", "아기 옷·장난감으로 대신하기도 해요"], ["가족·가까운 친척", "10만원 이상", "range", "금반지(한 돈)를 선물하는 경우가 많아요"]]}, "k": ["돌", "첫돌", "첫생일", "돌잡이", "돌선물", "돌반지", "돌찬치"]}, {"e": "🎉", "n": "환갑", "s": "만 60세 생일을 축하하는 자리예요. 요즘은 가족 식사나 여행으로 간소하게 하는 경우가 많아요.", "d": ["자녀가 주관해 가족 식사 자리를 마련하고 감사 인사를 전해요", "건강식품, 여행, 용돈처럼 부모님이 원하는 선물을 미리 여쭤봐요", "손편지나 가족사진처럼 마음을 담은 선물을 곁들이면 좋아요"], "x": ["'이제 노인'처럼 나이를 강조하는 농담은 피해요", "형제끼리 비용 분담을 정하지 않고 당일 다투지 않아요"], "w": "가족 식사라면 단정한 평상복, 식당 연회장이라면 세미 정장이 어울려요.", "$": {"k": "range", "t": "", "label": "관계", "rows": [["부모님의 지인·이웃", "5만원", "range", ""], ["친구·동료의 부모님", "5만원", "range", "초대를 받았을 때만 준비해요"], ["가까운 친척", "10만~30만원", "range", ""], ["자녀", "형편에 맞춰", "range", "형제끼리 모아 여행·선물을 준비하는 경우가 많아요"]]}, "k": ["회갑", "환갑잔치", "60세", "육순", "생신", "부모님생신", "식순", "잔치순서", "헌주", "큰절"], "o": ["사회자 인사로 시작하고 주인공(부모님)이 입장해요", "주인공의 약력과 가족을 소개해요", "자녀들이 순서대로 술을 올리고 큰절을 드려요(보통 맏이 부부부터 자녀, 손주 순)", "축하 영상, 편지 낭독, 케이크 커팅을 해요", "주인공이 감사 인사를 해요", "식사와 기념 촬영 후 하객을 배웅하고 답례품을 드려요"]}, {"e": "🏮", "n": "칠순", "s": "만 70세(고희) 생일이에요. 가족·친척이 모여 장수를 축하해요.", "d": ["형제자매가 미리 역할과 비용을 나눠요", "부모님 건강을 생각해 행사는 2~3시간 안으로 잡아요", "옛 사진으로 만든 영상이나 앨범을 준비하면 무척 좋아하세요"], "x": ["부모님 건강 상태를 고려하지 않은 무리한 일정은 피해요", "축하 자리에서 집안 문제를 꺼내지 않아요"], "w": "연회 형식이면 세미 정장이 무난하고, 가족이 한복을 맞춰 입기도 해요. 주인공보다 튀는 옷은 피해요.", "$": {"k": "range", "t": "", "label": "관계", "rows": [["부모님의 지인·이웃", "5만원", "range", ""], ["친구·동료의 부모님", "5만~10만원", "range", ""], ["가까운 친척", "10만~30만원 이상", "range", ""], ["자녀", "형편에 맞춰", "range", "연회비를 형제가 나누고 따로 선물을 하기도 해요"]]}, "k": ["고희", "칠순잔치", "70세", "생신", "팔순", "부모님생신", "식순", "잔치순서", "헌주", "큰절"], "o": ["사회자 인사로 시작하고 주인공(부모님)이 입장해요", "약력 소개와 가족 소개를 해요", "자녀·손주가 순서대로 헌주(술 올리기)와 큰절을 드려요", "축하 공연이나 영상, 손편지 낭독을 해요", "주인공의 감사 인사 후 케이크를 자르고 식사해요", "가족 사진과 단체 사진을 찍고, 하객에게 답례품을 드려요"]}, {"e": "🏥", "n": "병문안", "s": "환자를 위로하러 가는 방문이에요. 짧고 조용하게가 원칙이에요.", "d": ["밝지만 차분한 톤으로 환자의 기분에 맞춰 이야기해요", "환자뿐 아니라 보호자의 수고도 함께 위로해요", "꽃 대신 환자가 쓸 수 있는 물건이나 위로금을 준비해요", "직접 못 가면 짧은 응원 메시지로 대신해도 충분해요"], "x": ["감기 기운이 있으면 방문하지 않아요", "병의 원인이나 예후를 자세히 묻지 않아요", "생화·향이 강한 꽃은 반입이 안 되는 병원이 많아요"], "$": {"k": "range", "t": "", "label": "관계", "rows": [["지인·직장 동료", "3만~5만원", "range", "음료·간식 같은 위문품으로 대신해도 돼요"], ["친한 친구", "5만~10만원", "range", ""], ["가족·친척", "10만원 이상", "range", "간병이 길어지면 비용을 나누는 게 더 큰 도움이 돼요"]]}, "k": ["문병", "입원", "병원방문", "병문안선물", "위문", "위로금", "병원면회", "면회", "면회방법", "병문안순서"], "o": ["환자나 보호자에게 방문 가능 여부와 시간을 물어요", "병원 면회 규정(면회 시간, 인원, 신청 방법)을 확인해요", "도착하면 손을 소독하고, 필요하면 마스크를 써요", "짧게 인사하고 환자의 컨디션을 살피며 위로해요", "위문품이나 위로금을 보호자에게 건네요", "15~30분 안에 일어나고, 귀가 후 짧은 응원 문자를 보내요"]}]}, {"id": "work", "emoji": "💼", "name": "직장·비즈니스", "items": [{"e": "🏢", "n": "직장생활", "s": "서로 존중하는 말투와 약속을 지키는 태도가 직장 예절의 기본이에요.", "d": ["출근 후 먼저 인사하고, 퇴근할 때는 인사와 함께 남은 업무를 공유해요", "공용 공간(탕비실·회의실)은 쓴 뒤 정리해요", "도움을 받으면 바로 감사 표현을 해요", "휴가·조퇴는 미리 일정을 공유하고 업무를 인계해요"], "x": ["동료의 사생활(연애, 결혼, 연봉)을 캐묻지 않아요", "자리에 없는 사람을 험담하지 않아요", "개인 통화를 사무실에서 크게 하지 않아요"], "k": ["회사", "직장", "출근", "퇴근", "동료", "사내", "직장예절", "회사생활", "신입"]}, {"e": "🗓️", "n": "회의", "s": "시간을 지키고, 준비해 오고, 결론을 남기는 게 회의 예절이에요.", "d": ["시작 2~3분 전에 입장하고 자료를 미리 읽어 와요", "발언은 짧고 핵심부터 말해요", "다른 사람 말이 끝난 뒤에 의견을 말해요", "회의 후 결정 사항과 담당자를 정리해 공유해요"], "x": ["노트북·휴대폰으로 딴 일을 하지 않아요", "회의 중 상대 의견을 비웃거나 끊지 않아요", "결론 없이 시간을 넘기지 않아요"], "k": ["미팅", "회의실", "화상회의", "줌", "회의록"]}, {"e": "🍻", "n": "회식", "s": "업무 밖에서 친해지는 자리지만, 여전히 직장의 연장선이에요.", "d": ["참석이 어려우면 미리 정중하게 알려요", "윗사람이 따라 주는 술은 두 손으로 받고, 마실 땐 고개를 살짝 돌려요", "술을 못 마시면 처음에 미리 말하고 음료로 대신해요", "다음 날 '어제 즐거웠다'는 짧은 인사를 해요"], "x": ["술이나 장기자랑을 강요하지 않아요", "회식 자리에서 들은 사적인 이야기를 퍼뜨리지 않아요", "과음으로 실수하지 않게 스스로 양을 조절해요"], "w": "평소 출근복이면 충분해요. 고깃집이라면 냄새가 잘 배지 않는 옷이 편해요.", "k": ["회사회식", "저녁회식", "부서회식", "술자리", "회사술자리", "건배사", "2차"]}, {"e": "📊", "n": "업무 보고", "s": "결론부터, 짧게, 숫자로가 보고의 기본이에요.", "d": ["결론 → 근거 → 다음 할 일 순서로 말해요", "문제가 생기면 숨기지 말고 빨리 보고하고, 대안도 함께 가져가요", "상사의 일정을 고려해 보고 시간을 미리 잡아요"], "x": ["결론 없이 경과만 길게 늘어놓지 않아요", "확인되지 않은 내용을 사실처럼 말하지 않아요"], "k": ["보고", "보고서", "보고하기", "상사보고", "중간보고"]}, {"e": "🤝", "n": "거래처", "s": "회사를 대표한다는 마음으로 약속, 말투, 기록을 챙겨요.", "d": ["호칭은 직함을 붙여 '○○○ 부장님'처럼 불러요", "상대 회사의 최근 소식을 미리 알아 두면 대화가 수월해요", "약속한 자료와 회신 기한은 꼭 지켜요"], "x": ["상대 회사나 경쟁사를 깎아내리지 않아요", "확정되지 않은 조건을 약속하지 않아요", "사적인 연락을 업무 시간 밖에 보내지 않아요"], "w": "상대 회사 분위기에 맞추되, 첫 미팅은 한 단계 격식 있게 재킷을 걸치는 게 안전해요.", "k": ["고객사", "협력사", "클라이언트", "바이어", "업체", "미팅", "미팅순서", "상석", "자리배치"], "o": ["미팅 일정, 참석자, 안건을 미리 메일로 공유해요", "5~10분 전에 도착해 안내데스크에서 방문 목적을 말해요", "인사와 함께 명함을 교환해요", "안내받은 자리에 앉아요(보통 손님은 출입문에서 먼 안쪽이 상석)", "짧은 인사 후 본론에 들어가요", "끝날 때 결론과 다음 일정을 정리해 확인해요", "상대가 엘리베이터나 출입구까지 배웅하면 감사 인사를 해요", "당일 안에 논의 내용을 메일로 정리해 보내요"]}, {"e": "📇", "n": "명함", "s": "명함은 그 사람의 얼굴이에요. 두 손으로, 글자가 상대를 향하게 건네요.", "d": ["명함은 넉넉하게, 깨끗한 상태로 명함 지갑에 넣고 다녀요", "받은 명함의 이름을 대화 중에 한 번 불러 주면 좋아요", "미팅 후 받은 명함에 만난 날짜와 용건을 기록해 두면 관리가 쉬워요"], "x": ["받은 명함에 바로 메모하거나 구기지 않아요", "뒷주머니에 넣거나 탁자에 두고 가지 않아요"], "k": ["명함교환", "명함주기", "명함받기", "비즈니스카드", "명함교환순서", "명함주는법"], "o": ["명함을 건넬 땐 반드시 일어서요", "방문한 사람, 아랫사람이 먼저 건네요", "글자가 상대 쪽을 향하게 두 손으로 건네며 소속과 이름을 말해요", "받을 때도 두 손으로 받고, 이름과 직함을 확인해요", "동시에 주고받을 땐 오른손으로 주고 왼손으로 받은 뒤 오른손을 받쳐요", "미팅 중에는 상대 좌석 순서대로 내 앞 테이블에 놓아요", "미팅이 끝나면 명함 지갑에 넣어요"]}, {"e": "🎤", "n": "면접", "s": "첫인상과 준비성이 평가의 큰 부분이에요.", "d": ["회사 홈페이지와 최근 기사로 회사·직무를 미리 공부해요", "예상 질문의 답을 소리 내어 연습해요", "모르는 질문엔 솔직하게 인정하고 배우겠다는 태도를 보여요", "면접관 모두와 고르게 눈을 맞춰요"], "x": ["이전 회사를 험담하지 않아요", "모르는 내용을 아는 척하지 않아요", "휴대폰은 무음이 아니라 전원을 꺼요"], "w": "업종에 맞춰요. 금융·공공기관은 정장, IT·스타트업은 비즈니스 캐주얼이 무난해요. 공고에 '복장 자율'이 있으면 깔끔한 캐주얼로 가요.", "k": ["취업", "인터뷰", "채용", "면접복장", "면접옷", "입사", "면접순서", "노크", "입장", "퇴장"], "o": ["10~15분 전에 도착해 대기실에서 조용히 기다려요", "호명되면 문을 두세 번 노크하고 들어가 문을 닫아요", "면접관을 향해 인사한 뒤 짧게 자기소개를 해요", "앉으라는 말을 들은 뒤 바른 자세로 앉아요", "질문에는 결론부터 짧게 답하고 경험을 예로 들어요", "마지막 한마디나 질문 기회에 준비한 내용을 말해요", "일어나 인사하고, 문 앞에서 다시 목례한 뒤 나가요"]}, {"e": "👋", "n": "퇴사", "s": "마무리를 잘해야 좋은 평판이 남아요.", "d": ["퇴사 이유는 회사 탓보다 내 계획 중심으로 담담하게 말해요", "마지막 날까지 맡은 일에 책임을 다해요", "함께 일한 사람들과 좋은 관계로 마무리해요"], "x": ["동료에게 먼저 알려 상사가 소문으로 듣게 하지 않아요", "회사 자료를 개인적으로 가져가지 않아요", "퇴사 사유로 회사를 공개 비난하지 않아요"], "k": ["사직", "사표", "이직", "그만둘때", "퇴사인사", "퇴사통보", "인수인계", "퇴사절차", "퇴사순서", "사직서"], "o": ["회사 규정의 퇴사 통보 기간을 확인해요(보통 30일 전)", "직속 상사에게 먼저 면담을 요청해 의사를 전해요", "퇴사일을 정하고 사직서를 제출해요", "인수인계 문서를 만들고 후임과 일정을 맞춰 설명해요", "팀 동료에게 알리고, 남은 업무를 마무리해요", "회사 장비와 출입증을 반납해요", "마지막 날 감사 인사 메일을 보내요", "경력증명서 등 필요한 서류 발급 방법을 확인해 둬요"]}]}, {"id": "talk", "emoji": "💬", "name": "연락·소통", "items": [{"e": "📞", "n": "전화", "s": "상대의 시간을 빌리는 일이에요. 시간대와 첫마디가 중요해요.", "d": ["업무 전화는 오전 9시~오후 6시 사이에 해요", "먼저 소속과 이름을 밝히고 통화 가능 여부를 물어요", "끝낼 때는 요점을 한 번 정리하고 상대가 먼저 끊은 뒤 끊어요"], "x": ["밤늦게나 이른 아침에 급하지 않은 전화를 하지 않아요", "공공장소에서 스피커폰으로 통화하지 않아요", "받자마자 '누구세요?'라고 퉁명스럽게 묻지 않아요"], "k": ["통화", "전화예절", "업무전화", "전화받기"]}, {"e": "✉️", "n": "문자", "s": "짧지만 오해가 생기기 쉬워요. 인사와 용건을 함께 써요.", "d": ["처음 보내는 문자에는 누구인지 먼저 밝혀요", "용건을 한 번에 정리해서 보내요", "받은 문자에는 늦어도 그날 안에 답해요"], "x": ["밤 10시 이후 급하지 않은 문자는 피해요", "'ㅇㅇ', 'ㅇㅋ'처럼 성의 없어 보이는 답을 윗사람에게 보내지 않아요"], "k": ["메시지", "문자메시지", "sms"]}, {"e": "💛", "n": "카카오톡", "s": "편한 만큼 선을 지켜야 해요. 업무용과 사적인 대화를 구분해요.", "d": ["업무 메시지는 근무 시간에 보내고, 늦으면 예약 전송을 활용해요", "긴 내용은 한 메시지로 정리해 알림 폭탄을 피해요", "읽고 바로 답하기 어려우면 '확인했어요, 이따 답할게요'라고 남겨요"], "x": ["이모티콘만으로 중요한 답을 대신하지 않아요", "대화 캡처를 당사자 동의 없이 공유하지 않아요"], "k": ["카톡", "톡", "카카오", "메신저", "읽씹"]}, {"e": "📧", "n": "이메일", "s": "기록이 남는 공식 소통이에요. 제목과 첫 줄만 봐도 용건을 알 수 있게 써요.", "d": ["한 메일에는 한 가지 용건만 담으면 답을 받기 쉬워요", "받은 메일은 24시간 안에 답하거나, 어렵다면 수신 확인이라도 해요", "내용이 길면 번호를 붙여 읽기 쉽게 정리해요", "첨부파일 이름을 알아보기 쉽게 바꿔요"], "x": ["전체 회신(Reply All)을 습관적으로 쓰지 않아요", "감정적인 내용은 바로 보내지 말고 다시 읽어 봐요"], "k": ["메일", "이멜", "업무메일", "이메일예절", "전체회신", "메일쓰는법", "이메일작성", "메일순서"], "o": ["받는 사람과 참조(CC)가 맞는지 확인해요", "제목에 용건을 담아요 (예: [요청] 11월 보고서 검토)", "인사와 함께 처음이면 소속·이름을 밝혀요", "용건의 결론을 첫 문단에 써요", "필요한 세부 내용과 근거를 짧게 덧붙여요", "상대에게 바라는 행동과 기한을 분명히 적어요", "맺음말과 서명(이름, 소속, 연락처)을 넣어요", "첨부파일을 확인한 뒤 보내요"]}, {"e": "📱", "n": "SNS", "s": "공개된 공간이라는 점을 늘 기억해요.", "d": ["다른 사람이 나온 사진은 올리기 전에 동의를 구해요", "다른 사람의 글·사진을 쓰면 출처를 밝혀요", "불편한 댓글엔 감정적으로 대응하지 않아요"], "x": ["아이나 지인의 얼굴·위치를 허락 없이 올리지 않아요", "확인되지 않은 정보를 퍼 나르지 않아요", "회사 내부 일을 올리지 않아요"], "k": ["인스타", "인스타그램", "페이스북", "스레드", "x", "트위터", "유튜브", "댓글", "게시물"]}, {"e": "👥", "n": "단체 채팅방", "s": "여러 사람이 함께 보는 공간이에요. 짧고, 필요한 사람에게만.", "d": ["공지는 핵심만 한 번에 정리하고, 투표 기능을 활용해요", "특정인에게만 할 말은 개인 메시지로 해요", "방에 처음 들어가면 짧게 인사해요"], "x": ["밤늦게 사적인 잡담을 이어가지 않아요", "광고·홍보 글을 허락 없이 올리지 않아요", "말없이 나가기보다 짧게 인사하고 나가요"], "k": ["단톡", "단톡방", "단체톡", "그룹채팅", "오픈채팅", "단체방"]}]}, {"id": "family", "emoji": "👨‍👩‍👧", "name": "가족·친척", "items": [{"e": "👴", "n": "부모님", "s": "가장 가까워서 소홀해지기 쉬운 관계예요. 자주, 먼저 연락하는 게 예절이에요.", "d": ["안부 전화를 정기적으로 드리고, 일정한 요일을 정해 두면 좋아요", "중요한 결정은 결과만 알리기보다 미리 의견을 여쭤봐요", "부모님이 어려워하는 기기 사용법은 천천히 알려 드려요"], "x": ["짜증 섞인 말투로 대하지 않아요", "부모님끼리 비교하거나 다른 집과 비교하지 않아요"], "k": ["엄마", "아빠", "어머니", "아버지", "효도", "안부전화", "부모"]}, {"e": "🏡", "n": "시댁", "s": "새 가족이 되는 과정이에요. 서로 맞춰 가는 시간이 필요해요.", "d": ["방문 전 배우자와 일정·선물·머무는 시간을 미리 상의해요", "집안 행사에서는 할 일을 묻고 함께 거들어요", "갈등이 생기면 직접 맞서기보다 배우자가 중간에서 조율해요"], "x": ["배우자 부모님 앞에서 배우자 흉을 보지 않아요", "집안끼리 비교하지 않아요"], "w": "첫 인사나 명절 방문에는 단정한 니트·셔츠·원피스가 좋아요. 짧은 하의나 노출이 많은 옷은 피해요.", "k": ["시가", "시집", "시부모", "시어머니", "시아버지", "시누이", "시댁방문"]}, {"e": "🏘️", "n": "처가", "s": "시댁과 같은 원칙이에요. 배우자의 가족을 존중하는 마음이 기본이에요.", "d": ["처가 행사에도 배우자와 함께 미리 일정을 맞춰요", "장인·장모님께 정기적으로 안부를 전해요", "식사 후 정리나 설거지를 함께해요"], "x": ["처가 방문을 손님처럼만 대하고 가만히 앉아 있지 않아요", "처가와 본가를 비교하지 않아요"], "w": "첫 인사나 명절 방문에는 단정한 셔츠·니트·면바지가 좋아요. 트레이닝복이나 슬리퍼 차림은 피해요.", "k": ["처가댁", "처갓집", "장인", "장모", "장인어른", "장모님", "처가방문"]}, {"e": "👨‍👩‍👦", "n": "친척", "s": "자주 보지 않는 만큼 기본 인사와 말조심이 중요해요.", "d": ["모임에서 웃어른께 먼저 인사해요", "오랜만에 만난 친척의 근황은 가볍게 묻고 경청해요"], "x": ["취업, 결혼, 출산, 성적을 캐묻지 않아요", "외모나 체중 이야기를 하지 않아요", "친척끼리 재산 이야기를 하지 않아요"], "k": ["친지", "사촌", "친척모임", "집안모임", "가족모임"]}, {"e": "🗣️", "n": "호칭", "s": "정확한 호칭은 존중의 시작이에요. 헷갈리면 미리 확인해요.", "d": ["남편의 형은 '아주버님', 남동생은 '도련님'(결혼 후 '서방님')이라고 불러요", "남편의 누나는 '형님', 여동생은 '아가씨'라고 불러요", "아내의 오빠는 '형님', 남동생은 '처남'이라고 불러요", "아내의 언니는 '처형', 여동생은 '처제'라고 불러요"], "x": ["애매하다고 '저기요'처럼 부르지 않아요", "요즘은 '도련님·아가씨' 대신 이름+씨로 부르는 집도 있으니, 집안 분위기를 확인해요"], "m": "시아버지·시어머니는 '아버님·어머님', 장인·장모는 '장인어른·장모님'(또는 아버님·어머님)이라고 불러요.", "k": ["부르는법", "호칭정리", "아주버님", "도련님", "서방님", "형님", "아가씨", "처형", "처제", "처남", "올케", "시누이", "매형", "매제", "제부"]}, {"e": "🧧", "n": "명절", "s": "설·추석에 가족이 모여요. 일과 비용을 공평하게 나누는 게 핵심이에요.", "d": ["양가 방문 순서와 기간을 미리 정해요", "음식 준비, 설거지, 운전을 가족이 나눠 맡아요", "오랜만에 만난 가족에게는 대답하기 편한 질문으로 근황을 물어요"], "x": ["취업·결혼·출산 질문으로 부담을 주지 않아요", "한 사람에게 일을 몰아주지 않아요"], "w": "차례가 있으면 단정한 옷을 입고, 음식 준비를 거들 땐 활동하기 편한 옷을 따로 챙겨요.", "$": {"k": "avg", "t": "세뱃돈은 관계보다 나이를 기준으로 정하는 경우가 많아요.", "src": "카카오페이 설 송금 봉투 분석·설문(2026년 설)", "label": "대상", "rows": [["미취학 아이", "1만~3만원", "range", ""], ["초등학생", "3만~5만원", "range", ""], ["중고생", "5만~10만원", "avg", "10만원이 가장 많아요(42%, 5만원 37%) · 카카오페이 설 송금 분석"], ["대학생·취업 준비생", "10만원 안팎", "range", ""], ["부모님 명절 용돈", "평균 22만 7,000원", "avg", "20~40대 평균, 20대 19만·30대 22만·40대 23만원 · 카카오페이 설문"]]}, "k": ["설", "설날", "추석", "한가위", "세배", "세뱃돈", "차례", "명절용돈", "귀성", "세배방법", "세배하는법", "큰절", "평절", "공수"], "o": ["세배는 집안의 가장 웃어른부터 차례로 드려요", "평소 공수 자세로 서요(남자는 왼손, 여자는 오른손이 위)", "남자는 무릎을 꿇고 두 손을 바닥에 짚으며 이마를 손등 가까이 숙였다가 일어나요", "여자는 앉으며 두 손을 바닥 옆에 짚고 고개를 숙이는 평절을 많이 해요", "절을 마치고 일어나 가볍게 목례한 뒤 무릎 꿇고 앉아요", "어른의 덕담을 먼저 듣고, '건강하세요' 같은 인사를 드려요"]}, {"e": "🪔", "n": "제사", "s": "조상을 기리는 의식이에요. 집안마다 방식이 달라서 그 집 기준을 따라요.", "d": ["단정한 옷차림으로 시간에 맞춰 참석해요", "절하는 순서와 방법은 어른께 미리 여쭤봐요", "제사 후 음식 정리와 설거지를 함께해요"], "x": ["제사 방식이나 음식 가짓수를 두고 다투지 않아요", "제사 중 휴대폰을 보거나 잡담하지 않아요"], "m": "절 횟수는 전통적으로 남자 두 번, 여자 네 번이지만 요즘은 모두 두 번 하는 집이 많아요. 성균관은 간소화된 차례상(음식 9가지 안팎)을 권하고 있어요.", "w": "어두운 색 위주의 단정한 옷이 좋아요. 화려한 무늬나 노출이 많은 옷은 피해요.", "k": ["기제사", "제례", "차례", "차례상", "제사상", "기일", "제사순서", "제사방법", "절하는법", "강신", "참신", "헌작", "음복", "초헌", "아헌", "종헌"], "o": ["제사상을 차리고 모두 제자리에 서요", "제주(맏이)가 향을 피우고 술을 조금 따라 모사 그릇에 부은 뒤 두 번 절해요(강신)", "참석자 모두 함께 두 번 절해요(참신)", "술잔에 술을 올리고 절해요. 원래는 세 번(초헌·아헌·종헌), 간소하게 한 번만 하기도 해요", "숟가락을 밥에 꽂고 젓가락을 가지런히 놓은 뒤 잠시 기다려요(삽시·합문)", "숭늉을 올리고, 수저를 내린 뒤 밥그릇 뚜껑을 덮어요", "모두 함께 두 번 절하고 제사를 마쳐요(사신)", "상을 정리한 뒤 음식을 함께 나눠 먹어요(음복)"]}]}, {"id": "food", "emoji": "🍽️", "name": "식사·술자리", "items": [{"e": "🍚", "n": "한식", "s": "어른과 함께 먹을 때는 순서와 속도를 맞추는 게 기본이에요.", "d": ["어른이 수저를 든 뒤에 식사를 시작해요", "밥그릇·국그릇은 들지 않고 상에 놓은 채 먹어요", "반찬은 뒤적이지 않고 먹을 만큼만 집어요", "식사 속도를 어른에게 맞춰요"], "x": ["숟가락과 젓가락을 한 손에 함께 쥐지 않아요", "밥에 숟가락을 꽂아 두지 않아요(제사 연상)", "소리 내며 먹거나 트림하지 않아요"], "k": ["밥상", "식사예절", "어른과식사", "숟가락", "젓가락", "한정식"]}, {"e": "🍝", "n": "양식", "s": "포크·나이프 사용과 냅킨이 핵심이에요.", "d": ["일행과 대화를 나누며 속도를 맞춰 천천히 먹어요", "음식은 한입 크기로 잘라 먹어요", "잘 모르는 요리나 와인은 직원에게 추천을 받아도 돼요", "드레스 코드가 있는 곳인지 예약할 때 확인해요"], "x": ["접시를 들거나 그릇에 입을 대지 않아요", "나이프를 입에 넣지 않아요", "냅킨으로 코를 풀지 않아요"], "k": ["레스토랑", "포크", "나이프", "코스요리", "스테이크", "와인", "냅킨", "코스순서", "커트러리순서", "수프"], "o": ["자리에 앉으면 냅킨을 반으로 접어 무릎 위에 놓아요", "왼쪽의 빵 접시, 오른쪽의 물잔이 내 것이에요", "와인을 주문하면 맛을 보고 괜찮다는 뜻으로 고개를 끄덕여요", "전채, 수프, 메인, 디저트 순서로 나오고, 커트러리는 바깥쪽부터 써요", "수프는 숟가락으로 몸 바깥쪽을 향해 떠먹어요", "식사 중에는 포크·나이프를 접시에 八자로, 다 먹으면 나란히 4시 방향으로 놓아요", "디저트와 커피 후 계산은 테이블에서 해요"]}, {"e": "🥟", "n": "중식", "s": "원형 테이블에서 함께 덜어 먹는 문화예요.", "d": ["회전판은 시계 방향으로 천천히 돌려요", "공용 접시의 음식은 덜어 먹는 수저로 내 앞접시에 옮겨요", "주빈이 먼저 음식을 덜 수 있게 기다려요"], "x": ["누군가 음식을 덜고 있을 때 회전판을 돌리지 않아요", "생선을 뒤집지 않아요(지역에 따라 불운으로 여겨요)"], "k": ["중국집", "중국음식", "원형테이블", "회전판"]}, {"e": "🍣", "n": "일식", "s": "그릇을 들고 먹는 게 예의인 식문화예요.", "d": ["밥그릇·국그릇은 손으로 들고 먹어요", "간장은 조금만 덜고, 초밥은 생선 쪽에 살짝 찍어요", "젓가락은 쓰지 않을 때 젓가락 받침에 가지런히 놓아요"], "x": ["젓가락끼리 음식을 주고받지 않아요(장례 의식 연상)", "젓가락을 밥에 꽂지 않아요", "와사비를 간장에 잔뜩 풀지 않아요(가게에 따라 무례로 봐요)"], "k": ["초밥", "스시", "오마카세", "일본음식", "젓가락"]}, {"e": "🍶", "n": "술자리", "s": "서로 존중하며 즐기는 자리예요. 강요하지 않는 게 요즘 예절이에요.", "d": ["윗사람에게 술을 따를 땐 두 손으로, 받을 땐 잔을 두 손으로 들어요", "윗사람 앞에서 마실 땐 고개를 살짝 옆으로 돌려요", "잔이 비었는지 살피고, 못 마시는 사람에겐 음료를 권해요"], "x": ["원샷이나 첨잔을 강요하지 않아요", "취한 사람을 혼자 귀가하게 두지 않아요", "음주 후 운전은 절대 하지 않아요"], "k": ["음주", "술", "건배", "술따르기", "주도", "회식", "원샷"]}, {"e": "🍴", "n": "식당", "s": "직원도 손님을 존중받아야 할 사람이에요.", "d": ["예약 시간을 지키고, 못 가면 미리 취소해요", "직원을 부를 땐 손을 들거나 호출벨을 써요", "아이와 함께라면 돌아다니지 않게 챙겨요"], "x": ["'저기요!' 하고 큰 소리로 부르거나 반말하지 않아요", "노쇼(예약 후 말없이 안 가기)를 하지 않아요", "남은 음식이나 쓰레기를 어지럽게 두고 나오지 않아요"], "k": ["음식점", "맛집", "예약", "노쇼", "직원호출"]}, {"e": "☕", "n": "카페", "s": "여러 사람이 함께 쓰는 공간이에요.", "d": ["오래 머물면 중간에 추가로 주문해요", "다 마신 컵과 쟁반은 반납대에 가져다 놓아요", "통화는 짧게, 영상은 이어폰으로 들어요"], "x": ["음료 한 잔으로 하루 종일 자리를 차지하지 않아요", "짐으로 자리를 맡아 두고 오래 비우지 않아요", "외부 음식을 허락 없이 먹지 않아요"], "k": ["커피숍", "카공", "스터디카페", "자리맡기"]}]}, {"id": "transit", "emoji": "🚇", "name": "교통·이동", "items": [{"e": "🚇", "n": "지하철", "s": "좁은 공간을 함께 쓰는 만큼 작은 배려가 크게 느껴져요.", "d": ["내리는 사람이 먼저 내린 뒤 타요", "백팩은 앞으로 메거나 손에 들어요", "통화는 짧고 작게, 영상은 이어폰으로 봐요", "노약자·임산부 배려석은 비워 두거나 필요한 분께 양보해요"], "x": ["문 앞에 서서 길을 막지 않아요", "다리를 꼬거나 쩍 벌려 앉지 않아요", "냄새가 강한 음식을 먹지 않아요"], "k": ["전철", "지하철예절", "임산부석", "노약자석", "백팩"]}, {"e": "🚌", "n": "버스", "s": "흔들리는 공간이라 안전과 배려가 같이 가요.", "d": ["정류장에 버스가 서면 줄 순서대로 타요", "하차할 정류장 전에 벨을 누르고, 정차 후 일어나요", "기사님께 짧게 인사하면 서로 기분이 좋아요"], "x": ["달리는 중에 일어나 출입문으로 미리 가지 않아요", "큰 소리로 통화하지 않아요", "좌석에 짐을 올려 두지 않아요"], "k": ["시내버스", "고속버스", "광역버스", "하차벨"]}, {"e": "🚕", "n": "택시", "s": "목적지를 정확히, 대화는 편하게예요.", "d": ["탈 때 목적지를 주소나 큰 건물 이름으로 정확히 말해요", "선호하는 길이 있으면 출발 전에 정중히 말해요", "내릴 때 두고 내린 물건이 없는지 확인해요"], "x": ["뒷좌석 발을 시트에 올리지 않아요", "음식이나 음료를 허락 없이 먹지 않아요", "문을 세게 닫지 않아요"], "k": ["택시예절", "카카오택시", "택시기사"]}, {"e": "✈️", "n": "비행기", "s": "몇 시간 동안 좁은 공간을 함께 써요.", "d": ["좌석을 뒤로 젖힐 땐 뒷사람을 확인하고 천천히 젖혀요", "식사 시간에는 등받이를 세워요", "중간 좌석 승객이 양쪽 팔걸이를 쓰도록 배려해요", "착륙 후 앞줄부터 차례로 내려요"], "x": ["안전벨트 표시등이 켜졌을 때 일어나지 않아요", "좌석 등받이를 발로 차거나 화면을 세게 누르지 않아요", "승무원을 부를 때 몸을 만지지 말고 호출 버튼을 눌러요"], "k": ["항공", "기내", "기내예절", "좌석", "등받이", "항공기"]}, {"e": "🚗", "n": "운전", "s": "도로 위의 매너는 안전과 직결돼요.", "d": ["차선 변경 전 방향지시등을 켜요", "양보를 받으면 비상등을 짧게 켜서 고마움을 표해요", "보행자가 있으면 횡단보도 앞에서 반드시 멈춰요"], "x": ["경적을 화풀이로 울리지 않아요", "끼어들기·보복 운전을 하지 않아요", "운전 중 휴대폰을 보지 않아요"], "k": ["자동차", "차", "운전예절", "깜빡이", "방향지시등", "비상등", "끼어들기", "보복운전"]}, {"e": "🅿️", "n": "주차", "s": "다른 차와 사람이 지나갈 공간을 남겨 두는 게 핵심이에요.", "d": ["주차선 안에 반듯하게 세워요", "이중 주차를 할 땐 기어를 중립에 두고 연락처를 남겨요", "문을 열 때 옆 차에 닿지 않게 조심해요(문콕 주의)"], "x": ["장애인·전기차·경차 전용 구역에 자격 없이 세우지 않아요", "두 칸을 차지하지 않아요", "출입구나 소방차 전용 구역을 막지 않아요"], "k": ["주차예절", "이중주차", "문콕", "장애인주차"]}]}, {"id": "public", "emoji": "🏙️", "name": "공공장소", "items": [{"e": "🛗", "n": "엘리베이터", "s": "짧은 시간 좁은 공간이라, 순서와 거리가 중요해요.", "d": ["내리는 사람이 먼저 내린 뒤 타요", "버튼 앞에 서 있으면 다른 사람 층을 대신 눌러 줘요", "문이 닫히는 걸 누가 뛰어오면 열림 버튼을 눌러 줘요"], "x": ["큰 소리로 통화하지 않아요", "급하지 않으면 닫힘 버튼을 연타하지 않아요"], "k": ["승강기", "엘베"]}, {"e": "🎬", "n": "영화관", "s": "모두가 같은 화면에 집중하는 공간이에요.", "d": ["상영 전 휴대폰을 무음으로 하고 화면 밝기도 꺼요", "늦게 들어가면 몸을 숙이고 조용히 자리를 찾아요", "엔딩 크레딧이 올라갈 땐 조용히 자리를 떠요"], "x": ["앞좌석을 발로 차거나 발을 올리지 않아요", "상영 중 대화나 스포일러를 하지 않아요", "냄새가 강한 음식을 먹지 않아요"], "k": ["극장", "영화관람", "상영관"]}, {"e": "📚", "n": "도서관", "s": "조용함이 이 공간의 규칙이에요.", "d": ["휴대폰은 무음, 통화는 밖에서 해요", "자리를 오래 비울 땐 짐을 정리해 다른 사람이 쓸 수 있게 해요", "빌린 책은 반납일을 지키고 깨끗하게 써요"], "x": ["가방이나 책으로 자리를 맡아 두지 않아요", "키보드·책장 넘기는 소리를 크게 내지 않아요"], "k": ["열람실", "독서실", "자리맡기"]}, {"e": "🎭", "n": "공연장", "s": "공연자와 관객 모두를 위한 약속이 있어요.", "d": ["공연 시작 전에 입장해요(늦으면 중간 휴식 때 입장하는 경우가 많아요)", "박수는 곡이나 막이 끝났을 때 쳐요", "클래식 공연은 악장 사이에 박수를 치지 않아요"], "x": ["허락 없이 사진·영상을 찍지 않아요", "공연 중 휴대폰 화면을 켜지 않아요"], "w": "클래식·오페라도 단정한 평상복이면 충분해요. 소리 나는 장신구나 뒷사람 시야를 가리는 큰 모자는 피해요.", "k": ["콘서트", "뮤지컬", "클래식", "오페라", "연극", "공연관람"]}, {"e": "🚻", "n": "화장실", "s": "다음 사람을 생각하는 공간이에요.", "d": ["줄은 각 칸 앞이 아니라 입구 쪽에 한 줄로 서요", "사용 후 물을 내리고 변기 뚜껑을 닫아요", "세면대 물기를 정리해요"], "x": ["칸 안에서 오래 통화하지 않아요", "휴지를 함부로 바닥에 버리지 않아요"], "k": ["화장실예절", "공중화장실"]}, {"e": "🧍", "n": "대기줄", "s": "먼저 온 사람이 먼저인 게 원칙이에요.", "d": ["앞사람과 적당한 거리를 둬요", "잠시 자리를 비울 땐 뒷사람에게 양해를 구해요"], "x": ["일행이 나중에 와서 끼어들지 않아요", "줄 대신 물건만 놓아 두지 않아요"], "k": ["줄서기", "새치기", "대기", "웨이팅"]}]}, {"id": "relation", "emoji": "❤️", "name": "인간관계", "items": [{"e": "☕", "n": "소개팅", "s": "처음 만나는 사람에게 편안함을 주는 게 목표예요.", "d": ["약속 시간보다 5~10분 일찍 도착해요", "질문과 대답의 균형을 맞추고 상대 이야기를 잘 들어요", "헤어진 뒤 그날 안에 고마웠다는 메시지를 보내요"], "x": ["전 연인 이야기, 연봉·재산 이야기를 꺼내지 않아요", "휴대폰을 자주 보지 않아요", "마음이 없으면 애매하게 끌지 말고 정중히 거절해요"], "w": "깔끔하고 편안한 스마트 캐주얼이 좋아요. 장소 분위기에 맞추고 향수는 은은하게 뿌려요.", "k": ["선", "맞선", "첫만남", "소개팅룩", "소개"]}, {"e": "🌹", "n": "데이트", "s": "서로를 배려하며 함께 계획하는 시간이에요.", "d": ["장소와 일정은 상대 취향을 묻고 함께 정해요", "비용은 서로 부담되지 않게 번갈아 내거나 나눠요", "늦을 것 같으면 미리 연락해요"], "x": ["상대의 거절을 가볍게 넘기지 않아요", "공공장소에서 지나친 애정 표현은 피해요"], "k": ["연애", "데이트비용", "더치페이"]}, {"e": "🧑‍🤝‍🧑", "n": "친구", "s": "오래가는 관계일수록 기본을 지켜요.", "d": ["약속을 잘 지키고, 못 지키면 먼저 사과해요", "좋은 일엔 진심으로 축하하고, 힘든 일엔 곁에 있어 줘요", "빌린 돈이나 물건은 날짜를 정해 꼭 돌려줘요"], "x": ["친구의 비밀을 다른 사람에게 말하지 않아요", "친하다고 함부로 말하지 않아요"], "k": ["우정", "친구관계", "돈빌리기"]}, {"e": "💑", "n": "연인", "s": "가장 가까운 사이일수록 존중이 필요해요.", "d": ["서운한 점은 쌓아 두지 말고 차분히 말해요", "상대의 일과 친구 관계를 존중해요", "기념일은 서로 기대 수준을 미리 이야기해요"], "x": ["휴대폰을 몰래 확인하지 않아요", "다툼 중 상대 가족이나 외모를 공격하지 않아요", "이별 후 상대의 사진·대화를 공개하지 않아요"], "k": ["애인", "남자친구", "여자친구", "남친", "여친", "연애", "이별"]}, {"e": "👋", "n": "첫 만남", "s": "첫인상은 몇 초 만에 결정돼요. 밝은 인사와 경청이 가장 좋은 무기예요.", "d": ["눈을 맞추고 밝게 인사하며 이름을 말해요", "상대 이름을 기억해 대화 중에 한 번 불러 줘요", "공통 관심사를 찾아 질문해요"], "x": ["나이, 결혼, 직업을 바로 캐묻지 않아요", "내 이야기만 길게 하지 않아요"], "k": ["첫인상", "처음만남", "자기소개", "인사"]}, {"e": "🙅", "n": "거절", "s": "거절은 관계를 끊는 게 아니라 솔직하게 지키는 방법이에요.", "d": ["감사 → 거절 → 대안 순서로 말해요", "미루지 말고 가능한 한 빨리 답해요", "이유는 짧고 솔직하게 말해요"], "x": ["애매하게 '생각해 볼게'로 끌지 않아요", "거짓 핑계를 크게 만들지 않아요"], "k": ["거절하는법", "거절멘트", "부탁거절", "사양"]}, {"e": "🙇", "n": "사과", "s": "잘못을 인정하고, 구체적으로, 다시 하지 않겠다고 약속하는 게 진짜 사과예요.", "d": ["무엇을 잘못했는지 구체적으로 말해요", "상대가 받은 피해나 감정을 인정해요", "어떻게 바로잡을지 함께 말해요"], "x": ["'그럴 의도는 없었지만'처럼 변명부터 하지 않아요", "'기분 나빴다면 미안'처럼 조건을 붙이지 않아요"], "k": ["사과하는법", "미안", "사과문", "사과메시지"]}, {"e": "🙏", "n": "감사", "s": "작은 도움에도 바로, 구체적으로 표현해요.", "d": ["무엇이 고마웠는지 구체적으로 말해요", "도움을 받은 그날 안에 표현해요", "큰 도움에는 작은 답례를 곁들여요"], "x": ["'고마워'만 말하고 끝내기보다 결과를 함께 알려 주면 더 좋아요"], "k": ["감사인사", "고마움", "고맙다", "감사표현", "감사메시지"]}]}, {"id": "home", "emoji": "🏠", "name": "주거·이웃", "items": [{"e": "🏠", "n": "집들이", "s": "새집을 축하하러 가는 자리예요. 빈손보다 작은 선물이 좋아요.", "d": ["방문 시간은 집주인이 정한 시간에 맞춰요", "휴지, 세제, 디퓨저, 식물처럼 실용적인 선물을 준비해요", "집 구경은 집주인이 안내하는 곳까지만 해요"], "x": ["방문이 닫힌 곳을 열어 보지 않아요", "집값·전세금·대출을 묻지 않아요", "너무 늦게까지 머물지 않아요"], "$": {"k": "range", "t": "", "label": "관계", "rows": [["지인·직장 동료", "3만~5만원", "range", "휴지·세제·디퓨저 같은 생활용품"], ["친한 친구", "5만~10만원", "range", "필요한 물건을 미리 물어보고 골라요"], ["가족·가까운 친척", "10만원 이상", "range", "가전·가구를 함께 사 주기도 해요"]]}, "k": ["집들이선물", "새집", "이사선물", "신혼집"]}, {"e": "📦", "n": "이사", "s": "이웃에게 소음과 불편을 줄 수 있는 날이에요.", "d": ["같은 동 이웃이 볼 수 있게 엘리베이터에 이사 안내문을 붙여요", "작업하는 분들께 물이나 간단한 간식을 챙겨 드리면 좋아요", "소음이 컸다면 아래층에 작은 선물과 함께 인사해요"], "x": ["이른 아침이나 밤늦게 짐을 옮기지 않아요", "엘리베이터를 오래 독점하지 않아요"], "k": ["이사인사", "이사떡", "엘리베이터예약", "전입", "이사절차", "이사순서", "전입신고"], "o": ["2~4주 전에 이사업체를 예약해요", "1주 전에 관리사무소에 이사 날짜를 알리고 엘리베이터 사용을 예약해요", "같은 층·아래층에 이사 날짜를 미리 알려요", "당일 공용 공간 보호재를 깔고 정해진 시간 안에 작업해요", "이사 후 복도·엘리베이터를 정리해요", "이웃에게 짧게 인사해요", "이사 후 14일 안에 전입신고를 해요"]}, {"e": "🏢", "n": "아파트", "s": "공용 공간을 함께 쓰는 규칙을 지켜요.", "d": ["분리수거는 요일과 방법을 지켜요", "복도와 계단에 짐을 쌓아 두지 않아요(화재 시 위험)", "관리비 공지와 단지 규칙을 확인해요"], "x": ["베란다에서 담배를 피우거나 이불을 털지 않아요", "단지 내에서 과속하지 않아요"], "k": ["공동주택", "분리수거", "관리사무소", "단지"]}, {"e": "🔊", "n": "층간소음", "s": "가장 흔한 이웃 갈등이에요. 예방과 대화 방법이 중요해요.", "d": ["실내에서는 슬리퍼를 신고, 아이 놀이 공간엔 매트를 깔아요", "밤 10시~아침 6시엔 세탁기·청소기 사용을 피해요", "아이가 있다면 아래층에 미리 인사하고 양해를 구해 두면 갈등이 줄어요"], "x": ["화가 났을 때 바로 찾아가 문을 두드리지 않아요", "보복 소음을 내지 않아요"], "m": "갈등이 계속되면 이웃사이센터(층간소음 상담)에 중재를 요청할 수 있어요.", "k": ["소음", "윗집", "아랫집", "윗층", "아랫층", "발망치", "쿵쿵", "층간소음대처", "이웃사이센터", "분쟁조정"], "o": ["소음이 나는 시간대와 종류를 며칠간 기록해요", "혹시 내 집 소음은 아닌지도 함께 점검해요", "관리사무소에 먼저 알리고 중재를 부탁해요", "필요하면 정중한 메모로 상황을 전해요", "직접 대화는 감정이 가라앉은 뒤 낮 시간에 해요", "계속되면 이웃사이센터(층간소음 상담)에 신청해요", "그래도 해결이 안 되면 공동주택 관리 분쟁조정위원회의 조정을 받아요"]}, {"e": "🐶", "n": "반려동물", "s": "반려동물을 좋아하지 않거나 무서워하는 사람도 있어요.", "d": ["외출할 땐 목줄을 2m 이내로 짧게 잡아요", "배변 봉투를 챙기고 바로 치워요", "엘리베이터에서는 반려동물을 안거나 구석에 붙여요"], "x": ["주인 허락 없이 남의 반려동물을 만지거나 간식을 주지 않아요", "'우리 개는 안 물어요'라며 다가가게 두지 않아요", "공동주택에서 오래 짖는 걸 방치하지 않아요"], "k": ["강아지", "개", "고양이", "반려견", "반려묘", "산책", "목줄", "배변"]}]}, {"id": "gift", "emoji": "🎁", "name": "선물·축하", "items": [{"e": "🎂", "n": "생일", "s": "축하 인사는 당일 아침이나 전날 밤에 먼저 보내면 좋아요.", "d": ["상대의 취향이나 필요한 물건을 미리 알아 둬요", "모바일 선물하기를 쓸 땐 짧은 메시지를 꼭 함께 보내요", "받은 선물엔 사용 후기를 곁들여 감사 인사를 해요"], "x": ["가격표를 떼지 않고 주지 않아요", "선물 금액을 비교하거나 묻지 않아요"], "$": {"k": "range", "t": "", "label": "관계", "rows": [["지인·직장 동료", "1만~3만원", "range", "커피·케이크 모바일 쿠폰이 무난해요"], ["친한 친구", "3만~5만원", "range", ""], ["연인·가족", "형편에 맞춰 5만원 이상", "range", "금액보다 취향과 정성이 중요해요"]]}, "k": ["생일선물", "생일축하", "기프티콘", "선물하기"]}, {"e": "💐", "n": "기념일", "s": "결혼기념일, 사귄 날 등은 서로의 기대를 맞추는 게 중요해요.", "d": ["기념일 방식(선물, 식사, 편지)을 미리 이야기해요", "부모님 결혼기념일도 챙겨 축하 연락을 드려요"], "x": ["기념일을 잊고 변명하기보다 솔직히 사과하고 따로 챙겨요"], "k": ["결혼기념일", "100일", "1주년", "기념일선물"]}, {"e": "👶", "n": "출산", "s": "산모와 아기의 건강이 가장 중요해요. 방문은 신중하게.", "d": ["축하 연락은 짧게, 방문은 출산 후 몇 주 지나 산모가 원할 때 해요", "기저귀, 아기 옷(다음 치수), 산모용 영양제처럼 실용적인 선물이 좋아요", "방문 시 손을 씻고 짧게 머물러요"], "x": ["아기 사진을 허락 없이 공유하지 않아요", "산모 체형이나 모유 수유 이야기를 하지 않아요", "감기 기운이 있으면 방문하지 않아요"], "$": {"k": "range", "t": "", "label": "관계", "rows": [["지인·직장 동료", "3만~5만원", "range", "팀이 함께 모아 선물하는 경우가 많아요"], ["친한 친구", "5만~10만원", "range", "기저귀·아기 옷(다음 치수)이 실용적이에요"], ["가족·가까운 친척", "10만원 이상", "range", "유모차·카시트처럼 큰 물건을 함께 사기도 해요"]]}, "k": ["출산선물", "출산축하", "산후조리원", "아기", "신생아", "백일"]}, {"e": "📈", "n": "승진", "s": "축하는 진심으로, 지나친 부러움 표현은 자제해요.", "d": ["소식을 들으면 바로 축하 인사를 해요", "팀이라면 꽃이나 작은 선물을 함께 준비해요"], "x": ["'운 좋았네'처럼 노력을 깎아내리는 말을 하지 않아요", "승진하지 못한 동료 앞에서 지나치게 축하하지 않아요"], "$": {"k": "range", "t": "", "label": "관계", "rows": [["직장 동료", "3만~5만원", "range", "보통 팀이 함께 모아 꽃·선물을 준비해요"], ["친한 친구·동료", "5만~10만원", "range", ""], ["가족", "축하 식사", "range", "금액보다 함께하는 시간이 좋아요"]]}, "k": ["승진축하", "승진선물", "진급"]}, {"e": "🌅", "n": "퇴직", "s": "오랜 시간의 수고를 기리는 자리예요.", "d": ["감사패, 손편지, 함께한 사진을 담은 앨범처럼 의미 있는 선물을 준비해요", "퇴직 후 계획을 응원하는 말을 건네요"], "x": ["퇴직 사유를 캐묻지 않아요", "'이제 쉬시면 되겠네요'처럼 일방적으로 단정하지 않아요"], "$": {"k": "range", "t": "", "label": "관계", "rows": [["직장 동료", "3만~5만원", "range", "팀이 함께 모아 기념품·감사패를 준비해요"], ["가까운 상사·멘토", "5만~10만원", "range", "손편지를 곁들이면 좋아요"], ["가족 (부모님 정년퇴직 등)", "형편에 맞춰", "range", "여행·건강 관련 선물이 많아요"]]}, "k": ["정년퇴직", "은퇴", "퇴임", "퇴직선물", "퇴직축하"]}, {"e": "🍐", "n": "명절 선물", "s": "받는 사람의 생활에 맞춰 고르는 게 핵심이에요.", "d": ["어른께는 과일·한우·건강식품, 동료에게는 소포장 간식이나 생활용품이 무난해요", "택배로 보낼 땐 도착 날짜를 명절 전으로 맞추고 미리 연락해요"], "x": ["유통기한이 짧은 식품을 연휴 직전에 보내지 않아요"], "$": {"k": "range", "t": "", "label": "관계", "rows": [["직장 동료", "1만~3만원", "range", "소포장 간식·생활용품"], ["지인·거래처", "2만~5만원", "range", "공직자 등은 청탁금지법 한도를 확인해요"], ["어른·은사", "5만~10만원", "range", "과일·한우·건강식품 세트"], ["부모님·양가", "10만원 이상 또는 용돈", "range", ""]]}, "m": "공직자·교직원·언론인 등에게는 청탁금지법 한도가 있어요. 농수산물 선물은 15만원, 명절 기간(설·추석 전 24일~후 5일)에는 30만원까지예요.", "k": ["명절선물", "추석선물", "설선물", "선물세트", "김영란법", "청탁금지법"]}, {"e": "💌", "n": "답례", "s": "받은 마음에 대한 인사예요. 금액보다 정성이 중요해요.", "d": ["경조사 후 1~2주 안에 감사 인사를 전해요", "결혼식·돌잔치 답례는 문자·카드로, 가까운 사람에게는 직접 전화해요", "부의를 받았다면 장례 후 감사 문자를 보내요"], "x": ["받은 금액을 다른 사람과 비교하지 않아요", "답례를 너무 늦게 하지 않아요"], "k": ["답례품", "감사인사", "답례문자", "감사문자", "답장"]}]}, {"id": "travel", "emoji": "✈️", "name": "여행·국제", "items": [{"e": "🏨", "n": "호텔", "s": "여러 나라 손님이 함께 쓰는 공간이에요.", "d": ["체크인·체크아웃 시간을 지켜요", "복도에서는 조용히 이동해요", "객실 비품 중 가져가도 되는 것(일회용품)과 아닌 것(가운, 수건)을 구분해요"], "x": ["객실에서 흡연하지 않아요(대부분 금연, 벌금 있음)", "잠옷이나 가운 차림으로 로비에 나가지 않아요"], "k": ["숙소", "리조트", "체크인", "체크아웃", "어메니티"]}, {"e": "🧳", "n": "해외여행", "s": "방문한 나라의 법과 문화를 존중하는 게 기본이에요.", "d": ["출발 전 그 나라의 기본 인사말과 금기를 알아 둬요", "종교 시설에서는 복장 규정(어깨·무릎 가리기 등)을 지켜요", "현지인을 사진 찍을 땐 먼저 허락을 구해요"], "x": ["한국에서의 기준으로 현지 문화를 평가하지 않아요", "관광지에서 큰 소리로 떠들거나 낙서하지 않아요"], "k": ["여행", "외국", "해외", "관광", "여행예절"]}, {"e": "🍽️", "n": "국가별 식사", "s": "나라마다 식사 예절이 달라요. 낯설면 현지인을 따라 해요.", "d": ["일본: 밥그릇을 들고 먹고, 국은 그릇째 마셔요", "중국: 손님 접대 때 음식을 조금 남기면 '충분히 대접받았다'는 뜻이에요", "중동·인도 일부: 음식은 오른손으로 먹고 건네요", "미국·유럽: 식사 중 대화를 즐기고, 접시는 다 먹기 전까지 치우지 않아요"], "x": ["낯선 음식을 앞에서 대놓고 싫은 표정을 짓지 않아요"], "k": ["외국식사", "일본식사", "중국식사", "해외식사", "식사문화"]}, {"e": "👋", "n": "인사", "s": "인사 방식은 나라마다 달라서 상대에 맞추는 게 예의예요.", "d": ["일본: 가볍게 허리를 숙여 인사해요", "서양: 눈을 맞추고 악수해요(손은 너무 세지도 약하지도 않게)", "태국: 두 손을 모아 '와이'로 인사해요", "프랑스 등 일부 유럽: 가까운 사이엔 볼을 맞대는 비주를 해요"], "x": ["상대가 원하지 않는 신체 접촉을 하지 않아요", "손짓 의미가 나라마다 달라 엄지·검지 손짓은 조심해요"], "k": ["외국인사", "악수", "볼키스", "비주", "와이"]}, {"e": "💵", "n": "팁", "s": "팁 문화가 있는 나라에선 서비스 비용의 일부예요.", "d": ["계산서에 'service included'가 있으면 따로 줄 필요가 없어요", "카드로 계산할 땐 영수증의 팁(Tip) 칸에 금액을 적어요", "현금 팁은 현지 화폐 지폐로 미리 준비해요"], "x": ["일본·한국에선 팁을 주면 오히려 당황할 수 있어요", "팁을 현지 화폐가 아닌 동전으로 대충 남기지 않아요"], "$": {"k": "range", "t": "미국 기준 식당 15~20%, 택시 10~15%, 호텔 하우스키핑 1박당 몇 달러 정도예요. 유럽은 서비스료 포함인 경우가 많아 잔돈을 남기는 정도예요."}, "k": ["tip", "팁문화", "미국팁", "서비스료"]}, {"e": "🕌", "n": "종교·문화", "s": "종교 시설과 관습은 그 공동체에 매우 소중해요.", "d": ["사원·성당·절에서는 노출이 적은 옷을 입고 모자를 벗어요", "신발을 벗어야 하는 곳은 안내를 따르고, 사진 촬영 가능 여부를 확인해요", "라마단 기간 이슬람권에서는 낮에 공공장소에서 음식을 먹지 않도록 배려해요"], "x": ["불상·성물을 만지거나 기대어 사진 찍지 않아요", "예배·기도 중인 사람 앞을 가로지르지 않아요", "종교에 대해 가볍게 농담하지 않아요"], "w": "어깨와 무릎을 가리는 옷을 입어요. 이슬람 사원 등에서는 여성에게 머리를 가리는 스카프를 요구하기도 해요.", "k": ["종교", "사원", "성당", "절", "교회", "모스크", "라마단", "복장규정"]}]}, {"id": "edu", "emoji": "🎓", "name": "교육·기타", "items": [{"e": "🏫", "n": "학교", "s": "배우는 공간이자 함께 지내는 공동체예요.", "d": ["선생님과 친구에게 먼저 인사해요", "수업 중에는 휴대폰을 꺼 두거나 학교 규칙을 따라요", "공용 물건은 쓰고 제자리에 둬요"], "x": ["친구를 놀리거나 따돌리지 않아요", "친구의 사진을 허락 없이 단톡방이나 SNS에 올리지 않아요"], "k": ["학생", "학교생활", "수업"]}, {"e": "👪", "n": "학부모", "s": "아이를 함께 키우는 동반자로 선생님과 소통해요.", "d": ["상담은 미리 일정을 잡고, 공식 채널(알림장 앱, 학교 전화)을 이용해요", "궁금한 점은 감정보다 사실 위주로 물어요", "학부모 단톡방에서는 공지 위주로, 다른 아이 이야기는 조심해요"], "x": ["밤늦게 선생님 개인 번호로 연락하지 않아요", "다른 아이나 선생님을 단톡방에서 비난하지 않아요"], "k": ["학부모상담", "담임", "담임선생님", "학부모단톡", "학교상담"]}, {"e": "🧑‍🏫", "n": "교사", "s": "학생과 보호자 모두를 존중하는 소통이 중요해요.", "d": ["안내 사항은 미리, 정확하게 공지해요", "학생의 개인 정보와 성적을 다른 사람 앞에서 이야기하지 않아요", "보호자 연락에는 정해진 시간 안에 답해요"], "x": ["학생을 다른 학생과 비교하며 꾸짖지 않아요"], "m": "선생님께 드리는 선물은 청탁금지법에 따라 원칙적으로 안 되고, 학생 대표가 드리는 카네이션 정도만 허용돼요.", "k": ["선생님", "스승의날", "선생님선물", "교직원"]}, {"e": "✏️", "n": "학원", "s": "돈을 내는 곳이라도 선생님과 다른 학생을 존중해요.", "d": ["수업 시작 전에 도착하고, 결석은 미리 알려요", "질문은 수업 흐름에 맞춰, 길면 수업 후에 해요"], "x": ["수업 중 다른 학생을 방해하지 않아요", "학원 자료를 무단으로 공유하지 않아요"], "k": ["학원선생님", "학원수업"]}, {"e": "🏸", "n": "동호회", "s": "취미로 모였지만 함께 하는 규칙이 있어요.", "d": ["회비와 모임 시간을 지켜요", "새로 온 회원에게 먼저 말을 걸어 줘요", "장비·공간을 쓰고 나면 함께 정리해요"], "x": ["실력으로 다른 회원을 무시하지 않아요", "모임을 영업·포교 자리로 쓰지 않아요", "회원 사이의 금전 거래는 피해요"], "k": ["모임", "취미모임", "클럽", "동아리"]}, {"e": "💻", "n": "온라인 커뮤니티", "s": "얼굴이 안 보여도 화면 너머엔 사람이 있어요.", "d": ["글을 쓰기 전에 커뮤니티 규칙과 공지를 읽어요", "질문하기 전에 검색해 보고, 답을 받으면 감사 인사를 남겨요", "다른 사람의 글·사진을 쓰면 출처를 밝혀요"], "x": ["욕설, 비하, 인신공격을 하지 않아요", "개인 정보를 노출하거나 남의 정보를 퍼뜨리지 않아요", "같은 글을 여러 번 도배하지 않아요"], "k": ["커뮤니티", "카페", "게시판", "댓글", "인터넷예절", "네티켓"]}]}];
+(function () {
+  var cats = document.getElementById('cats');
+  var jump = document.getElementById('jump');
+  var layer = document.getElementById('layer');
+  var layerBody = document.getElementById('layerBody');
+  var ITEMS = {};
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // ── 첫 화면: 대분류 패널과 항목 버튼 ──
+  DATA.forEach(function (c) {
+    var sec = el('section', 'cat-sec');
+    sec.id = 'sec-' + c.id;
+    var t = el('h2', 'cat-title');
+    var inner = el('span');
+    inner.append(el('span', 'emo', c.emoji + ' '), document.createTextNode(c.name));
+    t.appendChild(inner);
+    sec.appendChild(t);
+    var wrap = el('div', 'chips');
+    c.items.forEach(function (it, i) {
+      it.id = c.id + '-' + (i + 1); it.cat = c; ITEMS[it.id] = it;
+      var b = el('button', 'chip');
+      b.type = 'button';
+      b.setAttribute('aria-haspopup', 'dialog');
+      b.setAttribute('data-item', it.id);
+      b.append(el('span', 'e', it.e), document.createTextNode(it.n));
+      b.addEventListener('click', function () { requestOpen(it.id); });
+      wrap.appendChild(b);
+    });
+    sec.appendChild(wrap);
+    cats.appendChild(sec);
+
+    var j = el('button', 'jump-btn', c.emoji + ' ' + c.name);
+    j.type = 'button';
+    j.addEventListener('click', function () {
+      sec.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      sec.classList.remove('flash'); void sec.offsetWidth; sec.classList.add('flash');
+    });
+    jump.appendChild(j);
+  });
+
+  // ── 상황 검색: 항목 이름·요약·본문에서 찾아 버튼만 걸러 보여줘요 ──
+  var q = document.getElementById('q'), qClear = document.getElementById('qClear'), qResult = document.getElementById('qResult'), noResult = document.getElementById('noResult');
+  // 검색: 띄어쓰기·대소문자 무시, 상황 이름·다른 이름(별칭)·본문에서 찾기
+  function norm(t) { return String(t || '').toLowerCase().replace(/\s+/g, ''); }
+  function textOf(it) {
+    if (it._t) return it._t;
+    var rows = it.$ && it.$.rows ? it.$.rows.map(function (r) { return r.join(' '); }) : [];
+    it._t = norm([it.n, it.s, it.cat.name, it.w || '', it.m || '', it.$ ? it.$.t : ''].concat(it.d, it.x, rows, it.o || []).join(' '));
+    return it._t;
+  }
+  function aliasHit(it, t) {
+    var list = it.k || [];
+    for (var i = 0; i < list.length; i++) {
+      var a = norm(list[i]);
+      if (a.length >= 2 && (t.indexOf(a) >= 0 || (t.length >= 2 && a.indexOf(t) === 0))) return true;
+    }
+    return false;
+  }
+  function filter() {
+    var raw = q.value.trim(), term = norm(raw);
+    qClear.hidden = !raw;
+    var total = 0, viaAlias = [];
+    DATA.forEach(function (c) {
+      var sec = document.getElementById('sec-' + c.id), shown = 0;
+      c.items.forEach(function (it) {
+        var b = sec.querySelector('[data-item="' + it.id + '"]');
+        var ok = true;
+        if (term) {
+          var byName = norm(it.n).indexOf(term) >= 0 || term.indexOf(norm(it.n)) >= 0 && norm(it.n).length >= 2;
+          var byAlias = aliasHit(it, term);
+          var byText = textOf(it).indexOf(term) >= 0 || norm(c.name).indexOf(term) >= 0;
+          ok = byName || byAlias || byText;
+          if (byAlias && !byName) viaAlias.push(it.n);
+        }
+        b.classList.toggle('dim', !ok);
+        b.classList.toggle('hit', !!term && ok);
+        if (ok) shown++;
+      });
+      sec.classList.toggle('dim', shown === 0);
+      total += shown;
+    });
+    jump.hidden = !!term;
+    noResult.classList.toggle('show', !!term && total === 0);
+    if (!term || !total) { qResult.textContent = ''; return; }
+    var msg = '‘' + raw + '’ 관련 상황 ' + total + '개';
+    if (viaAlias.length) msg = '‘' + raw + '’ → ' + viaAlias.slice(0, 4).join(', ') + (viaAlias.length > 4 ? ' 외' : '') + ' · 관련 상황 ' + total + '개';
+    qResult.textContent = msg;
+  }
+  q.addEventListener('input', filter);
+  qClear.addEventListener('click', function () { q.value = ''; filter(); q.focus(); });
+
+  // ── 팝업 내용 ──
+  function list(title, cls, icon, arr) {
+    var box = el('section', 'box ' + cls);
+    var h = el('h3'); h.append(el('span', null, icon), document.createTextNode(title));
+    box.appendChild(h);
+    var ul = el('ul');
+    arr.forEach(function (t) { ul.appendChild(el('li', null, t)); });
+    box.appendChild(ul);
+    return box;
+  }
+  function render(it) {
+    layerBody.innerHTML = '';
+    layerBody.appendChild(el('p', 'guide-sum', it.s));
+    var grid = el('div', 'guide-grid');
+    grid.appendChild(list('이렇게 하면 좋아요', 'do', '✅', it.d));
+    grid.appendChild(list('이건 피해요', 'dont', '🚫', it.x));
+    if (it.o && it.o.length) {
+      var steps = el('section', 'box steps');
+      var hs = el('h3'); hs.append(el('span', null, '🔢'), document.createTextNode('순서'));
+      var ol = el('ol');
+      it.o.forEach(function (t) { ol.appendChild(el('li', null, t)); });
+      steps.append(hs, ol);
+      grid.appendChild(steps);
+    }
+    if (it.w) {
+      var wear = el('section', 'box wear');
+      var hw = el('h3'); hw.append(el('span', null, '👔'), document.createTextNode('옷차림'));
+      wear.append(hw, el('p', null, it.w));
+      grid.appendChild(wear);
+    }
+    if (it.$) {
+      var M = it.$;
+      var hasAvg = M.k === 'avg' || (M.rows || []).some(function (r) { return r[2] === 'avg'; });
+      var cash = el('section', 'box cash');
+      var hc = el('h3');
+      hc.append(el('span', null, '💰'), document.createTextNode(M.rows ? M.label + '별 금액' : '금액'),
+        el('span', 'badge ' + (hasAvg ? 'avg' : 'range'), hasAvg ? '설문 포함' : '일반적인 범위'));
+      cash.appendChild(hc);
+      if (M.t) cash.appendChild(el('p', 'cash-sum', M.t));
+      if (M.rows) {
+        var tb = el('div', 'rel');
+        M.rows.forEach(function (r) {
+          var row = el('div', 'rel-row');
+          var top = el('div', 'rel-top');
+          top.append(el('span', 'rel-who', r[0]), el('span', 'rel-amt', r[1]), el('span', 'rel-tag ' + r[2], r[2] === 'avg' ? '설문' : '범위'));
+          row.appendChild(top);
+          if (r[3]) row.appendChild(el('p', 'rel-note', r[3]));
+          tb.appendChild(row);
+        });
+        cash.appendChild(tb);
+      }
+      if (M.src && !M.rows) cash.appendChild(el('p', 'src', '출처: ' + M.src));
+      if (M.src && M.rows) cash.appendChild(el('p', 'src', '전체 평균 출처: ' + M.src));
+      grid.appendChild(cash);
+    }
+    if (it.m) {
+      var rule = el('section', 'box rule');
+      var h2 = el('h3'); h2.append(el('span', null, '📌'), document.createTextNode('알아 두면 좋은 기준'));
+      rule.append(h2, el('p', null, it.m));
+      grid.appendChild(rule);
+    }
+    layerBody.appendChild(grid);
+    layerBody.appendChild(el('p', 'guide-note', '지역·집안·관계에 따라 기준이 다를 수 있어요. 일반적인 예절을 정리한 내용이에요.'));
+  }
+
+  // ── 주소(#항목) 변경: 막힌 환경에서는 건너뜀 ──
+  var historyOk = true;
+  function safeHistory(kind, state, hash) {
+    if (!historyOk) return false;
+    try { history[kind](state, '', hash); return true; } catch (e) { historyOk = false; return false; }
+  }
+  function openItem(id, push) {
+    var it = ITEMS[id];
+    if (!it) return;
+    document.getElementById('layerEmo').textContent = it.e;
+    document.getElementById('layerSub').textContent = it.cat.emoji + ' ' + it.cat.name;
+    document.getElementById('layerTitle').textContent = it.n;
+    render(it);
+    if (!layer.open) { layer.showModal(); layer.querySelector('.layer-inner').focus(); }
+    document.body.classList.add('layer-open');
+    document.getElementById('layerScroll').scrollTop = 0;
+    if (window.fitAds) window.fitAds();
+    if (push) safeHistory('pushState', { item: id }, '#' + id);
+  }
+  function finishClose() {
+    layerBody.innerHTML = '';
+    if (layer.open) layer.close();
+    document.body.classList.remove('layer-open');
+  }
+  function closeLayer() {
+    if (historyOk && history.state && history.state.item && location.hash) { history.back(); return; }
+    finishClose();
+  }
+  document.getElementById('closeBtn').addEventListener('click', closeLayer);
+  layer.addEventListener('cancel', function (e) { e.preventDefault(); closeLayer(); });
+  layer.addEventListener('click', function (e) { if (e.target === layer) closeLayer(); });
+  window.addEventListener('popstate', function () {
+    var id = location.hash.slice(1);
+    if (ITEMS[id]) openItem(id, false); else finishClose();
+  });
+  var initial = location.hash.slice(1);
+  if (ITEMS[initial]) { safeHistory('replaceState', { item: initial }, '#' + initial); openItem(initial, false); }
+
+  // ── 광고 팝업: 무작위 간격(1~10)마다 세부 팝업 전에 3초 표시 ──
+  var adGate = document.getElementById('adGate');
+  var pendingId = null, gateTimer = 0, GATE_MS = 3000;
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function randGap() { return 1 + Math.floor(Math.random() * 10); }
+  function isAdTurn() {
+    var rec = null;
+    try { rec = JSON.parse(localStorage.getItem('etq-ad-gate') || 'null'); } catch (e) {}
+    if (!rec || rec.date !== todayKey() || !rec.next) rec = { date: todayKey(), n: 0, next: randGap() };
+    rec.n += 1;
+    var due = rec.n >= rec.next;
+    if (due) rec.next = rec.n + randGap();
+    try { localStorage.setItem('etq-ad-gate', JSON.stringify(rec)); } catch (e) {}
+    return due;
+  }
+  function adReady() { var s = adGate.querySelector('.ad-gate-slot'); return !s.classList.contains('ad-empty') && !!s.querySelector('iframe'); }
+  function requestOpen(id) {
+    hideTip();
+    if (isAdTurn() && adReady()) {
+      pendingId = id;
+      adGate.showModal();
+      document.body.classList.add('layer-open');
+      if (window.fitAds) window.fitAds();
+      adGate.querySelector('.ad-gate-inner').focus();
+      var bar = document.getElementById('adGateBar');
+      bar.style.animationDuration = GATE_MS + 'ms';
+      bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run');
+      bar.onanimationend = function () { setTimeout(closeGate, 120); };
+      clearTimeout(gateTimer);
+      gateTimer = setTimeout(closeGate, GATE_MS + 400);
+      return;
+    }
+    openItem(id, true);
+  }
+  function closeGate() {
+    clearTimeout(gateTimer);
+    if (!adGate.open) return;
+    adGate.close();
+    var id = pendingId; pendingId = null;
+    if (id) openItem(id, true); else document.body.classList.remove('layer-open');
+  }
+  adGate.addEventListener('cancel', function (e) { e.preventDefault(); closeGate(); });
+
+  // ── 툴팁: 마우스를 올리면 한 줄 요약 ──
+  var canHover = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var tip = el('div', 'tip'); tip.hidden = true; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip);
+  var tipTimer = 0, tipFor = null;
+  function hideTip() { clearTimeout(tipTimer); tipFor = null; tip.hidden = true; }
+  function showTip(btn) {
+    var it = ITEMS[btn.getAttribute('data-item')]; if (!it) return;
+    tipFor = btn;
+    tip.innerHTML = '';
+    tip.append(el('b', null, it.e + ' ' + it.n), document.createTextNode(it.s));
+    tip.hidden = false;
+    var r = btn.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+    var x = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 8);
+    var y = r.top - th - 10; if (y < 8) y = r.bottom + 10;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  if (canHover) {
+    cats.addEventListener('mouseover', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (!b || b === tipFor) return;
+      clearTimeout(tipTimer); tipTimer = setTimeout(function () { showTip(b); }, 120);
+    });
+    cats.addEventListener('mouseout', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (b && !b.contains(e.relatedTarget)) hideTip();
+    });
+    window.addEventListener('scroll', hideTip, { passive: true });
+  }
+})();
+</script>
+<script>
+// ═══ 광고 배너: 화면 폭에 맞춰 비율 축소, 불러오지 못하면 접기 ═══
+(function () {
+  var slots = Array.prototype.slice.call(document.querySelectorAll('.ad-slot'));
+  function fit() {
+    slots.forEach(function (s) {
+      var box = s.querySelector('.ad-fit');
+      var w = box.clientWidth;
+      if (!w) return;                         // 닫힌 팝업 안에서는 열릴 때 다시 계산
+      var frame = s.querySelector('.ad-frame');
+      var base = parseFloat(frame.getAttribute('data-w')) || 680;
+      var k = Math.min(1, w / base);
+      s.style.setProperty('--ad-scale', k.toFixed(4));
+    });
+  }
+  window.fitAds = fit;
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(fit);
+    slots.forEach(function (s) { ro.observe(s.querySelector('.ad-fit')); });
+  }
+  fit();
+  // 스크립트가 막혔거나 광고 차단으로 배너가 없으면 칸을 접어요.
+  setTimeout(function () {
+    slots.forEach(function (s) {
+      var f = s.querySelector('iframe');
+      if (!f) s.classList.add('ad-empty');
+    });
+  }, 5000);
+})();
+</script>
+</body>
+</html>

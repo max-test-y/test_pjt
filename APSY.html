@@ -1,0 +1,1171 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세상의 모든 심리테스트</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #f4f0fb;
+    --surface: #fffdff;
+    --surface-2: #efe8fa;
+    --ink: #2a1f3d;
+    --muted: #6c6080;
+    --line: #e2d8f1;
+    --focus: #7b4fd6;
+    --accent: #7b4fd6;
+    --good: #1f8a5a;
+    --bad: #c8463d;
+    --scrim: rgba(42, 31, 61, .35);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink); position: relative; min-height: 100vh; overflow-x: hidden;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; word-break: keep-all;
+  }
+  button { font: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    background:
+      radial-gradient(1100px 650px at 85% -10%, rgba(170, 120, 255, .22), transparent 60%),
+      radial-gradient(900px 600px at -10% 30%, rgba(255, 150, 220, .14), transparent 60%),
+      var(--bg);
+  }
+  .bg canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .main { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 64px 20px 64px; text-align: center; }
+  h1 {
+    margin: 0 auto 14px; font-size: clamp(40px, 8vw, 84px); font-weight: 800; letter-spacing: -0.045em; line-height: 1.02;
+    background: linear-gradient(100deg, #2a1f3d 0%, #5a2fb0 50%, #a77bf0 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { margin: 0 auto; max-width: 26em; color: var(--muted); font-size: 17px; text-wrap: balance; }
+
+  .search { position: relative; max-width: 520px; margin: 26px auto 0; }
+  .search input {
+    width: 100%; font: inherit; font-size: 16px; color: var(--ink);
+    padding: 14px 44px 14px 46px; border-radius: 999px; border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .82); box-shadow: 0 6px 24px rgba(60, 30, 110, .08);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(123, 79, 214, .14); }
+  .search .ico { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-size: 17px; opacity: .65; pointer-events: none; }
+  .search .clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%;
+    border: 0; background: var(--surface-2); color: var(--muted); cursor: pointer; font-size: 14px;
+  }
+  .search-result { margin: 10px 0 0; font-size: 14px; color: var(--muted); min-height: 1.4em; }
+
+  .jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 4px; margin: 20px auto 0; max-width: 900px; }
+  .jump-btn { font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
+  .jump-btn:hover { color: var(--ink); background: rgba(42, 31, 61, .05); }
+
+  .cat-list { display: grid; gap: 18px; margin-top: 30px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 860px) { .cat-list { grid-template-columns: 1fr; } }
+  .cat-sec {
+    position: relative; overflow: hidden; border-radius: 20px; padding: 22px 24px 18px; scroll-margin-top: 24px;
+    background: rgba(255, 253, 255, .74); border: 1px solid rgba(42, 31, 61, .07);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 12px 32px rgba(60, 30, 110, .08);
+    -webkit-backdrop-filter: blur(8px) saturate(140%); backdrop-filter: blur(8px) saturate(140%);
+  }
+  .cat-sec::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: linear-gradient(135deg, rgba(123, 79, 214, .06), transparent 40%); }
+  .cat-title { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 14px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .cat-title::before, .cat-title::after {
+    content: ""; flex: 0 1 72px; height: 2px;
+    background-image: radial-gradient(circle, rgba(123, 79, 214, .5) 1px, transparent 1.2px); background-size: 6px 2px; background-repeat: repeat-x; background-position: center;
+  }
+  .cat-title .emo { font-size: 24px; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; position: relative; }
+  .chip {
+    font-size: 16px; color: var(--ink); background: rgba(255, 255, 255, .9); border: 1px solid var(--line);
+    border-radius: 999px; padding: 9px 15px; cursor: pointer; line-height: 1.3;
+    transition: border-color .15s, box-shadow .2s, background .15s;
+  }
+  .chip .e { margin-right: 5px; }
+  .chip:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(123, 79, 214, .12); }
+  .chip.hit { border-color: var(--accent); background: #f1e9ff; }
+  .cat-sec.dim { display: none; }
+  .chip.dim { display: none; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 2px rgba(123, 79, 214, .45); } 100% { box-shadow: 0 12px 32px rgba(60, 30, 110, .08); } }
+  .cat-sec.flash { animation: flash 1.2s ease-out; }
+  .empty-result { display: none; margin: 30px auto 0; color: var(--muted); }
+  .empty-result.show { display: block; }
+
+  /* 레이어 */
+  dialog.layer {
+    border: 0; padding: 0; color: var(--ink); text-align: left;
+    width: min(760px, calc(100vw - 48px)); height: fit-content; max-height: calc(100dvh - 48px);
+    max-width: none; margin: auto; inset: 0; border-radius: 20px; overflow: hidden;
+    background: rgba(255, 253, 255, .96); border: 1px solid rgba(42, 31, 61, .08);
+    box-shadow: 0 24px 60px rgba(60, 30, 110, .22);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  }
+  dialog.layer::backdrop { background: var(--scrim); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.layer[open], dialog.ad-gate[open] { animation: rise .2s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  }
+  .layer-inner { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
+  .layer-inner:focus { outline: none; }
+  .layer-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .85); position: relative; }
+  .layer-emo { font-size: 34px; line-height: 1; }
+  .layer-titles { display: grid; gap: 2px; }
+  .layer-sub { margin: 0; font-size: 13px; color: var(--muted); }
+  .layer-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+  .close { margin-left: auto; flex: none; width: 44px; height: 44px; margin-right: -8px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; padding: 0; }
+  .close svg { width: 22px; height: 22px; }
+  .close:hover { background: rgba(42, 31, 61, .06); }
+  .layer-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .layer-body { padding: 18px 20px 14px; }
+
+  .guide-sum { margin: 0 0 16px; font-size: 17px; line-height: 1.6; text-align: center; padding: 14px 16px; border-radius: 14px; background: #f1e9ff; color: #3d2470; }
+  .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .box { border-radius: 14px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); }
+  .box h3 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .box ul { margin: 0; padding-left: 1.15em; display: grid; gap: 6px; font-size: 15px; }
+  .box.do h3 { color: var(--good); }
+  .box.dont h3 { color: var(--bad); }
+  .box.wear, .box.cash, .box.rule { grid-column: 1 / -1; }
+  .box.steps { grid-column: 1 / -1; background: #f3f8f5; border-color: #d3e8dc; }
+  .box.steps h3 { color: #1f6b48; }
+  .box.steps ol { margin: 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 8px; }
+  .box.steps li { counter-increment: st; position: relative; padding-left: 34px; font-size: 15px; line-height: 1.55; }
+  .box.steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: #1f8a5a; color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+  .box p { margin: 0; font-size: 15px; }
+  .box.wear { background: #f2f6ff; border-color: #d9e3fb; }
+  .box.wear h3 { color: #2f4f9e; }
+  .box.cash { background: #fff8ec; border-color: #f1dfbd; }
+  .box.cash h3 { color: #9a6514; }
+  .box.rule h3 { color: var(--muted); }
+  .badge { margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .badge.avg { background: #9a6514; color: #fff; }
+  .badge.range { background: #f1dfbd; color: #7a4f0e; }
+  .box .src { margin-top: 8px; font-size: 12px; color: #8a6a3a; }
+  .cash-sum { margin-bottom: 10px !important; }
+  .rel { display: grid; gap: 6px; }
+  .rel-row { background: rgba(255, 255, 255, .75); border: 1px solid #f1dfbd; border-radius: 10px; padding: 9px 12px; }
+  .rel-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rel-who { font-size: 14px; color: #6b4a14; min-width: 7.5em; }
+  .rel-amt { font-size: 16px; font-weight: 700; color: var(--ink); }
+  .rel-tag { margin-left: auto; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .rel-tag.avg { background: #9a6514; color: #fff; }
+  .rel-tag.range { background: #f1dfbd; color: #7a4f0e; }
+  .rel-note { margin: 4px 0 0 !important; font-size: 12.5px !important; color: #7a6342; }
+  .guide-note { margin: 14px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
+  @media (max-width: 640px) {
+    .guide-grid { grid-template-columns: 1fr; }
+    dialog.layer { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 18px; }
+    .layer-inner { max-height: calc(100dvh - 24px); }
+    .layer-body { padding: 14px 12px 12px; }
+    .main { padding-top: 40px; }
+    .cat-sec { padding: 18px 14px 14px; }
+    .cat-title::before, .cat-title::after { flex-basis: 36px; }
+    .chip { font-size: 15px; padding: 8px 13px; }
+  }
+
+  /* 툴팁 */
+  .tip { position: fixed; z-index: 60; pointer-events: none; max-width: 280px; padding: 10px 12px; border-radius: 12px; text-align: left; font-size: 13px; line-height: 1.5;
+    background: rgba(255, 255, 255, .97); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(60, 30, 110, .18); }
+  .tip b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+
+  /* 광고 */
+  .ad-slot { position: relative; margin: 28px auto 0; max-width: 712px; padding: 28px 16px 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, .7); }
+  .ad-page { max-width: none; padding-left: 12px; padding-right: 12px; }
+  .ad-layer { margin: 0 20px 18px; max-width: none; }
+  .ad-tag { position: absolute; top: 6px; left: 12px; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .ad-fit { width: 100%; height: calc(var(--ad-h, 140px) * var(--ad-scale, 1)); overflow: hidden; display: flex; justify-content: center; }
+  .ad-frame { width: var(--ad-w, 680px); height: var(--ad-h, 140px); flex: none; transform: scale(var(--ad-scale, 1)); transform-origin: top center; border-radius: 8px; overflow: hidden; }
+  .ad-frame iframe { display: block; max-width: none; }
+  .ad-slot.ad-empty { display: none; }
+  @media (max-width: 640px) { .ad-slot { padding: 26px 10px 10px; } .ad-layer { margin: 0 12px 12px; } }
+
+  dialog.ad-gate { border: 0; padding: 0; background: transparent; overflow: visible; width: min(440px, calc(100vw - 24px)); height: fit-content; max-height: calc(100dvh - 24px); margin: auto; inset: 0; }
+  dialog.ad-gate::backdrop { background: rgba(42, 31, 61, .45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .ad-gate-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 14px 10px; border-radius: 18px; background: rgba(255, 255, 255, .97); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(60, 30, 110, .3); }
+  .ad-gate-inner:focus { outline: none; }
+  .ad-gate-tag { margin: 0; align-self: flex-start; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .ad-gate-slot { margin: 0; padding: 0; width: 100%; max-width: 400px; border: 0; background: none; }
+  .ad-gate-wait { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .ad-gate-bar { width: 100%; max-width: 400px; height: 3px; border-radius: 3px; background: var(--surface-2); overflow: hidden; margin-bottom: 6px; }
+  .ad-gate-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #5a2fb0, #a77bf0); border-radius: inherit; }
+  .ad-gate-bar span.run { animation: gateFill 3s linear forwards; }
+  @keyframes gateFill { from { width: 0; } to { width: 100%; } }
+  .quiz { display: grid; gap: 14px; }
+  .q-intro { display: grid; justify-items: center; text-align: center; gap: 8px; padding: 10px 6px 4px; }
+  .q-emoji { font-size: 64px; line-height: 1.1; }
+  .q-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .q-desc { margin: 0; color: var(--muted); max-width: 30em; }
+  .q-meta { margin: 0; font-size: 13px; color: var(--muted); }
+  .q-start { margin-top: 8px; font: inherit; font-weight: 800; font-size: 16px; color: #fff; background: linear-gradient(120deg, #6b3fd0, #a77bf0); border: 0; border-radius: 999px; padding: 13px 28px; cursor: pointer; box-shadow: 0 8px 20px rgba(110, 60, 200, .25); }
+  .q-start.ghost { color: #5a2fb0; background: #fff; border: 1.5px solid #c9b4f0; box-shadow: none; }
+  .q-prog { display: flex; align-items: center; gap: 10px; }
+  .q-num { font-size: 13px; font-weight: 700; color: #5a2fb0; white-space: nowrap; }
+  .q-bar { flex: 1; height: 8px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+  .q-bar span { display: block; height: 100%; background: linear-gradient(90deg, #7b4fd6, #c39bff); border-radius: inherit; transition: width .3s; }
+  .q-card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 20px 16px; display: grid; gap: 14px; }
+  .q-text { margin: 0; font-size: 19px; font-weight: 700; text-align: center; line-height: 1.5; }
+  .q-text.center { text-align: center; }
+  .q-opts { display: grid; gap: 8px; }
+  .q-opt { font: inherit; font-size: 16px; text-align: left; color: var(--ink); background: #faf7ff; border: 1.5px solid var(--line); border-radius: 14px; padding: 13px 16px; cursor: pointer; transition: border-color .15s, background .15s, transform .1s; }
+  .q-opt:hover { border-color: #a77bf0; background: #f3ebff; }
+  .q-opt:active { transform: scale(.99); }
+  .q-opt.sel { border-color: #7b4fd6; background: #ece0ff; font-weight: 700; }
+  .q-opt.lk { text-align: center; }
+  .q-back { justify-self: start; font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 4px 2px; }
+  .r-card { display: grid; justify-items: center; text-align: center; gap: 6px; padding: 22px 16px; border-radius: 20px; background: linear-gradient(170deg, #fff, #f3ebff); border: 1px solid #dccbf7; }
+  .r-emoji { font-size: 72px; line-height: 1.1; }
+  .r-kicker { margin: 0; font-size: 13px; color: var(--muted); }
+  .r-name { margin: 0; font-size: 26px; font-weight: 800; color: #4a2596; letter-spacing: -0.02em; }
+  .r-desc { margin: 4px 0 0; max-width: 32em; }
+  .r-info { width: 100%; display: grid; gap: 10px; margin-top: 10px; text-align: left; }
+  .r-row { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
+  .r-row b { font-size: 14px; color: #5a2fb0; }
+  .r-row p { margin: 4px 0 0; font-size: 15px; }
+  .r-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .r-tag { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: #7b4fd6; color: #fff; }
+  .r-bars { width: 100%; display: grid; gap: 6px; margin-top: 8px; }
+  .r-bar { display: grid; grid-template-columns: minmax(6em, 9em) 1fr 3em; gap: 8px; align-items: center; font-size: 14px; text-align: left; }
+  .r-track { height: 10px; border-radius: 99px; background: var(--surface-2); overflow: hidden; }
+  .r-track span { display: block; height: 100%; background: linear-gradient(90deg, #7b4fd6, #c39bff); border-radius: inherit; }
+  .r-pct { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .r-duo { width: 100%; margin-top: 8px; }
+  .r-duo-track { height: 14px; border-radius: 99px; background: #f2c7e6; overflow: hidden; }
+  .r-duo-track span { display: block; height: 100%; background: linear-gradient(90deg, #6b3fd0, #a77bf0); }
+  .r-duo-labs { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); margin-top: 4px; font-variant-numeric: tabular-nums; }
+  .r-axes { width: 100%; display: grid; gap: 6px; }
+  .r-score { display: grid; justify-items: center; width: 100%; }
+  .r-score > b { font-size: 34px; color: #5a2fb0; }
+  .r-multi { width: 100%; }
+  .r-lines { margin: 10px 0 0; padding-left: 1.1em; text-align: left; display: grid; gap: 4px; font-size: 14px; }
+  .r-note { margin: 0; font-size: 13px; color: var(--muted); text-align: center; }
+  .r-btns { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+  .r-disc { margin: 0; font-size: 12px; color: var(--muted); text-align: center; }
+  .bingo { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .bcell { font: inherit; font-size: 13px; line-height: 1.35; min-height: 74px; padding: 8px 6px; color: var(--ink); background: #faf7ff; border: 1.5px solid var(--line); border-radius: 12px; cursor: pointer; word-break: keep-all; }
+  .bcell[aria-pressed="true"] { background: linear-gradient(140deg, #7b4fd6, #b48cf5); color: #fff; border-color: #7b4fd6; font-weight: 700; }
+  .bingo-info { margin: 0; text-align: center; font-weight: 700; color: #5a2fb0; }
+  @media (max-width: 640px) { .q-text { font-size: 17px; } .bcell { font-size: 12px; min-height: 68px; } .r-bar { grid-template-columns: 6.5em 1fr 2.8em; font-size: 13px; } }
+
+
+  .pick { display: grid; gap: 6px; }
+  .pick-lab { margin: 0; font-weight: 800; color: #e2ccff; }
+  .pick-row { justify-content: flex-start; }
+  .chip.sm { font-size: 14px; padding: 7px 12px; }
+  .chip[aria-pressed="true"] { background: linear-gradient(120deg, #7b4fd6, #c38bff); border-color: #d9c2ff; color: #fff; font-weight: 700; }
+  .pick-link { justify-self: center; font: inherit; font-size: 14px; color: #d6bcff; background: none; border: 0; text-decoration: underline; cursor: pointer; }
+  .pair-emo { font-size: 46px !important; }
+
+  .q-intro.pro .q-emoji { font-size: 48px; }
+  .pro-guide { margin: 4px 0 0; padding: 10px 12px; border-radius: 12px; background: rgba(185, 140, 255, .12); color: #e8dcff; font-size: 14.5px; max-width: 32em; }
+  .pro-guide.small { margin: 0; font-size: 13px; text-align: center; background: none; padding: 0; color: var(--muted); }
+  .pro-src { margin: 6px 0 0; font-size: 12px; color: var(--muted); max-width: 34em; line-height: 1.5; }
+  .pro-result { display: grid; gap: 12px; }
+  .r-card.pro .r-name { font-size: 24px; }
+  .r-desc.small { font-size: 13px; color: var(--muted); }
+  .r-lines li.cur { color: #fff; font-weight: 800; }
+  .support { border-radius: 16px; padding: 14px 16px; background: rgba(255, 140, 190, .12); border: 1px solid rgba(255, 160, 210, .35); color: #ffe6f2; }
+  .support.strong { background: rgba(255, 120, 170, .2); border-color: #ff9cc9; }
+  .support b { font-size: 15px; }
+  .support ul { margin: 8px 0 0; padding-left: 1.1em; display: grid; gap: 4px; font-size: 15px; font-weight: 600; }
+  .support p { margin: 8px 0 0; font-size: 14px; }
+  .pro-details { font-size: 13px; color: var(--muted); }
+  .pro-details summary { cursor: pointer; }
+  .pro-details p { margin: 6px 0 0; line-height: 1.6; }
+  /* ═══ 짙은 보랏빛 다크 테마 ═══ */
+  :root {
+    --bg: #160b28; --surface: #22143a; --surface-2: #2d1c4b; --ink: #f1eaff; --muted: #b6a6d6; --line: #3d2a62;
+    --focus: #c9a8ff; --accent: #b98cff; --scrim: rgba(6, 2, 14, .6); color-scheme: dark;
+  }
+  body { background: var(--bg); color: var(--ink); }
+  .bg { background:
+      radial-gradient(1100px 650px at 85% -10%, rgba(150, 90, 255, .35), transparent 60%),
+      radial-gradient(900px 600px at -10% 30%, rgba(255, 90, 200, .18), transparent 60%),
+      radial-gradient(800px 500px at 50% 110%, rgba(90, 60, 200, .30), transparent 60%),
+      var(--bg); }
+  h1 { background: linear-gradient(100deg, #ffffff 0%, #e2ccff 45%, #c38bff 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead, .search-result, .empty-result { color: var(--muted); }
+  .search input { color: var(--ink); background: rgba(34, 20, 58, .75); border-color: #4a3378; box-shadow: 0 8px 28px rgba(0, 0, 0, .35); }
+  .search input::placeholder { color: #9d8bc0; }
+  .search input:focus { border-color: #b98cff; box-shadow: 0 0 0 4px rgba(185, 140, 255, .2); }
+  .search .clear { background: #3a2760; color: var(--ink); }
+  .jump-btn { color: var(--muted); }
+  .jump-btn:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+  .cat-sec { background: rgba(34, 20, 58, .62); border-color: rgba(200, 160, 255, .14); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .06), 0 14px 36px rgba(0, 0, 0, .4); }
+  .cat-sec::before { background: linear-gradient(135deg, rgba(185, 140, 255, .14), transparent 40%); }
+  .cat-title { color: #fff; }
+  .cat-title::before, .cat-title::after { background-image: radial-gradient(circle, rgba(200, 160, 255, .7) 1px, transparent 1.2px); }
+  .chip { color: #fff; background: rgba(22, 11, 40, .65); border-color: rgba(200, 160, 255, .22); }
+  .chip:hover { border-color: #c9a8ff; box-shadow: 0 0 0 3px rgba(185, 140, 255, .18); background: rgba(60, 35, 100, .7); }
+  .chip.hit { background: #3d2470; border-color: #c9a8ff; }
+  dialog.layer { background: rgba(26, 14, 46, .96); border-color: rgba(200, 160, 255, .18); box-shadow: 0 24px 60px rgba(0, 0, 0, .6); }
+  dialog.layer::backdrop { background: rgba(6, 2, 14, .6); }
+  .layer-head { background: rgba(34, 20, 58, .9); border-bottom-color: var(--line); }
+  .layer-title { color: #fff; }
+  .close { color: #fff; }
+  .close:hover { background: rgba(255, 255, 255, .08); }
+  .q-title { color: #fff; }
+  .q-bar { background: #2d1c4b; }
+  .q-num { color: #d6bcff; }
+  .q-card { background: rgba(34, 20, 58, .8); border-color: var(--line); }
+  .q-text { color: #fff; }
+  .q-opt { color: var(--ink); background: #2a1947; border-color: #43306a; }
+  .q-opt:hover { background: #3a2463; border-color: #b98cff; }
+  .q-opt.sel { background: #5a35a8; border-color: #c9a8ff; color: #fff; }
+  .q-start { box-shadow: 0 10px 26px rgba(150, 90, 255, .35); background: linear-gradient(120deg, #7b4fd6, #c38bff); }
+  .q-start.ghost { background: transparent; color: #e2ccff; border-color: #6a4ea8; box-shadow: none; }
+  .r-card { background: linear-gradient(170deg, #2b1a4a, #1d1035); border-color: #4a3378; }
+  .r-name { color: #e8d6ff; }
+  .r-row { background: rgba(22, 11, 40, .7); border-color: var(--line); }
+  .r-row b { color: #d6bcff; }
+  .r-tag { background: #8a5ee6; }
+  .r-track { background: #2d1c4b; }
+  .r-duo-track { background: #6b2f63; }
+  .r-score > b { color: #e2ccff; }
+  .bcell { color: var(--ink); background: #2a1947; border-color: #43306a; }
+  .bcell[aria-pressed="true"] { background: linear-gradient(140deg, #8a5ee6, #c38bff); color: #fff; border-color: #c9a8ff; }
+  .bingo-info { color: #d6bcff; }
+  .tip { background: rgba(30, 17, 52, .97); color: var(--ink); border-color: #4a3378; box-shadow: 0 12px 30px rgba(0, 0, 0, .5); }
+  .tip b { color: var(--muted); }
+  .ad-slot { background: rgba(22, 11, 40, .7); border-color: var(--line); }
+  .ad-gate-inner { background: rgba(30, 17, 52, .97); border-color: #4a3378; }
+  .ad-gate-wait { color: #fff; }
+  .ad-gate-bar { background: #2d1c4b; }
+  dialog.ad-gate::backdrop { background: rgba(6, 2, 14, .7); }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><canvas id="bgCanvas"></canvas></div>
+<script>
+// ═══ 배경: 점 격자 물결면 + 노드 연결선 + 계측 눈금 ═══════════════════
+(function () {
+  var cv = document.getElementById('bgCanvas');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var W = 0, H = 0, DPR = 1, small = false;
+  var COLS, ROWS, grid = [], nodes = [], floaters = [], last = 0, raf = 0, t0 = performance.now();
+
+  function setup() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    small = W < 700;
+    COLS = small ? 84 : 150; ROWS = small ? 18 : 28;
+    grid = [];
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        grid.push({ u: c / (COLS - 1) * 2 - 1, v: r / (ROWS - 1) });   // u: 좌우 -1~1, v: 앞(0)~뒤(1)
+      }
+    }
+    // 노드: 격자 위 임의의 점에 붙어 물결을 따라 움직임
+    nodes = [];
+    var n = small ? 8 : 14;
+    for (var i = 0; i < n; i++) {
+      var rr = 2 + Math.floor(Math.random() * (ROWS - 6));
+      var cc = Math.floor(COLS * 0.08) + Math.floor(Math.random() * COLS * 0.84);
+      nodes.push({ idx: rr * COLS + cc, phase: Math.random() * Math.PI * 2, label: Math.random() < 0.4, seed: Math.random() * 1000 });
+    }
+    // 위쪽 공간에 떠다니는 노드 (시스템 연결망)
+    floaters = [];
+    var m = small ? 0 : 16;   // 휴대폰에서는 제목을 가리지 않도록 생략
+    for (var k = 0; k < m; k++) {
+      var leftSide = k % 2 === 0;
+      var lo = small ? 0.02 : (leftSide ? 0.02 : 0.78), hi = small ? 0.98 : (leftSide ? 0.22 : 0.98);
+      floaters.push({ x: lo + Math.random() * (hi - lo), y: 0.06 + Math.random() * 0.36, minX: lo, maxX: hi, vx: (Math.random() - 0.5) * 0.006, vy: (Math.random() - 0.5) * 0.004,
+        phase: Math.random() * Math.PI * 2, label: Math.random() < 0.3, seed: Math.random() * 1000 });
+    }
+  }
+
+  // 여러 파동을 겹친 비선형 높이 함수
+  function height(u, v, t) {
+    var x = u * 3.2, z = v * 4.0;
+    return 0.55 * Math.sin(x * 1.3 + t * 0.35 + z * 0.6)
+         + 0.35 * Math.sin(z * 2.1 - t * 0.27 + Math.sin(x * 0.7 + t * 0.11) * 1.6)
+         + 0.22 * Math.sin((x + z) * 2.7 + t * 0.52)
+         + 0.12 * Math.sin(x * 5.3 - z * 3.1 - t * 0.8);
+  }
+
+  function project(u, v, y) {
+    var depth = 1 + v * 4.2;                      // 1(앞) ~ 5.2(뒤)
+    var horizon = H * 0.44;
+    var sx = W / 2 + u * W * 1.15 / depth;
+    var sy = horizon + (1 - y * 0.28) * H * 0.58 / depth;
+    return { x: sx, y: sy, s: 1 / depth };
+  }
+
+  function drawTicks() {
+    ctx.fillStyle = 'rgba(195,160,255,0.16)';
+    var step = 24;
+    for (var x = step; x < W; x += step) {
+      var big = (x / step) % 8 === 0;
+      ctx.fillRect(x, 14, big ? 2 : 1, big ? 2 : 1);
+      ctx.fillRect(x, H - 16, big ? 2 : 1, big ? 2 : 1);
+    }
+    for (var y = step; y < H; y += step) {
+      var big2 = (y / step) % 8 === 0;
+      ctx.fillRect(14, y, big2 ? 2 : 1, big2 ? 2 : 1);
+      ctx.fillRect(W - 16, y, big2 ? 2 : 1, big2 ? 2 : 1);
+    }
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (document.hidden || document.body.classList.contains('layer-open')) return;
+    var minGap = small ? 1000 / 24 : 1000 / 30;
+    if (now - last < minGap) return;
+    last = now;
+    render((now - t0) / 1000);
+  }
+
+  function render(t) {
+    ctx.clearRect(0, 0, W, H);
+    drawTicks();
+
+    // 점 격자 물결면 (뒤에서 앞으로)
+    var pts = new Array(grid.length);
+    for (var i = grid.length - 1; i >= 0; i--) {
+      var g = grid[i];
+      var y = height(g.u, g.v, t);
+      var p = project(g.u, g.v, y);
+      pts[i] = p;
+      if (p.x < -10 || p.x > W + 10 || p.y < -10 || p.y > H + 10) continue;
+      var crest = (y + 1.2) / 2.4;                // 0~1, 마루일수록 밝게
+      var a = (0.16 + 0.62 * p.s) * (0.40 + 0.90 * crest);
+      var r = 0.8 + 1.8 * p.s + crest * 0.6;
+      ctx.fillStyle = 'rgba(195,160,255,' + Math.min(a * 0.9, 0.8).toFixed(3) + ')';
+      ctx.fillRect(p.x - r / 2, p.y - r / 2, r, r);
+    }
+
+    // 노드와 점선 연결
+    var np = nodes.map(function (n) {
+      var p = pts[n.idx];
+      return { x: p.x, y: p.y - 26 * p.s - 6, s: p.s, n: n, anchored: true };
+    });
+    floaters.forEach(function (f) {
+      f.x += f.vx / 30; f.y += f.vy / 30;
+      if (f.x < f.minX || f.x > f.maxX) f.vx *= -1;
+      if (f.y < 0.05 || f.y > 0.45) f.vy *= -1;
+      np.push({ x: f.x * W + Math.sin(t * 0.3 + f.phase) * 12, y: f.y * H + Math.cos(t * 0.25 + f.phase) * 8, s: 0.45, n: f, anchored: false });
+    });
+    ctx.setLineDash([1, 5]);
+    ctx.lineWidth = 1;
+    var maxD = small ? 150 : 230;
+    for (var a1 = 0; a1 < np.length; a1++) {
+      for (var b1 = a1 + 1; b1 < np.length; b1++) {
+        var dx = np[a1].x - np[b1].x, dy = np[a1].y - np[b1].y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d > maxD) continue;
+        var al = (1 - d / maxD) * 0.5;
+        ctx.strokeStyle = 'rgba(195,160,255,' + al.toFixed(3) + ')';
+        ctx.beginPath(); ctx.moveTo(np[a1].x, np[a1].y); ctx.lineTo(np[b1].x, np[b1].y); ctx.stroke();
+      }
+    }
+    // 노드에서 수면까지 내려오는 점선
+    ctx.setLineDash([1, 3]);
+    np.forEach(function (q) {
+      if (!q.anchored) return;
+      var base = pts[q.n.idx];
+      ctx.strokeStyle = 'rgba(195,160,255,0.14)';
+      ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(base.x, base.y); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    np.forEach(function (q) {
+      var pulse = 0.5 + 0.5 * Math.sin(t * 1.4 + q.n.phase);
+      var r = 1.6 + 2.2 * q.s;
+      ctx.fillStyle = 'rgba(195,160,255,' + (0.30 + 0.30 * pulse).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(195,160,255,' + (0.22 * (1 - pulse)).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r + 4 + 8 * pulse, 0, Math.PI * 2); ctx.stroke();
+    });
+  }
+
+  setup();
+  window.addEventListener('resize', function () { setup(); if (reduce) render(8); });
+  if (reduce) render(8);
+  else raf = requestAnimationFrame(frame);
+})();
+</script>
+<main class="main">
+  <h1>세상의 모든 심리테스트</h1>
+  <p class="lead">성격 유형부터 연애, 성향 지수, 능력치, 빙고까지. 궁금한 테스트를 눌러 지금 바로 시작해 보세요.</p>
+  <div class="search" role="search">
+    <span class="ico" aria-hidden="true">🔎</span>
+    <input type="search" id="q" placeholder="어떤 테스트를 찾으세요? 예: 연애, MBTI, 빙고" aria-label="심리테스트 검색" autocomplete="off">
+    <button type="button" class="clear" id="qClear" aria-label="검색어 지우기" hidden>✕</button>
+  </div>
+  <p class="search-result" id="qResult" aria-live="polite"></p>
+  <nav class="jump" id="jump" aria-label="분류 바로가기"></nav>
+  <div class="cat-list" id="cats"></div>
+  <p class="empty-result" id="noResult">찾는 테스트가 없어요. 다른 단어로 검색해 보세요.</p>
+  <aside class="ad-slot ad-page" aria-label="광고">
+    <span class="ad-tag">광고</span>
+    <div class="ad-fit"><div class="ad-frame" id="adPageFrame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	// 화면이 넓으면 1040px 배너, 좁으면(태블릿·휴대폰) 680px 배너를 넣고, 둘 다 칸 폭에 맞춰 늘고 줄어요.
+	(function () {
+		var wide = (window.innerWidth || document.documentElement.clientWidth) >= 760;
+		var frame = document.getElementById('adPageFrame');
+		frame.setAttribute('data-w', wide ? '1040' : '680');
+		frame.style.setProperty('--ad-w', (wide ? 1040 : 680) + 'px');
+		if (wide) {
+			new PartnersCoupang.G({"id":1049550,"template":"carousel","trackingCode":"AF6707602","width":"1040","height":"140","tsource":""});
+		} else {
+			new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+		}
+	})();
+</script>
+    </div></div>
+  </aside>
+</main>
+<dialog class="layer" id="layer" aria-labelledby="layerTitle">
+  <div class="layer-inner" tabindex="-1">
+    <header class="layer-head">
+      <span class="layer-emo" id="layerEmo" aria-hidden="true"></span>
+      <div class="layer-titles"><p class="layer-sub" id="layerSub"></p><h2 class="layer-title" id="layerTitle">항목</h2></div>
+      <button type="button" class="close" id="closeBtn" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="layer-scroll" id="layerScroll">
+      <div class="layer-body" id="layerBody"></div>
+      <aside class="ad-slot ad-layer" aria-label="광고">
+        <span class="ad-tag">광고</span>
+        <div class="ad-fit"><div class="ad-frame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+</script>
+        </div></div>
+      </aside>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="ad-gate" id="adGate" aria-label="광고">
+  <div class="ad-gate-inner" tabindex="-1">
+    <p class="ad-gate-tag">광고</p>
+    <div class="ad-slot ad-gate-slot" style="--ad-w:400px; --ad-h:400px;">
+      <div class="ad-fit"><div class="ad-frame" data-w="400">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049552,"template":"carousel","trackingCode":"AF6707602","width":"400","height":"400","tsource":""});
+</script>
+      </div></div>
+    </div>
+    <p class="ad-gate-wait" aria-live="polite">잠시만 기다려 주세요.</p>
+    <div class="ad-gate-bar" aria-hidden="true"><span id="adGateBar"></span></div>
+  </div>
+</dialog>
+<script>
+var DATA = [{"id": "type", "emoji": "🧠", "name": "성격 유형", "items": [{"e": "🧩", "n": "16유형 성격 테스트", "s": "네 가지 축(에너지·인식·판단·생활)으로 나의 성격 유형을 알아봐요.", "k": ["mbti", "엠비티아이", "16유형", "성격유형", "성격테스트"], "m": "axis16", "q": [["주말 약속이 갑자기 취소됐다!", ["아쉽다, 다른 친구에게 연락해 본다", "E"], ["오히려 좋아, 집에서 쉰다", "I"]], ["처음 간 모임에서 나는", ["먼저 말을 걸며 분위기를 띄운다", "E"], ["누가 말을 걸어 주길 기다린다", "I"]], ["에너지가 충전되는 순간은", ["사람들과 신나게 떠들 때", "E"], ["혼자 조용히 쉴 때", "I"]], ["새 가전제품을 샀을 때 나는", ["설명서를 차근차근 읽는다", "S"], ["일단 이것저것 눌러 본다", "N"]], ["'사과' 하면 떠오르는 것은", ["빨갛다, 달다, 아삭하다", "S"], ["뉴턴, 백설공주, 사과의 말", "N"]], ["여행 사진을 볼 때 나는", ["그때 먹은 음식과 장소가 떠오른다", "S"], ["그때의 기분과 분위기가 떠오른다", "N"]], ["친구가 '나 시험 망쳤어'라고 한다", ["어떤 과목? 다음엔 어떻게 준비할래?", "T"], ["많이 속상하겠다, 고생했어", "F"]], ["의견이 부딪힐 때 더 중요한 것은", ["누가 맞는지 따지는 것", "T"], ["서로 기분 상하지 않는 것", "F"]], ["칭찬으로 더 기분 좋은 말은", ["너 진짜 일 잘한다", "T"], ["너랑 있으면 편해", "F"]], ["여행 준비는", ["일정표를 시간 단위로 짠다", "J"], ["항공권과 숙소만 정하고 간다", "P"]], ["마감이 일주일 남은 과제", ["미리미리 나눠서 끝낸다", "J"], ["마감 직전 몰아서 한다", "P"]], ["내 책상은", ["물건마다 제자리가 있다", "J"], ["어지럽지만 어디 있는지는 안다", "P"]]], "r": {"ISTJ": {"e": "📘", "n": "청렴한 관리자", "d": "약속과 규칙을 지키는 믿음직한 사람이에요. 한번 맡은 일은 끝까지 책임져요.", "g": ["책임감", "꼼꼼함"], "w": ["변화가 갑작스러우면 불편해해요"], "m": "ESFP·ESTP"}, "ISFJ": {"e": "🧸", "n": "다정한 수호자", "d": "조용히 주변을 챙기는 따뜻한 사람이에요. 기억력이 좋아 소소한 것까지 챙겨요.", "g": ["배려", "성실"], "w": ["거절을 어려워해 혼자 지치기 쉬워요"], "m": "ESFP·ESTP"}, "INFJ": {"e": "🔮", "n": "통찰력 있는 조언자", "d": "사람의 마음을 깊이 읽고 의미 있는 일을 추구해요.", "g": ["통찰", "공감"], "w": ["완벽을 추구하다 스스로를 몰아붙여요"], "m": "ENFP·ENTP"}, "INTJ": {"e": "♟️", "n": "전략적 설계자", "d": "큰 그림을 그리고 효율적인 길을 찾는 전략가예요.", "g": ["분석력", "독립성"], "w": ["감정 표현이 서툴러 차갑게 보일 수 있어요"], "m": "ENFP·ENTP"}, "ISTP": {"e": "🛠️", "n": "냉철한 해결사", "d": "문제를 보면 바로 원리를 파악해 고치는 실전형이에요.", "g": ["침착함", "손재주"], "w": ["관심 없는 일엔 무심해 보여요"], "m": "ESFJ·ESTJ"}, "ISFP": {"e": "🎨", "n": "감성 예술가", "d": "자기만의 취향과 감성이 뚜렷한 자유로운 영혼이에요.", "g": ["감수성", "유연함"], "w": ["갈등을 피하다 속앓이를 해요"], "m": "ESFJ·ENFJ"}, "INFP": {"e": "🌙", "n": "몽글몽글 이상주의자", "d": "마음속에 따뜻한 이상과 이야기가 가득해요.", "g": ["진정성", "상상력"], "w": ["상처를 오래 품어요"], "m": "ENFJ·ENTJ"}, "INTP": {"e": "🧪", "n": "호기심 많은 사색가", "d": "세상 모든 것의 원리가 궁금한 아이디어 뱅크예요.", "g": ["논리", "창의"], "w": ["생각만 하다 실행이 늦어요"], "m": "ENTJ·ESTJ"}, "ESTP": {"e": "🏄", "n": "모험을 즐기는 행동가", "d": "지금 이 순간을 즐기며 일단 부딪혀 보는 타입이에요.", "g": ["순발력", "대담함"], "w": ["장기 계획엔 흥미가 적어요"], "m": "ISFJ·ISTJ"}, "ESFP": {"e": "🎉", "n": "분위기 메이커", "d": "어디서든 사람들을 즐겁게 만드는 무대 체질이에요.", "g": ["친화력", "긍정"], "w": ["지루한 반복은 버거워해요"], "m": "ISFJ·ISTJ"}, "ENFP": {"e": "🌈", "n": "열정 넘치는 활동가", "d": "새로운 가능성에 설레며 사람들에게 에너지를 줘요.", "g": ["열정", "아이디어"], "w": ["시작은 많은데 마무리가 약해요"], "m": "INFJ·INTJ"}, "ENTP": {"e": "💡", "n": "재치 있는 발명가", "d": "토론과 새로운 시도를 즐기는 아이디어 폭격기예요.", "g": ["기발함", "말솜씨"], "w": ["반복되는 일에 쉽게 질려요"], "m": "INFJ·INTJ"}, "ESTJ": {"e": "📋", "n": "현실적인 리더", "d": "체계를 세우고 일을 확실하게 끝내는 관리자예요.", "g": ["추진력", "조직력"], "w": ["융통성이 부족해 보일 수 있어요"], "m": "ISTP·INTP"}, "ESFJ": {"e": "💐", "n": "사교적인 살림꾼", "d": "사람들을 챙기고 모임을 이끄는 따뜻한 리더예요.", "g": ["친절", "협동"], "w": ["남의 평가에 예민해요"], "m": "ISFP·ISTP"}, "ENFJ": {"e": "🌟", "n": "정의로운 멘토", "d": "사람들의 성장을 돕고 함께 나아가는 리더예요.", "g": ["리더십", "공감"], "w": ["남을 챙기느라 나를 놓쳐요"], "m": "INFP·ISFP"}, "ENTJ": {"e": "🚀", "n": "대담한 지휘관", "d": "목표를 정하면 사람과 자원을 모아 밀어붙여요.", "g": ["결단력", "비전"], "w": ["속도가 빨라 주변이 지칠 수 있어요"], "m": "INTP·INFP"}}}, {"e": "🍰", "n": "디저트 성격 테스트", "s": "나를 디저트에 비유하면? 네 가지 기질로 알아봐요.", "k": ["디저트", "디저트성격", "케이크", "마카롱"], "m": "axis4", "q": [["카페에 가면", ["늘 먹던 메뉴", "S"], ["처음 보는 신메뉴", "N"]], ["선물 고를 때", ["실용적인 게 최고", "S"], ["의미 있는 게 최고", "N"]], ["대화 주제로 좋은 건", ["요즘 있었던 일", "S"], ["만약에 ~라면?", "N"]], ["약속 장소 정하기", ["미리 정하고 예약까지", "J"], ["만나서 끌리는 데로", "P"]], ["여행 중 비가 온다", ["플랜 B로 바로 전환", "J"], ["비 오는 대로 낭만 있지", "P"]], ["친구와 갈등이 생기면", ["이성적으로 정리해서 말한다", "T"], ["서운한 마음부터 전한다", "F"]], ["팀플에서 나는", ["역할 분담과 일정 담당", "J"], ["아이디어 내는 담당", "P"]], ["더 끌리는 말", ["정확하고 확실한", "T"], ["따뜻하고 다정한", "F"]]], "r": {"SJ": {"e": "🍮", "n": "푸딩", "d": "탱글탱글 단단하면서도 부드러운 사람이에요. 믿음직하고 늘 한결같아요.", "g": ["성실", "안정감"], "w": ["새로운 건 천천히 받아들여요"], "m": "마카롱"}, "SP": {"e": "🍩", "n": "도넛", "d": "어디서나 인기 만점! 자유롭고 즐거운 에너지를 가졌어요.", "g": ["순발력", "유쾌함"], "w": ["계획은 조금 약해요"], "m": "푸딩"}, "NF": {"e": "🧁", "n": "컵케이크", "d": "겉도 속도 사랑스러운 감성파예요. 사람들에게 다정한 위로가 돼요.", "g": ["공감", "상상력"], "w": ["상처를 쉽게 받아요"], "m": "티라미수"}, "NT": {"e": "🍫", "n": "티라미수", "d": "겉은 시크하지만 속은 깊은 맛! 생각이 깊고 독창적이에요.", "g": ["논리", "통찰"], "w": ["감정 표현이 서툴러요"], "m": "컵케이크"}, "_map": "temperament"}}, {"e": "🌦️", "n": "날씨 성격 테스트", "s": "내 성격은 어떤 날씨를 닮았을까요?", "k": ["날씨", "날씨성격", "비", "맑음"], "m": "tally", "q": [["아침에 눈을 떴을 때 기분은", ["오늘도 상쾌해!", "sun"], ["갑자기 하고 싶은 게 생겨", "shower"], ["아직 잠이 덜 깼다…", "fog"], ["오늘은 뭔가 좋은 일이 있을 것 같아", "rainbow"]], ["친구들 사이에서 나는", ["늘 밝은 분위기 담당", "sun"], ["갑자기 웃기는 돌발 캐릭터", "shower"], ["조용하지만 은근 존재감", "fog"], ["다 같이 어울리게 하는 연결고리", "rainbow"]], ["화가 나면", ["금방 풀린다", "sun"], ["확 터졌다가 바로 갠다", "shower"], ["말없이 혼자 삭인다", "snow"], ["산책하며 바람 쐰다", "wind"]], ["좋아하는 휴일은", ["햇살 아래 피크닉", "sun"], ["즉흥 드라이브", "wind"], ["포근한 이불 속 영화", "snow"], ["새로운 장소 탐방", "rainbow"]], ["사람들이 나를 보고 하는 말", ["밝다", "sun"], ["예측 불가다", "shower"], ["신비롭다", "fog"], ["포근하다", "snow"]], ["고민이 생기면", ["일단 긍정적으로 생각한다", "sun"], ["바람처럼 훌훌 털어버린다", "wind"], ["혼자 오래 생각한다", "fog"], ["누군가에게 따뜻하게 털어놓는다", "snow"]], ["새로운 도전 앞에서", ["재밌겠다!", "rainbow"], ["일단 해 보고 생각", "shower"], ["충분히 알아본 뒤에", "fog"], ["흘러가는 대로", "wind"]], ["나의 매력 포인트는", ["에너지", "sun"], ["반전 매력", "rainbow"], ["자유로움", "wind"], ["따뜻함", "snow"]]], "r": {"sun": {"e": "☀️", "n": "맑은 햇살", "d": "있는 것만으로 주변을 환하게 만드는 사람이에요. 긍정 에너지가 넘쳐요.", "g": ["긍정", "활력"], "w": ["힘든 티를 잘 안 내 혼자 지칠 수 있어요"], "m": "포근한 눈"}, "shower": {"e": "🌦️", "n": "여름 소나기", "d": "감정 표현이 시원시원하고 뒤끝이 없어요. 예상 못 한 매력이 있어요.", "g": ["솔직함", "순발력"], "w": ["기분 변화가 커 보일 수 있어요"], "m": "산들바람"}, "fog": {"e": "🌫️", "n": "새벽 안개", "d": "조용하지만 깊이가 있는 신비로운 사람이에요. 알수록 매력이 드러나요.", "g": ["깊이", "신중함"], "w": ["속마음을 몰라 오해받기도 해요"], "m": "맑은 햇살"}, "rainbow": {"e": "🌈", "n": "비 갠 뒤 무지개", "d": "사람과 사람을 이어 주고 희망을 주는 존재예요.", "g": ["포용력", "낙관"], "w": ["모두를 챙기다 지칠 수 있어요"], "m": "새벽 안개"}, "snow": {"e": "❄️", "n": "포근한 눈", "d": "겉은 차분해 보여도 속은 따뜻하게 감싸 주는 사람이에요.", "g": ["다정", "안정감"], "w": ["표현이 적어 차가워 보이기도 해요"], "m": "맑은 햇살"}, "wind": {"e": "🍃", "n": "산들바람", "d": "얽매이지 않고 자유롭게 흐르는 사람이에요. 함께 있으면 마음이 가벼워져요.", "g": ["자유로움", "유연성"], "w": ["한곳에 오래 머무는 걸 답답해해요"], "m": "여름 소나기"}}}, {"e": "🐾", "n": "동물 성격 테스트", "s": "나와 가장 닮은 동물은 누구일까요?", "k": ["동물", "동물상", "동물성격", "강아지", "고양이"], "m": "tally", "q": [["친한 친구를 만나면", ["반가움을 온몸으로 표현", "dog"], ["반갑지만 티는 살짝만", "cat"], ["장난부터 친다", "fox"], ["조용히 옆에 있어 준다", "bear"]], ["단체 활동에서 나는", ["분위기 메이커", "dolphin"], ["관찰하다 핵심만 짚는 사람", "owl"], ["알아서 내 할 일 하는 사람", "cat"], ["모두를 챙기는 사람", "bear"]], ["쉬는 날 하고 싶은 것", ["친구들과 놀기", "dog"], ["혼자 뒹굴기", "cat"], ["새로운 곳 탐험", "fox"], ["책이나 다큐 보기", "owl"]], ["어려운 문제를 만나면", ["주변에 도움을 청한다", "dolphin"], ["끝까지 혼자 분석한다", "owl"], ["요령 있게 돌아간다", "fox"], ["묵묵히 버틴다", "bear"]], ["사람들이 말하는 내 첫인상", ["순하고 착해 보인다", "dog"], ["도도해 보인다", "cat"], ["똑똑해 보인다", "owl"], ["밝아 보인다", "dolphin"]], ["연락 스타일", ["답장 칼같이 빠름", "dog"], ["기분 내킬 때", "cat"], ["재치 있는 이모티콘 장인", "fox"], ["용건만 간단히", "bear"]], ["내가 소중히 여기는 것", ["의리", "dog"], ["나만의 시간", "cat"], ["지혜", "owl"], ["함께하는 즐거움", "dolphin"]], ["나를 한 단어로", ["충직", "dog"], ["독립", "cat"], ["재치", "fox"], ["포근", "bear"]]], "r": {"dog": {"e": "🐶", "n": "골든 리트리버", "d": "사람을 좋아하고 마음이 한결같은 의리파예요.", "g": ["다정", "충성심"], "w": ["거절을 어려워해요"], "m": "고양이"}, "cat": {"e": "🐱", "n": "고양이", "d": "혼자서도 잘 지내지만 마음을 연 사람에겐 한없이 다정해요.", "g": ["독립성", "센스"], "w": ["표현이 적어 오해를 받기도 해요"], "m": "골든 리트리버"}, "fox": {"e": "🦊", "n": "여우", "d": "눈치 빠르고 재치 있어 어떤 상황도 유연하게 넘겨요.", "g": ["재치", "적응력"], "w": ["가끔 속마음을 감춰요"], "m": "곰"}, "bear": {"e": "🐻", "n": "곰", "d": "묵직하고 듬직해서 곁에 있으면 든든한 사람이에요.", "g": ["인내", "포용"], "w": ["변화에 느리게 반응해요"], "m": "여우"}, "dolphin": {"e": "🐬", "n": "돌고래", "d": "밝고 사교적이라 어디서든 친구를 사귀어요.", "g": ["친화력", "긍정"], "w": ["혼자 있는 시간을 힘들어해요"], "m": "부엉이"}, "owl": {"e": "🦉", "n": "부엉이", "d": "관찰력과 지혜가 뛰어난 조용한 브레인이에요.", "g": ["통찰", "침착"], "w": ["생각이 많아 행동이 늦어요"], "m": "돌고래"}}}, {"e": "🎨", "n": "컬러 성격 테스트", "s": "끌리는 선택으로 알아보는 나의 성격 컬러예요.", "k": ["컬러", "색깔", "퍼스널컬러", "색성격"], "m": "tally", "q": [["가장 끌리는 풍경", ["노을 지는 바다", "red"], ["새벽 숲길", "green"], ["밤하늘 별빛", "blue"], ["꽃이 가득한 정원", "pink"], ["햇살 가득한 들판", "yellow"]], ["일할 때 나는", ["목표를 향해 직진", "red"], ["차분하게 균형 있게", "green"], ["깊이 파고든다", "blue"], ["함께하는 분위기를 챙긴다", "pink"], ["즐겁게 아이디어를 낸다", "yellow"]], ["좋아하는 음악", ["신나는 댄스곡", "yellow"], ["잔잔한 어쿠스틱", "green"], ["감성 발라드", "pink"], ["웅장한 OST", "red"], ["몽환적인 재즈", "blue"]], ["친구가 힘들어할 때", ["해결책을 찾아 준다", "red"], ["조용히 곁에 있어 준다", "green"], ["깊은 대화를 나눈다", "blue"], ["따뜻하게 안아 준다", "pink"], ["웃게 만들어 준다", "yellow"]], ["갖고 싶은 능력", ["강한 추진력", "red"], ["흔들리지 않는 마음", "green"], ["모든 걸 꿰뚫는 통찰", "blue"], ["모두에게 사랑받는 매력", "pink"], ["언제나 즐거운 에너지", "yellow"]], ["나의 단점에 가까운 것", ["급하다", "red"], ["우유부단하다", "green"], ["생각이 많다", "blue"], ["정에 약하다", "pink"], ["산만하다", "yellow"]]], "r": {"red": {"e": "❤️", "n": "레드", "d": "열정과 추진력의 컬러! 목표가 생기면 누구보다 빠르게 달려가요.", "g": ["열정", "리더십"], "w": ["성격이 급할 수 있어요"], "m": "그린"}, "green": {"e": "💚", "n": "그린", "d": "균형과 안정의 컬러. 함께 있으면 마음이 편안해져요.", "g": ["안정감", "인내"], "w": ["결정을 미루는 편이에요"], "m": "레드"}, "blue": {"e": "💙", "n": "블루", "d": "깊이와 지성의 컬러. 생각이 깊고 진중해요.", "g": ["통찰", "신뢰"], "w": ["걱정이 많아요"], "m": "옐로"}, "pink": {"e": "🩷", "n": "핑크", "d": "다정함과 사랑의 컬러. 사람을 따뜻하게 감싸 줘요.", "g": ["공감", "배려"], "w": ["상처를 잘 받아요"], "m": "블루"}, "yellow": {"e": "💛", "n": "옐로", "d": "밝음과 호기심의 컬러. 어디서든 웃음을 만들어요.", "g": ["유쾌함", "창의"], "w": ["집중이 흩어지기 쉬워요"], "m": "블루"}}}, {"e": "🌸", "n": "꽃 성격 테스트", "s": "나를 꽃에 비유한다면 어떤 꽃일까요?", "k": ["꽃", "꽃성격", "꽃말"], "m": "tally", "q": [["사람들이 나를 처음 보면", ["화사하다", "rose"], ["순수하다", "daisy"], ["차분하다", "lavender"], ["밝다", "sunflower"], ["신비롭다", "lily"], ["단단하다", "cactus"]], ["좋아하는 시간대", ["화려한 밤", "rose"], ["상쾌한 아침", "daisy"], ["조용한 새벽", "lavender"], ["쨍한 한낮", "sunflower"], ["노을 질 무렵", "lily"], ["아무 때나 상관없음", "cactus"]], ["힘들 때 나는", ["더 꾸미고 나간다", "rose"], ["친구에게 기댄다", "daisy"], ["향초 켜고 쉰다", "lavender"], ["긍정 회로를 돌린다", "sunflower"], ["혼자 생각에 잠긴다", "lily"], ["묵묵히 버틴다", "cactus"]], ["갖고 싶은 매력", ["카리스마", "rose"], ["순수함", "daisy"], ["편안함", "lavender"], ["에너지", "sunflower"], ["우아함", "lily"], ["강인함", "cactus"]], ["친구들 사이 내 역할", ["주인공", "rose"], ["막내 같은 존재", "daisy"], ["힐링 담당", "lavender"], ["분위기 메이커", "sunflower"], ["조언자", "lily"], ["해결사", "cactus"]], ["선물받고 싶은 것", ["향수", "rose"], ["손편지", "daisy"], ["입욕제", "lavender"], ["여행 티켓", "sunflower"], ["책", "lily"], ["실용적인 도구", "cactus"]]], "r": {"rose": {"e": "🌹", "n": "장미", "d": "당당하고 화려한 매력으로 어디서나 시선을 끌어요.", "g": ["자신감", "열정"], "w": ["가시처럼 날카로워지지 않게"], "m": "해바라기"}, "daisy": {"e": "🌼", "n": "데이지", "d": "맑고 순수한 마음으로 주변을 편하게 해요.", "g": ["순수함", "친화력"], "w": ["상처를 혼자 품지 않기"], "m": "선인장"}, "lavender": {"e": "💜", "n": "라벤더", "d": "곁에 있으면 마음이 차분해지는 힐링형이에요.", "g": ["안정감", "배려"], "w": ["내 감정도 표현해요"], "m": "장미"}, "sunflower": {"e": "🌻", "n": "해바라기", "d": "늘 빛을 향하는 긍정 에너지의 소유자예요.", "g": ["긍정", "활력"], "w": ["가끔은 쉬어 가요"], "m": "백합"}, "lily": {"e": "🤍", "n": "백합", "d": "우아하고 깊이 있는 내면을 가진 사람이에요.", "g": ["품격", "통찰"], "w": ["완벽하려 애쓰지 않기"], "m": "해바라기"}, "cactus": {"e": "🌵", "n": "선인장", "d": "어떤 환경에서도 꿋꿋한 생존력의 소유자예요.", "g": ["강인함", "독립"], "w": ["도움을 받는 것도 용기예요"], "m": "데이지"}}}, {"e": "🍂", "n": "계절 성격 테스트", "s": "봄·여름·가을·겨울 중 나와 닮은 계절은?", "k": ["계절", "사계절", "계절성격", "봄", "여름", "가을", "겨울"], "m": "tally", "q": [["좋아하는 날씨", ["따스한 햇살", "spring"], ["뜨거운 태양", "summer"], ["선선한 바람", "autumn"], ["포근한 눈", "winter"]], ["새로운 시작 앞에서", ["설렌다", "spring"], ["불타오른다", "summer"], ["차분히 준비한다", "autumn"], ["신중하게 지켜본다", "winter"]], ["나의 매력", ["따뜻함", "spring"], ["열정", "summer"], ["깊이", "autumn"], ["단단함", "winter"]], ["휴일 보내는 법", ["꽃구경", "spring"], ["바다", "summer"], ["산책과 독서", "autumn"], ["이불 속 영화", "winter"]], ["친구들이 말하는 나", ["사랑스럽다", "spring"], ["에너지가 넘친다", "summer"], ["감성적이다", "autumn"], ["어른스럽다", "winter"]], ["좋아하는 음식", ["딸기", "spring"], ["빙수", "summer"], ["군고구마", "autumn"], ["어묵탕", "winter"]]], "r": {"spring": {"e": "🌸", "n": "봄", "d": "새로운 시작을 응원하는 따뜻하고 사랑스러운 사람이에요.", "g": ["다정", "희망"], "w": ["모두를 챙기다 지치지 않게"], "m": "가을"}, "summer": {"e": "☀️", "n": "여름", "d": "뜨거운 열정과 에너지로 주변을 활기차게 해요.", "g": ["추진력", "활력"], "w": ["열정이 과열되지 않게"], "m": "겨울"}, "autumn": {"e": "🍁", "n": "가을", "d": "생각이 깊고 감성이 풍부한 낭만가예요.", "g": ["감성", "통찰"], "w": ["너무 많은 생각은 내려놓기"], "m": "봄"}, "winter": {"e": "❄️", "n": "겨울", "d": "차분하고 단단하지만 속은 누구보다 따뜻해요.", "g": ["침착", "신뢰"], "w": ["마음을 조금 더 표현해요"], "m": "여름"}}}, {"e": "⚔️", "n": "판타지 직업 테스트", "s": "판타지 세계에 떨어진다면 나의 직업은?", "k": ["판타지", "RPG", "직업", "전사", "마법사", "게임"], "m": "tally", "q": [["던전 입구에서", ["앞장서서 들어간다", "warrior"], ["함정을 분석한다", "mage"], ["동료 상태를 확인한다", "healer"], ["몰래 뒤로 돌아간다", "rogue"], ["멀리서 지형을 살핀다", "archer"], ["노래로 사기를 올린다", "bard"]], ["나의 무기", ["대검", "warrior"], ["지팡이", "mage"], ["성스러운 빛", "healer"], ["단검", "rogue"], ["활", "archer"], ["류트", "bard"]], ["팀에서 내 역할", ["방패", "warrior"], ["두뇌", "mage"], ["회복", "healer"], ["정보", "rogue"], ["저격", "archer"], ["분위기", "bard"]], ["보상을 받으면", ["더 좋은 갑옷", "warrior"], ["희귀한 마법서", "mage"], ["모두에게 나눠 준다", "healer"], ["몰래 챙긴다", "rogue"], ["새 화살", "archer"], ["축하 파티", "bard"]], ["위기 상황", ["정면 돌파", "warrior"], ["작전 수정", "mage"], ["모두 살린다", "healer"], ["탈출로 확보", "rogue"], ["침착하게 조준", "archer"], ["협상", "bard"]], ["나를 표현하는 단어", ["용기", "warrior"], ["지혜", "mage"], ["헌신", "healer"], ["재치", "rogue"], ["집중", "archer"], ["매력", "bard"]]], "r": {"warrior": {"e": "🛡️", "n": "전사", "d": "누구보다 먼저 나서서 동료를 지키는 용감한 리더예요.", "g": ["용기", "책임감"], "w": ["혼자 다 짊어지지 않기"], "m": "힐러"}, "mage": {"e": "🔮", "n": "마법사", "d": "지식과 전략으로 판을 뒤집는 브레인이에요.", "g": ["분석력", "창의"], "w": ["생각만큼 행동도"], "m": "전사"}, "healer": {"e": "✨", "n": "힐러", "d": "모두를 살피고 회복시키는 팀의 심장이에요.", "g": ["배려", "헌신"], "w": ["나 자신도 회복시켜요"], "m": "전사"}, "rogue": {"e": "🗝️", "n": "도적", "d": "눈치와 재치로 어떤 상황도 빠져나가는 해결사예요.", "g": ["순발력", "센스"], "w": ["팀과 정보를 나눠요"], "m": "궁수"}, "archer": {"e": "🏹", "n": "궁수", "d": "멀리 보고 정확하게 맞히는 집중력의 소유자예요.", "g": ["집중", "침착"], "w": ["가까이 다가가는 용기도"], "m": "음유시인"}, "bard": {"e": "🎶", "n": "음유시인", "d": "사람들의 마음을 움직이는 매력과 말솜씨를 가졌어요.", "g": ["소통", "매력"], "w": ["꾸준함을 챙겨요"], "m": "궁수"}}}, {"e": "🏯", "n": "조선시대 직업 테스트", "s": "조선시대에 태어났다면 나는 무슨 일을 했을까요?", "k": ["조선시대", "전생", "조선", "직업", "사극"], "m": "tally", "q": [["하루를 시작하면", ["책부터 편다", "scholar"], ["장터로 나간다", "merchant"], ["약초를 살핀다", "doctor"], ["궁에 출근한다", "official"], ["붓과 물감을 챙긴다", "artist"], ["무예 수련", "warrior"]], ["칭찬받고 싶은 말", ["학식이 높다", "scholar"], ["수완이 좋다", "merchant"], ["사람을 살린다", "doctor"], ["나랏일을 잘한다", "official"], ["솜씨가 빼어나다", "artist"], ["용맹하다", "warrior"]], ["어려운 일이 생기면", ["옛 책에서 답을 찾는다", "scholar"], ["사람을 통해 해결", "merchant"], ["차분히 원인을 살핀다", "doctor"], ["규칙대로 처리", "official"], ["새로운 방법을 만든다", "artist"], ["직접 부딪힌다", "warrior"]], ["쉬는 날", ["시 짓기", "scholar"], ["새로운 거래처 탐방", "merchant"], ["산에서 약초 캐기", "doctor"], ["윗분께 문안", "official"], ["풍경 그리기", "artist"], ["말 타기", "warrior"]], ["중요하게 여기는 것", ["배움", "scholar"], ["실리", "merchant"], ["생명", "doctor"], ["질서", "official"], ["아름다움", "artist"], ["의리", "warrior"]], ["친구들 사이에서", ["조언자", "scholar"], ["협상가", "merchant"], ["돌봐 주는 사람", "doctor"], ["정리하는 사람", "official"], ["분위기 있는 사람", "artist"], ["지켜 주는 사람", "warrior"]]], "r": {"scholar": {"e": "📜", "n": "선비", "d": "배움을 사랑하고 바른 길을 걷는 학자예요.", "g": ["학식", "원칙"], "w": ["현실 감각도 챙겨요"], "m": "상인"}, "merchant": {"e": "💰", "n": "거상(큰 상인)", "d": "사람과 기회를 읽는 수완가예요. 어디서든 길을 만들어요.", "g": ["수완", "친화력"], "w": ["이익보다 신뢰를 먼저"], "m": "선비"}, "doctor": {"e": "🌿", "n": "어의(의원)", "d": "사람을 살피고 돌보는 따뜻한 전문가예요.", "g": ["관찰력", "배려"], "w": ["나 자신도 돌봐요"], "m": "무관"}, "official": {"e": "🏛️", "n": "관리", "d": "질서와 원칙으로 나라 살림을 맡는 믿음직한 사람이에요.", "g": ["책임감", "체계"], "w": ["융통성도 필요해요"], "m": "화원"}, "artist": {"e": "🖌️", "n": "화원(화가)", "d": "남다른 감각으로 아름다움을 만드는 예술가예요.", "g": ["창의", "감수성"], "w": ["마감도 지켜요"], "m": "관리"}, "warrior": {"e": "🗡️", "n": "무관", "d": "용맹하고 의리 있는 사람들의 방패예요.", "g": ["용기", "의리"], "w": ["말보다 마음을 전해요"], "m": "어의"}}}]}, {"id": "love", "emoji": "💘", "name": "연애", "items": [{"e": "🔗", "n": "연애 애착 유형 테스트", "s": "연애할 때 나는 어떤 방식으로 가까워지고 거리를 둘까요? 애착 이론을 바탕으로 만들었어요.", "k": ["애착유형", "안정형", "불안형", "회피형", "혼란형", "연애유형"], "m": "tally", "q": [["연인의 답장이 몇 시간째 없다", ["바쁜가 보다, 나도 내 일 한다", "secure"], ["혹시 나한테 화났나 계속 신경 쓰인다", "anxious"], ["오히려 편하다, 각자 시간 좋지", "avoidant"], ["괜찮다가도 갑자기 불안해진다", "fearful"]], ["연인이 '우리 얘기 좀 해'라고 하면", ["무슨 일인지 차분히 들어 본다", "secure"], ["심장이 쿵 내려앉는다", "anxious"], ["왠지 피하고 싶다", "avoidant"], ["듣고 싶으면서도 무섭다", "fearful"]], ["관계가 깊어질수록", ["편안하고 좋다", "secure"], ["더 확인받고 싶어진다", "anxious"], ["숨이 막히는 느낌이 든다", "avoidant"], ["좋으면서도 상처받을까 겁난다", "fearful"]], ["다툰 뒤 나는", ["대화로 풀고 넘어간다", "secure"], ["빨리 화해하고 싶어 먼저 연락한다", "anxious"], ["혼자 시간을 갖고 싶다", "avoidant"], ["다가갔다 멀어졌다를 반복한다", "fearful"]], ["연인에게 바라는 것", ["서로 믿고 각자의 삶도 존중하기", "secure"], ["자주 사랑을 표현해 주기", "anxious"], ["내 공간을 지켜 주기", "avoidant"], ["떠나지 않을 거라는 확신", "fearful"]], ["내 마음을 표현할 때", ["솔직하게 말하는 편", "secure"], ["서운함을 돌려 말하다 터진다", "anxious"], ["감정 표현이 어색하다", "avoidant"], ["말하고 나서 후회한다", "fearful"]], ["과거 연애를 돌아보면", ["대체로 편안했다", "secure"], ["늘 내가 더 좋아했다", "anxious"], ["상대가 서운하다고 자주 했다", "avoidant"], ["좋다가도 갑자기 흔들렸다", "fearful"]], ["연인이 친구들과 여행을 간다면", ["재밌게 다녀와!", "secure"], ["연락 자주 해 달라고 한다", "anxious"], ["나도 내 시간 생겨서 좋다", "avoidant"], ["괜찮다고 했지만 마음이 복잡하다", "fearful"]]], "r": {"secure": {"e": "🌳", "n": "안정형", "d": "가까워지는 것도, 혼자 있는 것도 편안한 건강한 연애를 해요. 갈등이 생겨도 대화로 풀어 가요.", "g": ["신뢰", "균형"], "w": ["상대의 불안을 가볍게 넘기지 않도록 해요"], "m": "모든 유형과 잘 맞지만, 특히 안정형"}, "anxious": {"e": "🌊", "n": "불안형", "d": "사랑을 깊이 주고, 그만큼 확인받고 싶어 해요. 마음이 따뜻하고 헌신적이에요.", "g": ["헌신", "표현력"], "w": ["상대의 반응 하나에 마음이 크게 흔들릴 수 있어요. 나를 돌보는 시간도 챙겨요"], "m": "안정형"}, "avoidant": {"e": "🏔️", "n": "회피형", "d": "독립적이고 자기 세계가 확실해요. 가까워질수록 거리를 두고 싶어지기도 해요.", "g": ["독립성", "침착함"], "w": ["감정을 피하면 상대가 외로워할 수 있어요. 작은 표현부터 시작해 봐요"], "m": "안정형"}, "fearful": {"e": "🌗", "n": "혼란형", "d": "가까워지고 싶은 마음과 상처받기 싫은 마음이 함께 있어요. 그만큼 섬세하고 감정이 깊어요.", "g": ["섬세함", "깊은 공감"], "w": ["마음이 오락가락할 땐 잠시 멈추고 감정을 정리해 봐요"], "m": "안정형"}, "_note": "애착 유형은 고정된 것이 아니라 관계와 경험에 따라 바뀔 수 있어요."}}, {"e": "💌", "n": "사랑의 언어 테스트", "s": "사랑을 주고받는 다섯 가지 언어 중, 나에게 가장 중요한 것은?", "k": ["사랑의언어", "러브랭귀지", "애정표현"], "m": "tally", "q": [["연인에게 가장 듣고 싶은 말", ["오늘 정말 멋지다/예쁘다", "words"], ["이번 주말 같이 보내자", "time"], ["너 생각나서 샀어", "gift"], ["힘들지? 내가 해 줄게", "service"], ["(말없이 꼭 안아 주기)", "touch"]], ["서운할 때는", ["칭찬이 없을 때", "words"], ["같이 있어도 폰만 볼 때", "time"], ["기념일을 잊었을 때", "gift"], ["도움을 청했는데 외면할 때", "service"], ["스킨십이 줄었을 때", "touch"]], ["사랑을 표현하는 방법", ["편지나 메시지", "words"], ["함께 시간 보내기", "time"], ["깜짝 선물", "gift"], ["대신 일 처리해 주기", "service"], ["손잡기·포옹", "touch"]], ["가장 감동한 순간", ["진심 어린 응원의 말", "words"], ["바쁜데도 시간을 내 줬을 때", "time"], ["내 취향 저격 선물", "gift"], ["아플 때 죽을 사 왔을 때", "service"], ["힘들 때 말없이 안아 줬을 때", "touch"]], ["완벽한 데이트", ["깊은 대화를 나누는 데이트", "words"], ["하루 종일 함께하는 데이트", "time"], ["작은 선물을 주고받는 데이트", "gift"], ["서로 챙겨 주는 집 데이트", "service"], ["손잡고 걷는 산책 데이트", "touch"]], ["친구에게 고마움을 표현할 때", ["진심을 담은 말", "words"], ["시간을 내서 만나기", "time"], ["작은 선물", "gift"], ["필요한 일 도와주기", "service"], ["어깨 토닥이기", "touch"]]], "r": {"words": {"e": "💬", "n": "인정하는 말", "d": "따뜻한 말 한마디에 하루가 행복해지는 사람이에요. 칭찬과 응원이 가장 큰 사랑이에요.", "g": ["표현력", "긍정"], "w": ["말로 상처받기도 쉬워요"], "m": "상대에게도 자주 마음을 말로 전해 보세요"}, "time": {"e": "⏰", "n": "함께하는 시간", "d": "온전히 함께하는 시간이 사랑의 증거예요. 대화와 눈맞춤을 중요하게 여겨요.", "g": ["집중", "교감"], "w": ["바쁜 연인에게 서운함이 쌓일 수 있어요"], "m": "휴대폰 없는 데이트를 제안해 보세요"}, "gift": {"e": "🎁", "n": "선물", "d": "작은 선물에 담긴 마음을 소중히 여겨요. 값보다 '나를 생각했다'는 사실이 중요해요.", "g": ["세심함", "기억력"], "w": ["물질적이라는 오해를 받을 수 있어요"], "m": "편지 한 장 곁들인 선물이 최고예요"}, "service": {"e": "🛠️", "n": "봉사", "d": "말보다 행동! 나를 위해 무언가를 해 줄 때 사랑을 느껴요.", "g": ["실천력", "배려"], "w": ["표현 없는 헌신에 지칠 수 있어요"], "m": "고마움을 말로도 꼭 전해요"}, "touch": {"e": "🤗", "n": "스킨십", "d": "손잡기, 포옹처럼 따뜻한 접촉으로 사랑을 확인해요.", "g": ["따뜻함", "안정감"], "w": ["거리감이 생기면 크게 외로워해요"], "m": "서로 편한 표현 방식을 이야기해 봐요"}}}, {"e": "💞", "n": "연애 스타일 테스트", "s": "좋아하는 사람이 생기면 나는 어떻게 다가갈까요?", "k": ["연애스타일", "연애성향", "직진", "밀당"], "m": "tally", "q": [["좋아하는 사람이 생겼다", ["바로 표현한다", "go"], ["밀고 당기며 반응을 본다", "push"], ["친구로 먼저 가까워진다", "friend"], ["몰래 챙겨 준다", "devote"]], ["첫 데이트 장소", ["분위기 좋은 레스토랑", "romance"], ["편한 동네 맛집", "friend"], ["상대가 원하는 곳", "devote"], ["즉흥으로 정한다", "cool"]], ["연락 빈도", ["하루 종일 연락", "devote"], ["궁금하게 만드는 타이밍", "push"], ["필요할 때 편하게", "cool"], ["자기 전 꼭 통화", "romance"]], ["고백은", ["내가 먼저 한다", "go"], ["상대가 하게 만든다", "push"], ["자연스럽게 사귀게 된다", "friend"], ["이벤트로 감동을 준다", "romance"]], ["연애할 때 가장 중요한 건", ["솔직함", "go"], ["설렘", "romance"], ["편안함", "friend"], ["각자의 시간", "cool"]], ["싸웠을 때", ["바로 이야기해서 푼다", "go"], ["상대가 먼저 오길 기다린다", "push"], ["내가 먼저 사과한다", "devote"], ["시간이 지나면 풀린다", "cool"]], ["연인에게 듣고 싶은 말", ["너밖에 없어", "romance"], ["넌 최고의 친구야", "friend"], ["고마워, 늘 챙겨 줘서", "devote"], ["너는 참 쿨해", "cool"]], ["연애에서 나는", ["주도하는 편", "go"], ["리드당하는 편", "devote"], ["반반", "friend"], ["그때그때 달라", "push"]]], "r": {"go": {"e": "🏹", "n": "직진형", "d": "좋으면 좋다고 말하는 솔직하고 시원한 연애를 해요.", "g": ["솔직함", "추진력"], "w": ["상대의 속도도 살펴 주세요"], "m": "헌신형"}, "push": {"e": "🎐", "n": "밀당형", "d": "적당한 긴장감으로 설렘을 만드는 연애 고수예요.", "g": ["센스", "매력"], "w": ["밀당이 길어지면 상대가 지칠 수 있어요"], "m": "직진형"}, "friend": {"e": "🤝", "n": "친구 같은 연인형", "d": "편안함 속에서 사랑이 자라요. 오래 가는 연애에 강해요.", "g": ["편안함", "신뢰"], "w": ["설렘이 부족하다는 말을 듣기도 해요"], "m": "로맨티스트형"}, "devote": {"e": "🫶", "n": "헌신형", "d": "상대를 아낌없이 챙기는 따뜻한 연인이에요.", "g": ["배려", "성실"], "w": ["나 자신도 챙겨야 해요"], "m": "직진형"}, "romance": {"e": "🌹", "n": "로맨티스트형", "d": "특별한 순간과 이벤트로 사랑을 표현해요.", "g": ["감성", "표현력"], "w": ["기대가 크면 실망도 커요"], "m": "친구 같은 연인형"}, "cool": {"e": "😎", "n": "쿨한 독립형", "d": "서로의 삶을 존중하는 어른스러운 연애를 해요.", "g": ["여유", "독립성"], "w": ["무관심하다는 오해를 받을 수 있어요"], "m": "밀당형"}}}, {"e": "😉", "n": "플러팅 지수 테스트", "s": "나의 은근한 매력 발산 능력은 몇 점일까요?", "k": ["플러팅", "썸", "매력", "호감"], "m": "score", "q": [["관심 있는 사람과 눈이 마주치면", ["바로 피한다", 0], ["살짝 웃는다", 2], ["눈웃음으로 받아친다", 3], ["어색하게 굳는다", 1]], ["상대의 말에 반응할 때", ["고개만 끄덕인다", 1], ["리액션 부자", 3], ["질문으로 대화를 이어 간다", 2], ["딴생각한다", 0]], ["SNS 스토리에 좋아요가 왔다", ["모른 척한다", 1], ["바로 DM 보낸다", 3], ["나도 좋아요 누른다", 2], ["확대해서 본다", 0]], ["칭찬하는 스타일", ["칭찬은 쑥스러워 못 한다", 0], ["외모 칭찬", 2], ["센스·취향 칭찬", 3], ["무난한 칭찬", 1]], ["약속을 잡을 때", ["상대가 잡아 주길 기다린다", 0], ["'시간 되면 밥 먹을래?'", 2], ["'이번 주 토요일 어때?'", 3], ["단체 약속에 끼워 넣는다", 1]], ["대화가 끊기면", ["침묵…", 0], ["공통 관심사를 꺼낸다", 3], ["날씨 얘기", 1], ["재밌는 짤을 보낸다", 2]], ["상대가 무언가 잘했을 때", ["그냥 넘어간다", 0], ["대단하다!", 2], ["역시 너라서 가능한 거야", 3], ["축하해", 1]], ["향수, 옷차림 등 신경 쓰는 정도", ["별로 안 씀", 0], ["기본은 챙김", 1], ["포인트 하나는 꼭", 2], ["완벽하게 준비", 3]]], "b": [[85, {"e": "🔥", "n": "플러팅 마스터", "d": "자연스러운 리액션과 센스로 상대를 설레게 하는 타고난 매력가예요.", "g": ["센스", "표현력"], "w": ["모두에게 다정하면 오해를 살 수 있어요"], "m": ""}], [60, {"e": "😊", "n": "호감 장인", "d": "부담스럽지 않게 호감을 표현하는 적당한 고수예요.", "g": ["자연스러움", "배려"], "w": ["결정적인 순간엔 조금 더 용기를!"], "m": ""}], [35, {"e": "🌱", "n": "수줍은 새싹", "d": "마음은 있지만 표현이 서툰 편이에요. 진심이 느껴지는 순수함이 매력이에요.", "g": ["진정성", "순수함"], "w": ["작은 리액션부터 늘려 봐요"], "m": ""}], [0, {"e": "🧊", "n": "철벽 수비수", "d": "철벽처럼 보이지만 마음을 연 사람에겐 누구보다 진지해요.", "g": ["신중함", "진지함"], "w": ["관심이 있다면 눈인사부터 시작해 봐요"], "m": ""}]]}, {"e": "🫀", "n": "연애 세포 생존율 테스트", "s": "오랫동안 잠들어 있던 내 연애 세포, 아직 살아 있을까요?", "k": ["연애세포", "모솔", "솔로", "설렘"], "m": "score", "q": [["로맨스 드라마를 보면", ["채널 돌린다", 0], ["재밌으면 본다", 1], ["주인공에 빙의한다", 3], ["설레서 잠이 안 온다", 2]], ["마지막으로 설렌 기억", ["기억 안 남", 0], ["1년 이상 전", 1], ["몇 달 전", 2], ["최근에도 있었다", 3]], ["소개팅 제안이 오면", ["귀찮다", 0], ["상황 봐서", 1], ["일단 만나 본다", 3], ["사진부터 본다", 2]], ["커플을 보면", ["아무 생각 없다", 1], ["부럽다", 3], ["시끄럽다", 0], ["귀엽다", 2]], ["주말에 꾸미고 나가는 빈도", ["거의 없다", 0], ["가끔", 1], ["자주", 2], ["항상", 3]], ["이상형을 물으면", ["딱히 없다", 0], ["대충 있다", 1], ["구체적으로 말할 수 있다", 3], ["매번 바뀐다", 2]], ["연애 관련 콘텐츠", ["안 본다", 0], ["가끔 본다", 1], ["연애 예능 정주행", 3], ["사연 읽기 좋아한다", 2]], ["새로운 사람을 만날 기회", ["피한다", 0], ["주어지면 간다", 2], ["직접 만든다", 3], ["친구 따라 간다", 1]]], "b": [[80, {"e": "💖", "n": "연애 세포 만개", "d": "연애 세포가 활발하게 살아 움직여요! 좋은 인연이 오면 바로 알아볼 거예요.", "g": ["설렘 감지력", "적극성"], "w": ["너무 서두르진 말아요"], "m": ""}], [55, {"e": "💗", "n": "연애 세포 회복 중", "d": "조금만 자극을 주면 금방 깨어날 상태예요.", "g": ["가능성", "여유"], "w": ["기회가 오면 한 발 내디뎌 봐요"], "m": ""}], [30, {"e": "💤", "n": "연애 세포 겨울잠", "d": "편안한 솔로 생활에 익숙해져 연애 세포가 쉬고 있어요.", "g": ["독립성", "안정"], "w": ["새로운 모임에 한 번 나가 보는 건 어때요?"], "m": ""}], [0, {"e": "🧊", "n": "연애 세포 냉동 보관", "d": "지금은 연애보다 나 자신이 더 중요한 시기예요. 그것도 멋진 선택이에요!", "g": ["자기 집중", "주관"], "w": ["마음이 열리면 언제든 해동 가능해요"], "m": ""}]]}, {"e": "✨", "n": "이상형 키워드 테스트", "s": "내가 진짜 끌리는 사람의 키워드는 무엇일까요?", "k": ["이상형", "이상형키워드", "끌리는사람"], "m": "tally", "q": [["첫눈에 끌리는 사람", ["웃는 얼굴이 예쁜 사람", "sunny"], ["말이 잘 통하는 사람", "smart"], ["듬직해 보이는 사람", "steady"], ["분위기 있는 사람", "mood"]], ["데이트하고 싶은 장소", ["놀이공원", "sunny"], ["전시회", "mood"], ["캠핑", "adv"], ["조용한 서점", "smart"]], ["연인의 이런 모습에 반한다", ["어려운 문제를 척척 해결할 때", "smart"], ["힘들 때 묵묵히 곁에 있을 때", "steady"], ["새로운 걸 같이 도전할 때", "adv"], ["나를 웃게 할 때", "funny"]], ["싫은 연인 유형", ["무뚝뚝한 사람", "sunny"], ["대화가 안 통하는 사람", "smart"], ["약속을 안 지키는 사람", "steady"], ["지루한 사람", "funny"]], ["주말을 보낸다면", ["함께 운동", "adv"], ["맛집 투어", "funny"], ["집에서 영화", "steady"], ["감성 카페", "mood"]], ["선물받고 싶은 것", ["손편지", "mood"], ["함께하는 여행", "adv"], ["필요했던 물건", "steady"], ["웃긴 선물", "funny"]]], "r": {"sunny": {"e": "🌻", "n": "햇살 같은 사람", "d": "밝은 에너지로 나를 웃게 해 주는 사람에게 끌려요.", "g": ["긍정 에너지"], "w": ["기분 좋은 날만 있는 건 아니니 서로 배려해요"], "m": ""}, "smart": {"e": "📚", "n": "말이 통하는 사람", "d": "대화가 깊고 지적인 자극을 주는 사람에게 끌려요.", "g": ["대화", "지적 교감"], "w": ["완벽한 대화 상대를 찾다 놓칠 수 있어요"], "m": ""}, "steady": {"e": "🪨", "n": "듬직한 사람", "d": "말보다 행동으로 믿음을 주는 사람에게 끌려요.", "g": ["신뢰", "안정감"], "w": ["표현이 적은 상대에게 서운할 수 있어요"], "m": ""}, "mood": {"e": "🕯️", "n": "분위기 있는 사람", "d": "감성과 취향이 깊은 사람에게 끌려요.", "g": ["감성", "취향"], "w": ["분위기에 빠져 현실을 놓치지 않게 해요"], "m": ""}, "adv": {"e": "🧗", "n": "함께 모험하는 사람", "d": "새로운 경험을 같이 즐길 수 있는 사람에게 끌려요.", "g": ["도전", "활력"], "w": ["쉬는 시간도 함께 즐겨요"], "m": ""}, "funny": {"e": "🤡", "n": "유머 있는 사람", "d": "함께 있으면 웃음이 끊이지 않는 사람에게 끌려요.", "g": ["유머", "편안함"], "w": ["진지한 순간에도 통하는지 봐요"], "m": ""}}}, {"e": "😤", "n": "질투 지수 테스트", "s": "사랑할 때 나의 질투는 몇 도일까요?", "k": ["질투", "질투지수", "집착", "연애"], "m": "score", "q": [["연인이 이성 친구와 웃으며 연락한다", ["아무렇지 않다", 0], ["누군지 궁금하다", 1], ["신경 쓰인다", 2], ["표정 관리가 안 된다", 3]], ["연인의 SNS 좋아요 목록", ["안 본다", 0], ["가끔 본다", 1], ["자주 본다", 2], ["매일 확인", 3]], ["연인이 동창 모임에 간다", ["재밌게 놀다 와", 0], ["끝나고 연락 줘", 1], ["누구 오는지 묻는다", 2], ["가지 말았으면", 3]], ["연인이 다른 사람을 칭찬하면", ["맞장구친다", 0], ["그냥 듣는다", 1], ["살짝 서운하다", 2], ["비교당하는 기분", 3]], ["질투가 날 때 나는", ["표현 안 한다", 0], ["농담처럼 말한다", 1], ["솔직하게 말한다", 2], ["말없이 토라진다", 3]], ["전 연인 이야기를 들으면", ["궁금하지 않다", 0], ["조금 궁금하다", 1], ["자세히 알고 싶다", 2], ["며칠 생각난다", 3]], ["연인의 연락이 늦으면", ["바쁜가 보다", 0], ["조금 기다린다", 1], ["뭐 하는지 궁금하다", 2], ["여러 번 연락한다", 3]], ["연인과 친한 동료가 있다면", ["좋은 일이다", 0], ["어떤 사람인지 궁금", 1], ["경계한다", 2], ["불편하다", 3]]], "b": [[75, {"e": "🔥", "n": "질투 활화산", "d": "사랑이 깊은 만큼 질투도 뜨거워요. 마음을 표현하는 건 좋지만 신뢰도 함께 키워요.", "g": ["애정", "표현력"], "w": ["확인보다 대화로 불안을 나눠요"], "m": ""}], [50, {"e": "🌶️", "n": "매콤한 질투", "d": "적당한 질투로 애정을 표현하는 타입이에요.", "g": ["솔직함", "애정"], "w": ["토라지기 전에 말로 표현해요"], "m": ""}], [25, {"e": "🍋", "n": "새콤한 질투", "d": "가끔 살짝 질투하지만 금방 넘겨요.", "g": ["여유", "신뢰"], "w": ["서운함은 쌓기 전에 말해요"], "m": ""}], [0, {"e": "🧊", "n": "쿨 그 자체", "d": "연인을 믿고 존중하는 여유로운 사랑을 해요.", "g": ["신뢰", "독립성"], "w": ["무관심으로 보이지 않게 관심도 표현해요"], "m": ""}]]}, {"e": "📱", "n": "연락 스타일 테스트", "s": "연애할 때 나의 연락 스타일은?", "k": ["연락", "연락스타일", "카톡", "답장", "연애연락"], "m": "tally", "q": [["아침에 눈 뜨면", ["굿모닝 메시지", "sweet"], ["생각나면 연락", "free"], ["바로 전화", "call"], ["출근해서 연락", "mini"]], ["답장 속도", ["칼답", "sweet"], ["여유 있을 때", "free"], ["답장 대신 전화", "call"], ["읽고 나중에", "mini"]], ["하루 연락 횟수", ["수시로", "sweet"], ["몇 번", "free"], ["통화 두세 번", "call"], ["한두 번", "mini"]], ["이모티콘 사용", ["필수", "sweet"], ["가끔", "free"], ["거의 안 씀", "call"], ["안 씀", "mini"]], ["서운할 때", ["메시지로 길게", "sweet"], ["만나서 이야기", "free"], ["바로 전화", "call"], ["그냥 넘긴다", "mini"]], ["자기 전", ["잘 자 + 하트", "sweet"], ["피곤하면 생략", "free"], ["통화하다 잠든다", "call"], ["한 줄 인사", "mini"]]], "r": {"sweet": {"e": "💬", "n": "다정한 수다형", "d": "하루를 나누는 연락이 곧 사랑이에요.", "g": ["다정함", "표현력"], "w": ["상대의 연락 리듬도 존중해요"], "m": "전화 선호형"}, "free": {"e": "🍃", "n": "자유 연락형", "d": "편할 때 자연스럽게 연락하는 균형형이에요.", "g": ["여유", "자연스러움"], "w": ["중요한 날은 먼저 챙겨요"], "m": "단답 효율형"}, "call": {"e": "📞", "n": "전화 선호형", "d": "글보다 목소리로 마음을 전해요.", "g": ["진정성", "소통"], "w": ["전화가 부담인 사람도 있어요"], "m": "다정한 수다형"}, "mini": {"e": "✏️", "n": "단답 효율형", "d": "용건 위주의 깔끔한 연락을 좋아해요. 대신 만날 때 집중해요.", "g": ["집중", "효율"], "w": ["작은 표현이 큰 차이를 만들어요"], "m": "자유 연락형"}}}, {"e": "💔", "n": "이별 극복 유형 테스트", "s": "이별 후 나는 어떻게 회복할까요?", "k": ["이별", "이별극복", "이별후", "헤어짐", "재회"], "m": "tally", "q": [["이별 첫날", ["밤새 운다", "feel"], ["친구들을 부른다", "social"], ["바로 운동하러 간다", "busy"], ["아무 일 없다는 듯", "calm"]], ["사진과 선물", ["못 버리고 간직", "feel"], ["친구랑 같이 정리", "social"], ["바로 정리", "busy"], ["그대로 둔다", "calm"]], ["회복하는 방법", ["슬픈 노래 정주행", "feel"], ["약속을 잔뜩 잡는다", "social"], ["일과 자기계발에 몰두", "busy"], ["시간이 해결해 준다", "calm"]], ["SNS", ["몰래 계속 본다", "feel"], ["즐거운 사진을 올린다", "social"], ["앱을 지운다", "busy"], ["평소처럼", "calm"]], ["다시 연애할 때까지", ["오래 걸린다", "feel"], ["소개팅부터", "social"], ["나를 완성한 뒤", "busy"], ["자연스럽게", "calm"]]], "r": {"feel": {"e": "🌧️", "n": "충분히 슬퍼하는 형", "d": "감정을 온전히 느끼며 천천히 회복해요. 그만큼 사랑을 깊이 했다는 뜻이에요.", "g": ["진정성", "감수성"], "w": ["슬픔이 너무 길면 주변에 기대요"], "m": ""}, "social": {"e": "🎉", "n": "사람으로 회복형", "d": "친구들과 함께하며 빠르게 기운을 차려요.", "g": ["사교성", "회복력"], "w": ["혼자 정리하는 시간도 필요해요"], "m": ""}, "busy": {"e": "🏋️", "n": "갓생으로 승화형", "d": "이별을 성장의 계기로 바꾸는 단단한 사람이에요.", "g": ["의지", "성장"], "w": ["감정을 너무 누르지 않기"], "m": ""}, "calm": {"e": "🍵", "n": "담담한 정리형", "d": "겉으론 담담하게, 속으론 조용히 정리해요.", "g": ["침착", "안정"], "w": ["괜찮지 않다면 말해도 돼요"], "m": ""}}}, {"e": "🎡", "n": "데이트 코스 유형 테스트", "s": "나에게 딱 맞는 데이트 코스는?", "k": ["데이트", "데이트코스", "커플", "데이트장소"], "m": "tally", "q": [["주말 데이트 시작", ["브런치 카페", "cafe"], ["놀이공원", "active"], ["전시회", "culture"], ["집 데이트", "home"], ["드라이브", "trip"]], ["저녁 메뉴", ["분위기 좋은 레스토랑", "cafe"], ["길거리 음식", "active"], ["오마카세", "culture"], ["배달 음식", "home"], ["바닷가 횟집", "trip"]], ["사진 찍기", ["예쁜 카페 사진", "cafe"], ["신나는 셀카", "active"], ["작품 앞 인증샷", "culture"], ["찍을 일 없음", "home"], ["풍경 사진", "trip"]], ["기념일 데이트", ["호텔 디저트 뷔페", "cafe"], ["방탈출", "active"], ["공연 관람", "culture"], ["직접 요리", "home"], ["1박 2일 여행", "trip"]], ["데이트 끝", ["야경 보며 산책", "cafe"], ["오락실 한 판", "active"], ["서점 구경", "culture"], ["영화 한 편", "home"], ["다음 여행 계획", "trip"]]], "r": {"cafe": {"e": "☕", "n": "감성 카페 데이트", "d": "분위기 좋은 공간에서 대화를 나누는 데이트가 잘 맞아요.", "g": ["감성", "대화"], "w": ["가끔은 활동적인 데이트도!"], "m": ""}, "active": {"e": "🎢", "n": "액티비티 데이트", "d": "함께 웃고 뛰는 신나는 데이트가 최고예요.", "g": ["활력", "재미"], "w": ["쉬는 데이트도 섞어요"], "m": ""}, "culture": {"e": "🖼️", "n": "문화 데이트", "d": "전시·공연처럼 취향을 나누는 데이트를 좋아해요.", "g": ["취향", "교감"], "w": ["상대 취향도 함께 탐험해요"], "m": ""}, "home": {"e": "🏠", "n": "집콕 데이트", "d": "편안한 공간에서 둘만의 시간을 즐겨요.", "g": ["편안함", "친밀감"], "w": ["가끔은 밖에서 새로운 추억을!"], "m": ""}, "trip": {"e": "🚗", "n": "여행 데이트", "d": "낯선 곳에서 함께 추억을 쌓는 데이트가 잘 맞아요.", "g": ["모험심", "추억"], "w": ["일상 데이트도 소중해요"], "m": ""}}}]}, {"id": "match", "emoji": "💑", "name": "궁합", "items": [{"e": "🧩", "n": "16유형 궁합", "s": "두 사람의 16유형(MBTI)을 고르면 궁합과 관계 팁을 알려 드려요.", "k": ["mbti궁합", "엠비티아이궁합", "16유형궁합", "궁합"], "m": "pair", "pt": "mbti", "link": "16유형 성격 테스트", "opts": [["INTJ", "INTJ", ""], ["INTP", "INTP", ""], ["ENTJ", "ENTJ", ""], ["ENTP", "ENTP", ""], ["INFJ", "INFJ", ""], ["INFP", "INFP", ""], ["ENFJ", "ENFJ", ""], ["ENFP", "ENFP", ""], ["ISTJ", "ISTJ", ""], ["ISFJ", "ISFJ", ""], ["ESTJ", "ESTJ", ""], ["ESFJ", "ESFJ", ""], ["ISTP", "ISTP", ""], ["ISFP", "ISFP", ""], ["ESTP", "ESTP", ""], ["ESFP", "ESFP", ""]]}, {"e": "🔗", "n": "애착 유형 궁합", "s": "두 사람의 애착 유형으로 관계 패턴을 알아봐요.", "k": ["애착궁합", "안정형", "불안형", "회피형", "연애궁합"], "m": "pair", "pt": "matrix", "link": "연애 애착 유형 테스트", "opts": [["secure", "안정형", "🌳"], ["anxious", "불안형", "🌊"], ["avoidant", "회피형", "🏔️"], ["fearful", "혼란형", "🌗"]], "pairs": {"secure|secure": [95, "서로 믿고 편안한 최고의 조합이에요. 갈등도 대화로 건강하게 풀어 가요."], "secure|anxious": [82, "안정형의 꾸준함이 불안형에게 큰 안심이 돼요. 불안형은 마음을 솔직하게, 안정형은 자주 표현해 주면 좋아요."], "secure|avoidant": [76, "안정형이 공간을 존중해 주면 회피형도 천천히 마음을 열어요. 재촉하지 않는 게 핵심이에요."], "secure|fearful": [74, "안정형의 일관된 태도가 혼란형에게 신뢰를 줘요. 작은 약속을 꾸준히 지켜 주세요."], "anxious|anxious": [62, "서로 사랑 표현이 풍부해 따뜻하지만, 불안이 겹치면 감정이 커질 수 있어요. 함께 진정하는 규칙을 만들어요."], "anxious|avoidant": [45, "다가갈수록 멀어지는 '추격과 회피' 패턴이 생기기 쉬워요. 연락 빈도와 혼자만의 시간을 미리 약속하면 훨씬 편해져요."], "anxious|fearful": [52, "서로의 불안을 이해하지만 함께 흔들리기 쉬워요. 감정이 커질 땐 잠시 쉬었다가 대화해요."], "avoidant|avoidant": [56, "서로의 공간을 잘 존중하지만 거리가 너무 멀어질 수 있어요. 정기적인 데이트와 대화 시간을 정해요."], "avoidant|fearful": [48, "가까워지고 싶은 마음과 거리를 두는 마음이 엇갈려요. 작은 표현부터 서로 연습해요."], "fearful|fearful": [46, "서로의 상처를 깊이 이해하지만 관계가 출렁일 수 있어요. 안정적인 루틴과 믿을 만한 주변의 도움이 힘이 돼요."]}}, {"e": "💌", "n": "사랑의 언어 궁합", "s": "서로의 사랑의 언어가 같을까, 다를까? 표현 방법을 알려 드려요.", "k": ["사랑의언어궁합", "러브랭귀지", "애정표현궁합"], "m": "pair", "pt": "lang", "link": "사랑의 언어 테스트", "opts": [["words", "인정하는 말", "💬"], ["time", "함께하는 시간", "⏰"], ["gift", "선물", "🎁"], ["service", "봉사", "🛠️"], ["touch", "스킨십", "🤗"]]}, {"e": "🎯", "n": "DISC 소통 궁합", "s": "두 사람의 소통 유형(DISC)으로 대화 궁합을 알아봐요.", "k": ["DISC궁합", "소통궁합", "업무궁합", "동료궁합"], "m": "pair", "pt": "matrix", "link": "DISC 소통 유형 테스트", "opts": [["D", "주도형", "🦅"], ["I", "사교형", "🦚"], ["S", "안정형", "🐨"], ["C", "신중형", "🦉"]], "pairs": {"D|D": [58, "둘 다 앞서 이끌고 싶어 해 주도권 다툼이 생길 수 있어요. 역할을 나누면 강력한 팀이 돼요."], "D|I": [76, "추진력과 열정이 만나 빠르게 일이 진행돼요. 세부 사항 점검 담당을 정해 두세요."], "D|S": [82, "D가 방향을 잡고 S가 꾸준히 받쳐 주는 보완 관계예요. D는 S의 속도를 존중해 주세요."], "D|C": [66, "속도와 정확성이 부딪힐 수 있지만, 서로 맞추면 빠르고 정확한 결과를 내요."], "I|I": [70, "함께 있으면 즐겁고 아이디어가 넘쳐요. 마무리 담당만 정하면 완벽해요."], "I|S": [86, "I의 밝음과 S의 따뜻함이 만나 편안하고 즐거운 관계예요."], "I|C": [55, "감정과 논리의 차이로 오해가 생기기 쉬워요. I는 근거를, C는 공감을 조금 더 챙겨요."], "S|S": [76, "서로 배려하는 평화로운 관계예요. 결정이 필요할 땐 한 사람이 먼저 나서요."], "S|C": [82, "차분하고 신중한 둘이라 안정적이고 꼼꼼하게 일을 해내요."], "C|C": [70, "정확하고 체계적인 환상의 팀이에요. 다만 결정이 늦어지지 않게 마감을 정해요."]}}, {"e": "💞", "n": "연애 스타일 궁합", "s": "두 사람의 연애 스타일로 연애 케미를 알아봐요.", "k": ["연애스타일궁합", "연애궁합", "커플궁합"], "m": "pair", "pt": "matrix", "link": "연애 스타일 테스트", "opts": [["go", "직진형", "🏹"], ["push", "밀당형", "🎐"], ["friend", "친구 같은 연인형", "🤝"], ["devote", "헌신형", "🫶"], ["romance", "로맨티스트형", "🌹"], ["cool", "쿨한 독립형", "😎"]], "pairs": {"go|go": [72, "서로 솔직해서 오해가 적지만 부딪히면 불꽃이 튀어요. 한 박자 쉬어 가요."], "go|push": [82, "직진형의 솔직함이 밀당형의 마음을 사로잡아요. 설렘 가득한 조합!"], "go|friend": [74, "편안함 속에 설렘이 더해져요."], "go|devote": [92, "표현하는 직진형과 챙겨 주는 헌신형, 서로를 아끼는 환상의 짝이에요."], "go|romance": [80, "뜨거운 표현이 오가는 드라마 같은 연애예요."], "go|cool": [55, "온도 차가 있을 수 있어요. 연락과 표현 방식을 미리 맞춰요."], "push|push": [58, "밀고 당기다 끝나지 않게 가끔은 솔직하게!"], "push|friend": [66, "편안한 친구형이 밀당에 덜 흔들려 안정적이에요."], "push|devote": [60, "헌신형이 밀당에 지칠 수 있어요. 마음을 확실히 보여 주세요."], "push|romance": [74, "설렘 지수 최고! 기념일을 함께 챙겨요."], "push|cool": [84, "서로의 여유를 이해하는 세련된 연애예요."], "friend|friend": [80, "오래가는 편안한 연애. 가끔 이벤트로 설렘을 더해요."], "friend|devote": [78, "서로를 편하게 챙기는 따뜻한 관계예요."], "friend|romance": [90, "편안함과 로맨스가 만난 균형 잡힌 조합이에요."], "friend|cool": [76, "각자의 삶을 존중하는 친구 같은 연애예요."], "devote|devote": [74, "서로 챙기느라 바쁜 다정한 커플! 나도 챙겨 받는 걸 잊지 마요."], "devote|romance": [84, "사랑을 아낌없이 주고받는 달달한 조합이에요."], "devote|cool": [50, "주는 마음과 거리를 두는 마음의 차이가 있어요. 서로의 표현 방식을 대화로 맞춰요."], "romance|romance": [76, "드라마 같은 연애! 현실적인 계획도 함께 세워요."], "romance|cool": [52, "로맨스와 쿨함의 온도 차가 커요. 작은 이벤트에 함께 즐거워해 주세요."], "cool|cool": [70, "서로 자유로운 어른의 연애. 함께하는 시간도 의식적으로 만들어요."]}}, {"e": "🥊", "n": "갈등 대처 궁합", "s": "싸울 때 우리는 잘 맞을까? 갈등 대처 유형으로 알아봐요.", "k": ["갈등궁합", "싸움궁합", "다툼"], "m": "pair", "pt": "matrix", "link": "갈등 대처 유형 테스트", "opts": [["compete", "경쟁형", "🦁"], ["collab", "협력형", "🤝"], ["comp", "타협형", "⚖️"], ["avoid", "회피형", "🐢"], ["accom", "수용형", "🕊️"]], "pairs": {"compete|compete": [40, "둘 다 이기고 싶어 해 싸움이 커지기 쉬워요. '잠시 쉬기' 규칙을 정해요."], "compete|collab": [76, "협력형이 대화로 이끌어 경쟁형의 에너지를 좋은 방향으로 바꿔요."], "compete|comp": [66, "빠르게 중간점을 찾지만 경쟁형이 더 가져가기 쉬워요."], "compete|avoid": [44, "한쪽은 몰아붙이고 한쪽은 피해서 문제가 쌓여요. 정해진 시간에 차분히 이야기해요."], "compete|accom": [58, "싸움은 빨리 끝나지만 수용형이 혼자 참을 수 있어요. 수용형의 속마음을 꼭 물어봐요."], "collab|collab": [95, "갈등도 성장의 기회로 만드는 최고의 조합이에요."], "collab|comp": [86, "대화와 현실적인 타협이 만나 균형이 좋아요."], "collab|avoid": [70, "협력형이 편안한 분위기를 만들어 주면 회피형도 마음을 열어요."], "collab|accom": [82, "서로를 배려하는 따뜻한 해결이 가능해요."], "comp|comp": [80, "공정하고 빠르게 해결하는 실용적인 조합이에요."], "comp|avoid": [62, "타협형이 먼저 제안하면 무난히 풀려요."], "comp|accom": [74, "부드럽게 합의하는 편안한 조합이에요."], "avoid|avoid": [50, "싸움은 없지만 문제가 묻혀요. 작은 불만도 말하는 연습을 해요."], "avoid|accom": [58, "평화롭지만 진짜 문제를 놓칠 수 있어요."], "accom|accom": [66, "서로 양보하다 결정이 늦어질 수 있어요. 원하는 걸 솔직하게!"]}}]}, {"id": "ratio", "emoji": "⚖️", "name": "성향 지수", "items": [{"e": "🔋", "n": "E/I 지수 테스트", "s": "나는 외향형일까, 내향형일까? 비율로 정확히 알려 드려요.", "k": ["EI", "외향", "내향", "E", "I", "인싸", "아싸"], "m": "ratio", "p": ["외향(E)", "내향(I)"], "q": [["퇴근 후 저녁 약속", ["좋아, 어디서 볼까?", "A"], ["오늘은 집에 가고 싶다", "B"]], ["엘리베이터에서 이웃을 만나면", ["먼저 인사하고 스몰토크", "A"], ["목례만 하고 휴대폰 본다", "B"]], ["생각을 정리할 때", ["말하면서 정리된다", "A"], ["혼자 써 보며 정리된다", "B"]], ["새로운 동아리 첫날", ["다들 친해지고 싶다", "A"], ["분위기부터 파악한다", "B"]], ["전화와 문자 중", ["전화가 편하다", "A"], ["문자가 편하다", "B"]], ["사람 많은 파티 후", ["신나서 더 놀고 싶다", "A"], ["기 빨려서 쉬고 싶다", "B"]], ["관심받는 상황", ["즐긴다", "A"], ["부담스럽다", "B"]], ["친구 수", ["넓게 많이", "A"], ["좁고 깊게", "B"]], ["여행 중 혼자 있는 시간", ["심심하다", "A"], ["꼭 필요하다", "B"]], ["회의에서 나는", ["생각나면 바로 말한다", "A"], ["정리되면 말한다", "B"]]], "b5": [{"e": "📣", "n": "확신의 E", "d": "사람 속에서 에너지를 얻는 완벽한 외향형이에요. 어디서든 분위기를 이끌어요.", "g": ["사교성", "추진력"], "w": ["혼자만의 정리 시간도 가져 보세요"], "m": ""}, {"e": "🙌", "n": "E 성향 우세", "d": "사람들과 어울리는 게 즐겁지만 가끔은 혼자도 좋아요.", "g": ["친화력", "균형"], "w": ["컨디션에 따라 혼자 쉬는 날을 챙겨요"], "m": ""}, {"e": "⚖️", "n": "E와 I 반반 (양향형)", "d": "상황에 따라 외향과 내향을 자유롭게 오가는 양향형이에요.", "g": ["적응력", "유연성"], "w": ["무리하게 맞추다 지치지 않게 해요"], "m": ""}, {"e": "📖", "n": "I 성향 우세", "d": "혼자 있는 시간에서 힘을 얻지만 친한 사람들과는 잘 어울려요.", "g": ["깊이", "집중력"], "w": ["가끔은 먼저 연락해 보세요"], "m": ""}, {"e": "🏠", "n": "확신의 I", "d": "혼자만의 세계에서 에너지를 충전하는 완벽한 내향형이에요. 깊이 있는 관계를 소중히 여겨요.", "g": ["사려 깊음", "독립성"], "w": ["필요할 땐 도움을 요청해요"], "m": ""}]}, {"e": "🧠", "n": "T/F 지수 테스트", "s": "이성(T)과 감성(F), 나는 어느 쪽에 더 가까울까요?", "k": ["TF", "너T야", "감성", "이성", "공감"], "m": "ratio", "p": ["사고(T)", "감정(F)"], "q": [["친구가 '나 우울해서 빵 샀어'", ["무슨 빵?", "A"], ["무슨 일 있어?", "B"]], ["영화를 보고 나서", ["개연성을 따진다", "A"], ["감정선에 몰입한다", "B"]], ["팀원이 실수했을 때", ["원인과 해결책부터", "A"], ["괜찮냐고 먼저 묻는다", "B"]], ["결정할 때 기준", ["효율과 결과", "A"], ["사람들의 마음", "B"]], ["칭찬받고 싶은 말", ["논리적이다", "A"], ["따뜻하다", "B"]], ["고민 상담을 해 줄 때", ["현실적인 조언", "A"], ["충분한 공감", "B"]], ["거짓말과 상처 주는 진실 중", ["진실이 낫다", "A"], ["선의의 거짓말도 필요하다", "B"]], ["토론에서 졌을 때", ["논리를 다시 점검한다", "A"], ["기분이 상한다", "B"]], ["선물 고를 때", ["실용성", "A"], ["의미", "B"]], ["눈물이 나는 순간", ["잘 없다", "A"], ["감동적인 장면마다", "B"]]], "b5": [{"e": "🤖", "n": "극강의 T", "d": "논리와 사실로 세상을 보는 이성파예요. 문제 해결 능력이 뛰어나요.", "g": ["판단력", "객관성"], "w": ["공감 한마디를 먼저 건네 보세요"], "m": ""}, {"e": "🧩", "n": "T 성향 우세", "d": "이성적으로 판단하지만 상황에 따라 감정도 챙겨요.", "g": ["합리성", "균형"], "w": ["가끔은 해결보다 들어 주기가 필요해요"], "m": ""}, {"e": "⚖️", "n": "T와 F 반반", "d": "머리와 마음의 균형이 잘 잡혀 있어요.", "g": ["균형 감각", "유연함"], "w": ["결정을 오래 고민할 수 있어요"], "m": ""}, {"e": "💗", "n": "F 성향 우세", "d": "감정을 먼저 살피는 따뜻한 사람이에요. 필요할 땐 냉정하게 판단도 해요.", "g": ["공감", "배려"], "w": ["거절이 필요한 순간엔 단호하게!"], "m": ""}, {"e": "🥹", "n": "극강의 F", "d": "마음으로 세상을 느끼는 공감 요정이에요. 주변 사람들에게 큰 위로가 돼요.", "g": ["공감력", "따뜻함"], "w": ["남의 감정까지 떠안지 않게 해요"], "m": ""}]}, {"e": "⚡", "n": "테토·에겐 지수 테스트", "s": "주도적이고 직진하는 '테토', 섬세하고 감성적인 '에겐'. 나는 어느 쪽?", "k": ["테토", "에겐", "테토남", "에겐녀", "테토녀", "에겐남"], "m": "ratio", "p": ["테토", "에겐"], "q": [["단체 메뉴 정할 때", ["내가 정한다", "A"], ["다들 원하는 걸로", "B"]], ["갈등 상황", ["정면 돌파", "A"], ["분위기 먼저 살핀다", "B"]], ["취미로 더 끌리는 것", ["운동, 승부", "A"], ["그림, 음악", "B"]], ["감정 표현", ["짧고 굵게", "A"], ["섬세하고 자세하게", "B"]], ["새로운 일 앞에서", ["일단 시작", "A"], ["충분히 준비", "B"]], ["옷 고를 때", ["편한 게 최고", "A"], ["분위기와 색감", "B"]], ["위로하는 방식", ["밥 사 준다", "A"], ["이야기 들어 준다", "B"]], ["목표 달성 방법", ["속도전", "A"], ["꾸준함", "B"]], ["감동받는 포인트", ["리더십 있는 모습", "A"], ["섬세한 배려", "B"]], ["스트레스 해소", ["땀 흘리기", "A"], ["감성 충전", "B"]]], "b5": [{"e": "🦁", "n": "완전 테토", "d": "주도적이고 직진하는 에너지가 가득해요. 결정이 빠르고 행동력이 강해요.", "g": ["추진력", "결단력"], "w": ["섬세한 배려도 함께 챙겨요"], "m": ""}, {"e": "🔥", "n": "테토 우세", "d": "리더십이 있지만 상황에 따라 부드러운 면도 보여요.", "g": ["실행력", "책임감"], "w": ["속도를 조금 늦춰도 괜찮아요"], "m": ""}, {"e": "⚖️", "n": "테토·에겐 균형", "d": "강함과 부드러움을 모두 가진 균형형이에요.", "g": ["유연함", "다재다능"], "w": ["내가 진짜 원하는 걸 놓치지 않게"], "m": ""}, {"e": "🌷", "n": "에겐 우세", "d": "섬세한 감성 위에 단단한 심지가 있어요.", "g": ["감수성", "배려"], "w": ["가끔은 먼저 나서 봐요"], "m": ""}, {"e": "🦢", "n": "완전 에겐", "d": "섬세하고 감성적인 에너지로 주변을 부드럽게 만들어요.", "g": ["공감", "감각"], "w": ["스스로를 지키는 단호함도 필요해요"], "m": ""}]}, {"e": "🗓️", "n": "계획형·즉흥형 지수", "s": "나는 J(계획형)일까, P(즉흥형)일까?", "k": ["JP", "계획형", "즉흥형", "J", "P", "파워J"], "m": "ratio", "p": ["계획형(J)", "즉흥형(P)"], "q": [["여행 짐 싸기", ["체크리스트 작성", "A"], ["전날 밤 대충", "B"]], ["갑자기 친구가 놀자고 하면", ["일정 확인부터", "A"], ["콜! 바로 나간다", "B"]], ["할 일 관리", ["투두리스트 필수", "A"], ["머릿속에 대충", "B"]], ["맛집 웨이팅이 길다", ["다른 데 예약해 둔 곳으로", "A"], ["근처 아무 데나 간다", "B"]], ["쇼핑할 때", ["살 것만 사고 나온다", "A"], ["구경하다 충동구매", "B"]], ["약속 시간", ["10분 전 도착", "A"], ["딱 맞춰 또는 살짝 늦게", "B"]], ["방 정리", ["주기적으로", "A"], ["더러워지면", "B"]], ["새해 계획", ["구체적으로 세운다", "A"], ["그때그때 산다", "B"]], ["계획이 틀어지면", ["스트레스받는다", "A"], ["오히려 재밌다", "B"]], ["과제 시작 시점", ["받은 날 바로", "A"], ["마감 직전", "B"]]], "b5": [{"e": "📏", "n": "파워 J", "d": "완벽한 계획과 실행의 아이콘이에요. 믿고 맡길 수 있는 사람이에요.", "g": ["계획력", "신뢰"], "w": ["계획 밖의 즐거움도 누려 보세요"], "m": ""}, {"e": "📒", "n": "J 성향 우세", "d": "큰 틀은 계획하고 세부는 유연하게 움직여요.", "g": ["체계성", "균형"], "w": ["틀어짐에 너무 스트레스받지 않기"], "m": ""}, {"e": "⚖️", "n": "J와 P 반반", "d": "계획과 즉흥을 상황에 맞게 섞는 균형형이에요.", "g": ["적응력", "융통성"], "w": ["중요한 일은 미리 챙겨요"], "m": ""}, {"e": "🎈", "n": "P 성향 우세", "d": "유연하고 순발력 있지만 필요할 땐 계획도 세워요.", "g": ["순발력", "창의"], "w": ["마감은 알람으로 관리해요"], "m": ""}, {"e": "🌀", "n": "파워 P", "d": "흐름에 몸을 맡기는 자유로운 영혼이에요. 위기에 강해요.", "g": ["즉흥력", "여유"], "w": ["중요한 약속은 메모해 두세요"], "m": ""}]}, {"e": "🔭", "n": "현실형·상상형 지수", "s": "나는 현실(S)에 발을 딛는 편일까, 상상(N)의 나래를 펴는 편일까?", "k": ["SN", "현실형", "상상형", "S", "N", "감각", "직관"], "m": "ratio", "p": ["현실형(S)", "상상형(N)"], "q": [["멍때릴 때", ["아무 생각 없다", "A"], ["좀비 사태가 나면 어디로 갈지 생각한다", "B"]], ["설명을 들을 때", ["예시가 좋다", "A"], ["큰 그림이 좋다", "B"]], ["좋아하는 책", ["실용서·에세이", "A"], ["판타지·SF", "B"]], ["요리할 때", ["레시피 그대로", "A"], ["감으로 응용", "B"]], ["길 안내할 때", ["편의점 지나 두 번째 골목", "A"], ["대충 저쪽 방향", "B"]], ["미래를 생각하면", ["당장 내년 계획", "A"], ["10년 뒤의 꿈", "B"]], ["노래를 들을 때", ["멜로디와 비트", "A"], ["가사의 의미", "B"]], ["새로운 아이디어", ["검증된 방법이 좋다", "A"], ["새로운 시도가 좋다", "B"]], ["대화 주제", ["오늘 있었던 일", "A"], ["만약에 ~라면", "B"]], ["기억에 남는 것", ["구체적인 사실", "A"], ["그때의 느낌", "B"]]], "b5": [{"e": "🧱", "n": "확신의 S", "d": "현실 감각이 뛰어난 실용주의자예요. 손에 잡히는 결과를 만들어요.", "g": ["실용성", "꼼꼼함"], "w": ["가끔은 엉뚱한 상상도 즐겨 보세요"], "m": ""}, {"e": "🛤️", "n": "S 성향 우세", "d": "현실적으로 판단하되 새로운 아이디어도 열린 마음으로 들어요.", "g": ["현실 감각", "균형"], "w": ["변화도 기회가 될 수 있어요"], "m": ""}, {"e": "⚖️", "n": "S와 N 반반", "d": "현실과 상상을 오가는 균형형이에요.", "g": ["유연함", "통합력"], "w": ["방향을 정하면 밀고 나가요"], "m": ""}, {"e": "💭", "n": "N 성향 우세", "d": "상상력이 풍부하지만 현실도 놓치지 않아요.", "g": ["창의력", "통찰"], "w": ["아이디어를 작게라도 실행해 봐요"], "m": ""}, {"e": "🪐", "n": "확신의 N", "d": "머릿속에 우주가 있는 상상가예요. 남들이 못 보는 가능성을 봐요.", "g": ["상상력", "비전"], "w": ["현실적인 단계도 함께 그려 봐요"], "m": ""}]}, {"e": "🌤️", "n": "낙관·비관 지수", "s": "컵에 물이 반 남았다면? 나의 낙관 지수를 알아봐요.", "k": ["낙관", "비관", "긍정", "부정", "긍정적"], "m": "ratio", "p": ["낙관", "신중(비관)"], "q": [["컵에 물이 반", ["반이나 남았다", "A"], ["반밖에 없다", "B"]], ["새로운 일을 시작할 때", ["잘될 거야", "A"], ["안 되면 어쩌지", "B"]], ["비 예보 30%", ["우산 안 챙긴다", "A"], ["우산 챙긴다", "B"]], ["실수했을 때", ["다음엔 잘하면 돼", "A"], ["또 그럴까 걱정", "B"]], ["미래를 생각하면", ["기대된다", "A"], ["불안하다", "B"]], ["친구의 갑작스러운 연락", ["좋은 소식인가?", "A"], ["무슨 일 있나?", "B"]], ["복권을 사면", ["당첨되면 뭐 하지", "A"], ["어차피 안 될 거야", "B"]], ["계획이 틀어지면", ["더 좋은 일이 생기려나", "A"], ["역시 그럴 줄 알았어", "B"]]], "b5": [{"e": "🌞", "n": "긍정 에너자이저", "d": "어떤 상황에서도 빛을 찾는 낙관주의자예요.", "g": ["긍정", "회복력"], "w": ["대비책도 하나쯤 챙겨요"], "m": ""}, {"e": "🌤️", "n": "밝은 현실주의자", "d": "긍정적이지만 현실도 놓치지 않아요.", "g": ["균형", "희망"], "w": ["지금처럼만!"], "m": ""}, {"e": "⚖️", "n": "균형 잡힌 관점", "d": "기대와 대비를 고루 갖춘 균형형이에요.", "g": ["신중함", "유연함"], "w": ["결정은 너무 미루지 않기"], "m": ""}, {"e": "☁️", "n": "신중한 대비형", "d": "최악을 대비하는 꼼꼼함이 강점이에요.", "g": ["준비성", "신중함"], "w": ["잘될 가능성도 떠올려 봐요"], "m": ""}, {"e": "🌧️", "n": "걱정 많은 신중파", "d": "걱정이 많은 만큼 철저하게 준비해요.", "g": ["철저함", "책임감"], "w": ["걱정 시간을 정해 두고 나머진 쉬어요"], "m": ""}]}, {"e": "📐", "n": "완벽주의 지수", "s": "대충은 없다! 나의 완벽주의 정도를 비율로 알아봐요.", "k": ["완벽주의", "완벽", "강박", "디테일"], "m": "ratio", "p": ["완벽주의", "적당주의"], "q": [["메시지 보내기 전", ["세 번 읽고 보낸다", "A"], ["바로 보낸다", "B"]], ["과제 마감", ["완벽해질 때까지 붙잡는다", "A"], ["적당히 끝낸다", "B"]], ["사진 찍을 때", ["수십 장 찍는다", "A"], ["한두 장이면 OK", "B"]], ["실수를 발견하면", ["계속 신경 쓰인다", "A"], ["다음에 고치면 되지", "B"]], ["방 정리", ["각 맞춰 정리", "A"], ["대충 보이는 곳만", "B"]], ["칭찬받아도", ["부족한 점이 먼저 보인다", "A"], ["기분 좋다", "B"]], ["시작하기 전", ["완벽한 준비가 필요하다", "A"], ["일단 시작한다", "B"]], ["남이 한 일을 보면", ["고칠 점이 보인다", "A"], ["고생했다 싶다", "B"]]], "b5": [{"e": "💎", "n": "극강 완벽주의", "d": "디테일 하나 놓치지 않는 장인이에요. 결과물의 퀄리티가 남달라요.", "g": ["꼼꼼함", "높은 기준"], "w": ["80%로 끝내는 연습도 해 봐요"], "m": ""}, {"e": "📏", "n": "완벽주의 우세", "d": "중요한 일엔 완벽을 추구하지만 융통성도 있어요.", "g": ["책임감", "정확성"], "w": ["스스로에게 너그러워져요"], "m": ""}, {"e": "⚖️", "n": "적당한 완벽주의", "d": "필요한 곳에만 힘을 주는 효율형이에요.", "g": ["균형", "효율"], "w": ["지금처럼!"], "m": ""}, {"e": "🍃", "n": "적당주의 우세", "d": "적당히 잘하는 법을 아는 여유로운 사람이에요.", "g": ["유연함", "속도"], "w": ["중요한 일은 한 번 더 점검"], "m": ""}, {"e": "🌈", "n": "자유로운 적당주의", "d": "완벽보다 완료! 빠르고 유쾌하게 해내요.", "g": ["실행력", "여유"], "w": ["마감 전 최종 확인은 꼭"], "m": ""}]}]}, {"id": "stat", "emoji": "📊", "name": "능력치", "items": [{"e": "🖐️", "n": "성격 5요인 능력치", "s": "심리학의 빅파이브(Big Five) 모델을 바탕으로 다섯 가지 성격 능력치를 알아봐요.", "k": ["빅파이브", "bigfive", "성격5요인", "OCEAN", "성격능력치"], "m": "multi", "dims": [["O", "개방성", "🎨", "새로운 경험과 아이디어를 즐기는 탐험가예요.", "익숙하고 검증된 것을 선호하는 현실파예요."], ["C", "성실성", "📐", "계획적이고 책임감이 강한 완수형이에요.", "유연하고 자유로운 흐름을 좋아해요."], ["E", "외향성", "🎤", "사람들 속에서 에너지를 얻는 사교가예요.", "조용히 혼자 충전하는 시간이 소중해요."], ["A", "친화성", "🤝", "배려심 깊고 협력을 중시해요.", "솔직하고 자기 주장이 분명해요."], ["N", "정서 안정성", "🧘", "스트레스에도 쉽게 흔들리지 않아요.", "감정이 섬세해 작은 일에도 마음이 움직여요."]], "q": [["새로운 장소나 음식을 시도하는 게 즐겁다", "O", false], ["예술 작품을 보면 오래 생각하게 된다", "O", false], ["익숙한 방식이 가장 편하다", "O", true], ["해야 할 일은 미리 끝내 두는 편이다", "C", false], ["물건을 제자리에 두는 편이다", "C", false], ["계획 없이 움직일 때가 많다", "C", true], ["모임에서 대화를 주도하는 편이다", "E", false], ["처음 보는 사람과도 쉽게 이야기한다", "E", false], ["사람 많은 곳에 있으면 금방 지친다", "E", true], ["다른 사람의 감정을 잘 살핀다", "A", false], ["도움을 요청받으면 웬만하면 돕는다", "A", false], ["내 의견을 위해선 다투는 것도 괜찮다", "A", true], ["어려운 일이 생겨도 금방 마음을 추스른다", "N", false], ["걱정이 생겨도 잠은 잘 잔다", "N", false], ["작은 일에도 쉽게 불안해진다", "N", true]], "title": "성격 능력치"}, {"e": "💼", "n": "사회생활 능력치", "s": "소통, 눈치, 책임감, 유연성, 리더십. 나의 사회생활 스탯은?", "k": ["사회생활", "직장생활", "회사생활", "능력치", "직장인"], "m": "multi", "dims": [["com", "소통력", "💬", "생각을 명확하게 전하고 잘 들어요.", "글이나 행동으로 보여 주는 편이에요."], ["sense", "눈치", "👀", "분위기와 상황을 빠르게 읽어요.", "눈치보다 원칙대로 움직여요."], ["resp", "책임감", "📌", "맡은 일은 끝까지 해내요.", "융통성 있게 우선순위를 조절해요."], ["flex", "유연성", "🌊", "변화에 빠르게 적응해요.", "익숙한 방식에서 안정감을 느껴요."], ["lead", "리더십", "🧭", "사람들을 이끌고 방향을 제시해요.", "뒤에서 든든하게 받쳐 주는 서포터예요."]], "q": [["회의에서 내 생각을 분명하게 말하는 편이다", "com", false], ["상대의 말을 끝까지 듣고 대답한다", "com", false], ["상사의 기분을 금방 알아챈다", "sense", false], ["분위기가 싸해지면 바로 느낀다", "sense", false], ["마감은 반드시 지킨다", "resp", false], ["실수하면 먼저 인정하고 수습한다", "resp", false], ["갑자기 업무가 바뀌어도 금방 적응한다", "flex", false], ["새로운 프로그램도 거부감 없이 배운다", "flex", false], ["팀이 우왕좌왕하면 내가 정리한다", "lead", false], ["다른 사람에게 일을 나눠 맡기는 게 어렵지 않다", "lead", false]], "title": "사회생활 스탯"}, {"e": "💝", "n": "연애 능력치", "s": "표현력, 배려, 대화력, 매력, 안정감. 나의 연애 스탯을 확인해요.", "k": ["연애능력치", "연애스탯", "연애능력"], "m": "multi", "dims": [["exp", "표현력", "💌", "사랑을 말과 행동으로 잘 표현해요.", "마음은 깊지만 표현은 수줍어요."], ["care", "배려", "🫶", "상대의 필요를 먼저 챙겨요.", "내 방식대로 사랑하는 편이에요."], ["talk", "대화력", "🗨️", "갈등도 대화로 풀어 가요.", "말보다 시간이 해결해 주길 기다려요."], ["charm", "매력", "✨", "자연스러운 매력이 있어요.", "알수록 진국인 반전 매력이 있어요."], ["calm", "안정감", "🪷", "흔들림 없는 편안함을 줘요.", "감정이 풍부해 기복이 있을 수 있어요."]], "q": [["좋아하는 마음을 자주 표현한다", "exp", false], ["사랑한다는 말이 쑥스럽다", "exp", true], ["상대가 좋아하는 걸 기억해 둔다", "care", false], ["상대가 힘들어 보이면 먼저 묻는다", "care", false], ["서운한 점은 차분하게 이야기한다", "talk", false], ["다투면 일단 피하고 본다", "talk", true], ["처음 만난 사람에게 호감을 사는 편이다", "charm", false], ["나만의 취향이나 매력 포인트가 있다", "charm", false], ["연인의 연락이 늦어도 크게 불안하지 않다", "calm", false], ["작은 일에도 질투가 난다", "calm", true]], "title": "연애 스탯"}]}, {"id": "score", "emoji": "🔥", "name": "점수형", "items": [{"e": "🥳", "n": "인싸력 테스트", "s": "모임의 중심이 되는 나의 인싸력은 몇 %일까요?", "k": ["인싸", "인싸력", "아싸", "핵인싸", "사교성"], "m": "score", "q": [["단톡방 알림이 300개", ["다 읽고 답한다", 3], ["중요한 것만 본다", 2], ["나중에 몰아서", 1], ["알림 꺼 둠", 0]], ["처음 간 모임 자기소개", ["웃음 포인트까지 준비", 3], ["무난하게 한다", 2], ["짧게 끝낸다", 1], ["차례가 안 오길 빈다", 0]], ["새로 생긴 핫플", ["오픈 첫날 간다", 3], ["사람 줄면 간다", 2], ["친구가 가자면 간다", 1], ["관심 없다", 0]], ["연락처에 저장된 사람", ["500명 이상", 3], ["200~500명", 2], ["50~200명", 1], ["50명 미만", 0]], ["주말 약속", ["매주 꽉 참", 3], ["한두 개", 2], ["한 달에 한두 번", 1], ["거의 없음", 0]], ["노래방에서", ["첫 곡은 내가", 3], ["분위기 맞춰 부른다", 2], ["탬버린 담당", 1], ["듣기만", 0]], ["유행어나 밈", ["내가 퍼뜨린다", 3], ["바로 따라 쓴다", 2], ["알긴 안다", 1], ["처음 듣는다", 0]], ["단체 사진 찍을 때", ["가운데", 3], ["적당히 앞줄", 2], ["가장자리", 1], ["찍어 주는 사람", 0]], ["처음 보는 사람과 엘리베이터", ["말 건다", 3], ["눈인사", 2], ["휴대폰 본다", 1], ["다음 걸 탄다", 0]], ["생일 축하 메시지", ["100개 이상", 3], ["30~100개", 2], ["10~30개", 1], ["가족뿐", 0]]], "b": [[85, {"e": "👑", "n": "핵인싸", "d": "어디서든 모임의 중심! 당신이 오면 분위기가 살아나요.", "g": ["친화력", "에너지"], "w": ["혼자만의 쉼도 꼭 챙기세요"], "m": ""}], [60, {"e": "😎", "n": "인싸", "d": "사람들과 어울리는 걸 즐기고 적응도 빨라요.", "g": ["사교성", "센스"], "w": ["무리한 약속은 거절해도 돼요"], "m": ""}], [35, {"e": "🙂", "n": "반인싸", "d": "친한 사람들과는 인싸, 낯선 곳에선 관찰자예요.", "g": ["균형", "깊이"], "w": ["새 모임도 가끔 도전해 봐요"], "m": ""}], [0, {"e": "🏡", "n": "자발적 아싸", "d": "나만의 세계가 확실한 마이웨이형이에요. 소수와 깊은 관계를 맺어요.", "g": ["독립성", "진정성"], "w": ["외롭다면 작은 모임부터 시작해요"], "m": ""}]]}, {"e": "🫂", "n": "공감력 테스트", "s": "다른 사람의 마음을 얼마나 잘 느끼는지 알아봐요.", "k": ["공감", "공감력", "공감능력", "배려"], "m": "score", "q": [["친구가 말없이 한숨을 쉰다", ["무슨 일 있는지 조용히 묻는다", 3], ["분위기를 살핀다", 2], ["피곤한가 보다", 1], ["모른다", 0]], ["슬픈 영화를 볼 때", ["주인공처럼 운다", 3], ["눈물이 맺힌다", 2], ["좀 슬프다", 1], ["별 감흥 없다", 0]], ["동료가 실수로 혼났다", ["따로 위로해 준다", 3], ["괜찮냐고 메시지", 2], ["그냥 넘어간다", 1], ["왜 실수했지 생각한다", 0]], ["길에서 우는 아이를 보면", ["다가가 도와준다", 3], ["부모를 찾아 둘러본다", 2], ["신경 쓰인다", 1], ["지나간다", 0]], ["친구의 기쁜 소식", ["내 일처럼 기쁘다", 3], ["축하해 준다", 2], ["좋겠다", 1], ["부럽다", 0]], ["상대 표정 변화", ["바로 알아챈다", 3], ["자주 알아챈다", 2], ["가끔 안다", 1], ["잘 모른다", 0]], ["고민 상담 요청", ["시간 내서 끝까지 듣는다", 3], ["들어 준다", 2], ["짧게 조언한다", 1], ["부담스럽다", 0]], ["뉴스 속 어려운 사람들 이야기", ["마음이 오래 아프다", 3], ["안타깝다", 2], ["그렇구나", 1], ["넘긴다", 0]]], "b": [[85, {"e": "🌊", "n": "공감 바다", "d": "타인의 감정을 내 것처럼 느끼는 깊은 공감가예요.", "g": ["위로", "이해"], "w": ["남의 감정에 너무 휩쓸리지 않게 경계를 지켜요"], "m": ""}], [60, {"e": "💞", "n": "따뜻한 공감러", "d": "적당한 거리에서 따뜻하게 공감해 주는 사람이에요.", "g": ["배려", "균형"], "w": ["가끔은 내 감정도 돌봐요"], "m": ""}], [35, {"e": "🧭", "n": "이성적 공감러", "d": "감정보다 상황을 먼저 보지만 필요할 땐 따뜻해요.", "g": ["침착", "현실 조언"], "w": ["해결책보다 '힘들었겠다'가 먼저일 때도 있어요"], "m": ""}], [0, {"e": "🧊", "n": "쿨한 관찰자", "d": "감정에 휘둘리지 않는 냉철함이 강점이에요.", "g": ["객관성", "침착"], "w": ["표정과 말투에 조금 더 주의를 기울여 봐요"], "m": ""}]]}, {"e": "🛡️", "n": "멘탈 강도 테스트", "s": "스트레스에도 흔들리지 않는 나의 멘탈은 몇 단계?", "k": ["멘탈", "멘탈강도", "회복탄력성", "스트레스"], "m": "score", "q": [["실수로 망신당했다", ["웃고 넘긴다", 3], ["하루면 잊는다", 2], ["며칠 생각난다", 1], ["몇 달 간다", 0]], ["누군가 내 험담을 했다", ["신경 안 쓴다", 3], ["대화로 푼다", 2], ["속상하다", 1], ["잠을 못 잔다", 0]], ["큰 시험 전날", ["푹 잔다", 3], ["조금 긴장", 2], ["많이 긴장", 1], ["밤샌다", 0]], ["계획이 망했을 때", ["플랜 B 실행", 3], ["잠깐 아쉽다", 2], ["한동안 우울", 1], ["모든 게 싫어진다", 0]], ["비판을 들으면", ["개선점으로 받아들인다", 3], ["속상하지만 수긍", 2], ["한동안 곱씹는다", 1], ["상처받는다", 0]], ["새로운 도전", ["두근두근 재밌다", 3], ["해 볼 만하다", 2], ["걱정된다", 1], ["피하고 싶다", 0]], ["힘든 날 나를 회복시키는 것", ["운동·취미로 바로 전환", 3], ["잠 한숨", 2], ["누군가의 위로", 1], ["회복이 오래 걸린다", 0]], ["거절당했을 때", ["다음 기회!", 3], ["조금 아프다", 2], ["자존감이 흔들린다", 1], ["다시는 시도 안 한다", 0]]], "b": [[85, {"e": "💎", "n": "다이아몬드 멘탈", "d": "웬만한 일엔 흔들리지 않는 단단한 마음을 가졌어요.", "g": ["회복력", "침착함"], "w": ["힘들 땐 참지 말고 기대도 돼요"], "m": ""}], [60, {"e": "🪨", "n": "강철 멘탈", "d": "흔들려도 금방 중심을 잡는 회복력이 있어요.", "g": ["균형", "긍정"], "w": ["쌓인 피로는 미리 풀어 줘요"], "m": ""}], [35, {"e": "🍮", "n": "말랑 멘탈", "d": "감정이 섬세해 쉽게 흔들리지만 그만큼 공감도 잘해요.", "g": ["섬세함", "공감"], "w": ["작은 성공 경험을 쌓아 봐요"], "m": ""}], [0, {"e": "🫧", "n": "유리 멘탈", "d": "마음이 여려 상처를 오래 품는 편이에요.", "g": ["감수성", "진정성"], "w": ["혼자 버티지 말고 믿는 사람에게 이야기해 보세요"], "m": ""}]]}, {"e": "🎂", "n": "내적 나이 테스트", "s": "내 마음은 몇 살일까요? 취향과 생활로 알아보는 내적 나이예요.", "k": ["내적나이", "정신연령", "마음나이"], "m": "score", "q": [["주말 아침 기상 시간", ["새벽같이", 3], ["8시쯤", 2], ["11시쯤", 1], ["오후", 0]], ["즐겨 마시는 음료", ["따뜻한 차", 3], ["아메리카노", 2], ["라테", 1], ["탄산음료", 0]], ["좋아하는 여가", ["등산·산책", 3], ["카페 수다", 2], ["게임·OTT", 1], ["놀이공원", 0]], ["유행어", ["잘 모른다", 3], ["뜻만 안다", 2], ["가끔 쓴다", 1], ["매일 쓴다", 0]], ["건강 관리", ["영양제 한 움큼", 3], ["운동 꾸준히", 2], ["생각만", 1], ["관심 없음", 0]], ["음악 취향", ["트로트·옛날 노래", 3], ["발라드", 2], ["최신 차트", 1], ["아이돌 신곡", 0]], ["저녁 9시", ["잘 준비", 3], ["하루 정리", 2], ["본격 놀 시간", 1], ["이제 시작", 0]], ["새 앱 사용", ["자녀·친구에게 묻는다", 3], ["천천히 익힌다", 2], ["금방 쓴다", 1], ["베타 테스터", 0]]], "b": [[80, {"e": "🍵", "n": "내적 나이 50대 이상", "d": "여유와 지혜가 넘치는 어른스러운 마음이에요. 주변에서 고민 상담을 많이 받아요.", "g": ["여유", "지혜"], "w": ["가끔은 철없이 놀아도 괜찮아요"], "m": ""}], [55, {"e": "☕", "n": "내적 나이 30~40대", "d": "책임감과 여유를 함께 갖춘 성숙한 마음이에요.", "g": ["균형", "안정"], "w": ["새로운 유행도 즐겨 봐요"], "m": ""}], [30, {"e": "🎧", "n": "내적 나이 20대", "d": "호기심과 열정이 살아 있는 청춘의 마음이에요.", "g": ["열정", "유연함"], "w": ["건강 관리도 조금씩 챙겨요"], "m": ""}], [0, {"e": "🍭", "n": "내적 나이 10대", "d": "천진난만하고 에너지 넘치는 순수한 마음이에요.", "g": ["순수함", "활력"], "w": ["가끔은 일찍 자기!"], "m": ""}]]}, {"e": "👀", "n": "눈치 지수 테스트", "s": "분위기 파악 능력, 나는 몇 점일까요?", "k": ["눈치", "센스", "분위기파악", "눈치게임"], "m": "score", "q": [["회의실 분위기가 싸하다", ["들어가자마자 느낀다", 3], ["조금 지나면 안다", 2], ["나중에 듣고 안다", 1], ["끝까지 모른다", 0]], ["친구가 '아무거나 먹자'", ["친구가 좋아하는 걸 고른다", 3], ["후보 몇 개를 제시", 2], ["진짜 아무거나 고른다", 1], ["내가 먹고 싶은 거", 0]], ["단톡방에서 내 말 뒤에 정적", ["바로 수습한다", 3], ["말을 돌린다", 2], ["신경 쓰인다", 1], ["못 느낀다", 0]], ["상사가 '편하게 해'라고 하면", ["적당히 편하게", 3], ["그래도 조심", 2], ["진짜 편하게", 1], ["반말한다", 0]], ["커플 사이에 낀 상황", ["알아서 빠진다", 3], ["조금 있다 빠진다", 2], ["끝까지 함께", 1], ["눈치 못 챔", 0]], ["선물 고르기", ["상대 취향 정확히", 3], ["무난한 선택", 2], ["내 취향", 1], ["고민 포기", 0]], ["친구가 말끝을 흐린다", ["숨은 뜻을 안다", 3], ["물어본다", 2], ["그냥 넘어간다", 1], ["못 느낀다", 0]], ["식당에서 마지막 한 조각", ["남겨 두거나 권한다", 3], ["물어보고 먹는다", 2], ["먹는다", 1], ["당연히 내 거", 0]]], "b": [[85, {"e": "🦉", "n": "눈치 백단", "d": "말하지 않아도 다 아는 눈치의 신이에요.", "g": ["센스", "배려"], "w": ["너무 신경 쓰다 지치지 않게"], "m": ""}], [60, {"e": "🐱", "n": "눈치 빠른 편", "d": "대부분의 상황을 잘 읽고 적절히 행동해요.", "g": ["상황 판단", "유연함"], "w": ["애매하면 직접 물어봐도 돼요"], "m": ""}], [35, {"e": "🐶", "n": "눈치 보통", "d": "가끔 늦게 알아채지만 진심이 통하는 타입이에요.", "g": ["솔직함", "순수함"], "w": ["표정과 말투를 한 번 더 살펴봐요"], "m": ""}], [0, {"e": "🐻", "n": "눈치 0단 (해맑음)", "d": "주변 눈치 안 보는 해맑음이 매력이에요.", "g": ["자유로움", "당당함"], "w": ["중요한 자리에선 분위기를 살펴요"], "m": ""}]]}, {"e": "🛋️", "n": "귀차니즘 지수 테스트", "s": "만사가 귀찮은 나, 귀차니즘 레벨은?", "k": ["귀차니즘", "게으름", "귀찮음", "집순이"], "m": "score", "q": [["택배 상자", ["바로 뜯고 분리수거", 0], ["뜯고 상자는 나중에", 1], ["며칠 쌓인다", 2], ["택배가 택배를 부른다", 3]], ["설거지", ["먹자마자", 0], ["자기 전", 1], ["다음 날", 2], ["그릇이 없을 때", 3]], ["누워서 리모컨이 멀리 있다", ["일어나서 가져온다", 0], ["발로 끌어온다", 1], ["보던 거 계속 본다", 2], ["그냥 잔다", 3]], ["답장", ["바로", 0], ["몇 시간 뒤", 1], ["다음 날", 2], ["읽고 잊는다", 3]], ["외출 준비", ["30분 전부터", 0], ["10분 컷", 1], ["그냥 모자", 2], ["외출 취소", 3]], ["알람", ["한 번에 일어남", 0], ["두세 번", 1], ["다섯 번 이상", 2], ["알람 끄고 잔다", 3]], ["배고픈데 요리하기 귀찮을 때", ["그래도 요리", 0], ["간단히 라면", 1], ["배달", 2], ["굶는다", 3]], ["운동 계획", ["매일 실천", 0], ["주 2~3회", 1], ["등록만 함", 2], ["계획도 귀찮다", 3]]], "b": [[80, {"e": "🦥", "n": "나무늘보급 귀차니즘", "d": "숨 쉬는 것 빼곤 다 귀찮은 최상급 귀차니스트예요. 대신 에너지를 아끼는 효율 장인이에요.", "g": ["효율", "여유"], "w": ["하루 한 가지만 해내도 충분해요"], "m": ""}], [55, {"e": "😪", "n": "프로 귀차니스트", "d": "꼭 필요한 일만 하는 미니멀 에너지 사용자예요.", "g": ["선택과 집중"], "w": ["미루기 전에 5분만 해 보기"], "m": ""}], [30, {"e": "🙂", "n": "보통 사람", "d": "귀찮아도 할 건 하는 평범한 갓생러예요.", "g": ["균형"], "w": ["쉬는 날은 확실히 쉬어요"], "m": ""}], [0, {"e": "⚡", "n": "부지런 끝판왕", "d": "귀찮음이 뭔가요? 에너지 넘치는 실천가예요.", "g": ["실행력", "성실"], "w": ["가끔은 아무것도 안 하는 날도 필요해요"], "m": ""}]]}, {"e": "🤯", "n": "결정장애 지수", "s": "메뉴 하나 고르는 데 10분? 나의 결정장애 지수는?", "k": ["결정장애", "선택장애", "우유부단", "결정"], "m": "score", "q": [["점심 메뉴", ["바로 정한다", 0], ["후보 두세 개로 고민", 1], ["남이 정해 주길", 2], ["결국 먹던 거", 3]], ["쇼핑할 때", ["보고 바로 산다", 0], ["비교 후 산다", 1], ["장바구니에만 담는다", 2], ["며칠 고민하다 품절", 3]], ["친구가 '어디 갈래?'", ["바로 제안", 0], ["두 곳 중 고르자", 1], ["너 가고 싶은 데", 2], ["아무 데나…", 3]], ["택배 옵션 고르기", ["즉시", 0], ["후기 조금 확인", 1], ["후기 정독", 2], ["고르다 지친다", 3]], ["중요한 결정", ["직감으로", 0], ["장단점 정리", 1], ["주변에 다 물어본다", 2], ["미루고 미룬다", 3]], ["넷플릭스 볼 거 고르기", ["5분 안에", 0], ["15분", 1], ["30분 이상", 2], ["고르다 잠든다", 3]], ["식당 메뉴판", ["보자마자 결정", 0], ["추천 메뉴로", 1], ["일행 따라", 2], ["직원 올 때까지 못 고름", 3]], ["결정하고 나서", ["후회 없음", 0], ["가끔 아쉬움", 1], ["자주 후회", 2], ["계속 다른 선택을 생각", 3]]], "b": [[75, {"e": "🌀", "n": "결정장애 만렙", "d": "선택지 앞에서 우주가 펼쳐지는 신중파예요. 모든 경우를 생각하는 깊이가 있어요.", "g": ["신중함", "배려"], "w": ["'5초 룰'로 작은 결정부터 빠르게 해 봐요"], "m": ""}], [50, {"e": "🤔", "n": "신중한 고민러", "d": "중요한 건 꼼꼼히, 사소한 건 가끔 헤매요.", "g": ["꼼꼼함"], "w": ["사소한 결정은 동전 던지기도 OK"], "m": ""}], [25, {"e": "👌", "n": "합리적 결정러", "d": "적당히 고민하고 빠르게 정하는 균형형이에요.", "g": ["판단력", "효율"], "w": ["지금처럼!"], "m": ""}], [0, {"e": "⚡", "n": "결단의 아이콘", "d": "보자마자 결정! 시원시원한 결단력의 소유자예요.", "g": ["결단력", "추진력"], "w": ["중요한 결정은 한 번 더 확인"], "m": ""}]]}, {"e": "🪞", "n": "자기 존중감 지수", "s": "나는 나를 얼마나 아끼고 믿고 있을까요?", "k": ["자존감", "자기존중감", "자기애", "자신감"], "m": "score", "q": [["거울 속 나를 보면", ["꽤 괜찮다", 3], ["보통이다", 2], ["단점이 먼저 보인다", 1], ["피하고 싶다", 0]], ["칭찬을 들으면", ["고맙다고 받는다", 3], ["쑥스럽지만 기쁘다", 2], ["빈말 같다", 1], ["부담스럽다", 0]], ["실수했을 때", ["누구나 그럴 수 있어", 3], ["다음엔 잘하자", 2], ["오래 자책한다", 1], ["나는 왜 이럴까", 0]], ["남과 비교할 때", ["나는 나", 3], ["가끔 비교한다", 2], ["자주 비교한다", 1], ["늘 부족해 보인다", 0]], ["거절할 때", ["편하게 한다", 3], ["조금 미안하다", 2], ["어렵다", 1], ["거의 못 한다", 0]], ["내 장점 3가지", ["바로 말할 수 있다", 3], ["생각하면 나온다", 2], ["한두 개", 1], ["잘 모르겠다", 0]], ["새로운 도전", ["해 볼 만하다", 3], ["두렵지만 해 본다", 2], ["망설인다", 1], ["나는 못 할 거야", 0]], ["힘든 날 나에게", ["오늘도 수고했어", 3], ["괜찮아", 2], ["좀 더 잘했어야지", 1], ["아무 말 안 한다", 0]]], "b": [[75, {"e": "🌳", "n": "단단한 나무", "d": "나를 믿고 아끼는 건강한 마음을 가졌어요.", "g": ["자기 신뢰", "회복력"], "w": ["지금의 나를 계속 응원해 주세요"], "m": ""}], [50, {"e": "🌿", "n": "자라는 새순", "d": "대체로 나를 아끼지만 가끔 흔들려요.", "g": ["성장", "균형"], "w": ["작은 성취를 기록해 봐요"], "m": ""}], [25, {"e": "🌱", "n": "물이 필요한 새싹", "d": "나에게 조금 엄격한 편이에요. 충분히 잘하고 있어요.", "g": ["성실", "노력"], "w": ["친구에게 하듯 나에게도 다정하게 말해 봐요"], "m": ""}], [0, {"e": "🫧", "n": "돌봄이 필요한 마음", "d": "요즘 나를 아끼기 어려운 시기인가 봐요. 그럴 수 있어요.", "g": ["섬세함", "진정성"], "w": ["믿을 만한 사람과 이야기 나눠 보세요. 혼자 버티지 않아도 돼요"], "m": ""}]]}, {"e": "🔋", "n": "에너지 방전 지수", "s": "요즘 나의 에너지는 몇 % 남았을까요?", "k": ["에너지", "방전", "피곤", "지침", "휴식"], "m": "score", "q": [["아침에 일어날 때", ["개운하다", 0], ["그럭저럭", 1], ["무겁다", 2], ["알람이 원망스럽다", 3]], ["쉬는 날", ["하고 싶은 게 많다", 0], ["적당히 쉰다", 1], ["하루 종일 누워 있다", 2], ["쉬어도 피곤하다", 3]], ["좋아하던 취미", ["여전히 즐겁다", 0], ["가끔 한다", 1], ["귀찮아졌다", 2], ["손이 안 간다", 3]], ["사람 만나기", ["즐겁다", 0], ["괜찮다", 1], ["조금 버겁다", 2], ["피하고 싶다", 3]], ["집중력", ["좋다", 0], ["보통", 1], ["자주 흐트러진다", 2], ["멍할 때가 많다", 3]], ["웃은 횟수", ["자주", 0], ["가끔", 1], ["드물다", 2], ["기억이 안 난다", 3]], ["커피·에너지 음료", ["거의 안 마심", 0], ["하루 한 잔", 1], ["두세 잔", 2], ["없으면 못 버팀", 3]], ["요즘 나에게 필요한 것", ["새로운 자극", 0], ["가벼운 휴식", 1], ["긴 휴가", 2], ["모든 걸 멈추기", 3]]], "b": [[75, {"e": "🪫", "n": "방전 직전 5%", "d": "많이 지쳐 있어요. 지금은 쉬는 게 가장 중요한 일이에요.", "g": ["버텨 온 힘"], "w": ["작은 휴식부터 챙기고, 힘듦이 오래가면 주변이나 전문가와 이야기해 보세요"], "m": ""}], [50, {"e": "🔋", "n": "절전 모드 30%", "d": "에너지를 아껴 쓰는 중이에요. 충전이 필요해요.", "g": ["책임감"], "w": ["이번 주 하루는 꼭 나를 위해 비워요"], "m": ""}], [25, {"e": "🔋", "n": "적당히 충전 65%", "d": "무리 없이 지내고 있어요.", "g": ["균형"], "w": ["좋은 루틴을 지켜요"], "m": ""}], [0, {"e": "⚡", "n": "풀충전 100%", "d": "에너지가 가득! 무엇이든 할 수 있는 상태예요.", "g": ["활력", "의욕"], "w": ["달리다 지치지 않게 페이스 조절"], "m": ""}]]}]}, {"id": "bingo", "emoji": "✅", "name": "빙고", "items": [{"e": "🏠", "n": "집순이·집돌이 빙고", "s": "나에게 해당하는 칸을 누르고 빙고 줄 수를 확인해요.", "k": ["집순이", "집돌이", "집콕", "빙고"], "m": "bingo", "items": ["주말에 한 발짝도 안 나간 적 있다", "배달 앱 VIP다", "잠옷이 외출복보다 많다", "OTT 구독이 3개 이상", "약속 취소되면 기쁘다", "집에 나만의 명당자리가 있다", "택배 기사님 발소리를 안다", "침대에서 밥 먹은 적 있다", "하루 종일 말 안 한 적 있다", "홈카페 장비가 있다", "집에서 할 취미가 3개 이상", "충전기가 침대 옆에 있다", "나가려다 귀찮아서 포기", "집 밖은 위험해가 좌우명", "창문 밖 날씨를 앱으로 확인", "외출하면 바로 집에 가고 싶다"], "b": [[6, {"e": "🛋️", "n": "전설의 집돌이·집순이", "d": "집이 곧 세계! 집에서 행복을 찾는 장인이에요.", "g": ["자급자족", "힐링력"], "w": ["가끔 햇볕 쬐기는 건강에 좋아요"], "m": ""}], [3, {"e": "🏡", "n": "프로 집콕러", "d": "집이 최고지만 필요하면 나가요.", "g": ["균형", "여유"], "w": ["한 달에 한 번 새로운 장소 가 보기"], "m": ""}], [1, {"e": "🚪", "n": "반반 외출러", "d": "집과 바깥을 적당히 오가요.", "g": ["유연함"], "w": ["지금처럼만!"], "m": ""}], [0, {"e": "🧳", "n": "바깥 체질", "d": "집에만 있으면 답답한 활동파예요.", "g": ["활동성", "호기심"], "w": ["쉬는 날엔 집에서 충전도 해 봐요"], "m": ""}]]}, {"e": "💼", "n": "직장인 공감 빙고", "s": "직장인이라면 공감할 순간들! 몇 줄이나 나올까요?", "k": ["직장인", "회사원", "직장인빙고", "출근"], "m": "bingo", "items": ["월요일 아침 출근길에 퇴사 생각", "점심 메뉴 고민이 업무보다 길다", "'확인 부탁드립니다' 하루 10번", "회의가 회의를 낳는다", "퇴근 5분 전 업무 요청", "커피 없으면 일 못 한다", "월급날이 스쳐 지나간다", "메신저 '자리 비움'이 숨은 휴식", "연차 쓰는 날 더 바쁜 꿈", "엑셀 단축키 장인", "'편하게 말해'를 믿지 않는다", "주말에 업무 메시지 확인", "출근 전부터 퇴근 시간 계산", "프린터랑 싸운 적 있다", "회식 2차는 마음으로만", "금요일 오후가 제일 행복"], "b": [[6, {"e": "🏆", "n": "직장인 만렙", "d": "직장 생활의 희로애락을 모두 겪은 베테랑이에요.", "g": ["생존력", "유머"], "w": ["번아웃 오기 전에 휴가를 꼭!"], "m": ""}], [3, {"e": "📎", "n": "프로 직장인", "d": "공감 포인트 가득한 현실 직장인이에요.", "g": ["적응력"], "w": ["작은 보상을 자주 주세요"], "m": ""}], [1, {"e": "🌱", "n": "새싹 직장인", "d": "아직 회사가 낯설지만 잘 적응하고 있어요.", "g": ["열정"], "w": ["힘들면 동료에게 물어봐요"], "m": ""}], [0, {"e": "🌈", "n": "자유로운 영혼", "d": "회사 스트레스와는 거리가 먼 행복한 사람이에요.", "g": ["여유"], "w": ["지금의 마음가짐을 지켜요"], "m": ""}]]}, {"e": "🌅", "n": "갓생 빙고", "s": "오늘의 나는 얼마나 갓생을 살고 있을까요?", "k": ["갓생", "미라클모닝", "루틴", "자기계발"], "m": "bingo", "items": ["알람 한 번에 기상", "아침 식사를 챙겼다", "운동 30분 이상", "물 1.5L 이상 마셨다", "책을 10쪽 이상 읽었다", "할 일 목록을 작성했다", "SNS를 1시간 이하로 썼다", "새로운 것을 배웠다", "방 정리를 했다", "가계부를 썼다", "감사한 일을 떠올렸다", "가족·친구에게 안부 연락", "자기 전 스트레칭", "12시 전에 잠들었다", "계획한 일을 끝냈다", "나를 칭찬했다"], "b": [[6, {"e": "🌟", "n": "갓생 그 자체", "d": "오늘의 당신은 완벽한 갓생러! 이 루틴이면 뭐든 해낼 수 있어요.", "g": ["자기관리", "실행력"], "w": ["쉬는 날도 계획에 넣어요"], "m": ""}], [3, {"e": "💪", "n": "갓생 지망생", "d": "좋은 습관이 자리 잡고 있어요.", "g": ["꾸준함"], "w": ["한 가지씩 늘려 가요"], "m": ""}], [1, {"e": "🐣", "n": "갓생 입문", "d": "시작이 반! 작은 습관부터 만들고 있어요.", "g": ["의지"], "w": ["내일은 하나만 더 해 봐요"], "m": ""}], [0, {"e": "🛌", "n": "충전의 날", "d": "오늘은 쉬어 가는 날이에요. 그것도 필요해요!", "g": ["휴식"], "w": ["내일 아침 물 한 잔부터 시작해요"], "m": ""}]]}, {"e": "😰", "n": "프로 걱정러 빙고", "s": "걱정이 많은 나, 몇 줄이나 해당될까요?", "k": ["걱정", "걱정인형", "불안", "생각많음"], "m": "bingo", "items": ["외출 후 가스 불 걱정", "답장 늦으면 내가 뭘 잘못했나 생각", "자기 전 오늘 한 말 곱씹기", "일어나지 않은 일 미리 상상", "보낸 메시지 다시 읽기", "약속 장소에 30분 일찍 도착", "비상약을 늘 챙긴다", "날씨 앱을 하루 5번 본다", "여행 전날 잠 못 잔다", "'혹시'로 시작하는 생각이 많다", "사소한 결정도 오래 고민", "남의 표정에 신경 쓰인다", "실수할까 봐 연습 많이 함", "보험·후기 꼼꼼히 확인", "걱정하다 해결책까지 다 세움", "걱정 덕분에 준비성 최고"], "b": [[6, {"e": "🧸", "n": "걱정 인형 그 자체", "d": "생각이 많은 만큼 준비성도 최고예요. 다만 마음이 쉴 틈이 필요해요.", "g": ["준비성", "신중함"], "w": ["걱정을 종이에 적고 '오늘은 여기까지'라고 정해 봐요"], "m": ""}], [3, {"e": "🔍", "n": "신중한 걱정러", "d": "대비를 잘하는 꼼꼼한 사람이에요.", "g": ["꼼꼼함", "책임감"], "w": ["걱정 대신 행동 하나로 바꿔 봐요"], "m": ""}], [1, {"e": "🙂", "n": "적당한 걱정러", "d": "필요한 만큼만 걱정하는 균형형이에요.", "g": ["균형"], "w": ["지금처럼만!"], "m": ""}], [0, {"e": "😎", "n": "걱정 제로", "d": "되면 되고 안 되면 말고! 긍정 마인드의 소유자예요.", "g": ["긍정", "여유"], "w": ["중요한 일은 한 번 더 확인해요"], "m": ""}]]}, {"e": "☕", "n": "카페인 중독 빙고", "s": "커피 없이는 못 사는 나, 카페인 빙고는 몇 줄?", "k": ["카페인", "커피", "커피중독", "아메리카노"], "m": "bingo", "items": ["아침 커피 없으면 하루 시작이 안 된다", "하루 3잔 이상", "얼죽아(얼어 죽어도 아이스)", "단골 카페가 있다", "커피 쿠폰이 지갑에 가득", "에너지 음료도 마신다", "오후 커피도 잠 잘 잔다", "원두 취향이 있다", "커피값이 식비만큼", "카페 스탬프 완성 경험", "회의 전 커피 필수", "디카페인은 커피가 아니다", "커피 머신이 집에 있다", "커피 향만 맡아도 행복", "카페 투어가 취미", "커피 끊기 도전 실패"], "b": [[6, {"e": "☕", "n": "카페인 인간", "d": "혈관에 커피가 흐르는 진정한 커피 러버예요.", "g": ["취향", "열정"], "w": ["물도 함께 충분히 마셔요"], "m": ""}], [3, {"e": "🥤", "n": "커피 애호가", "d": "커피와 함께하는 일상을 즐겨요.", "g": ["여유"], "w": ["오후 늦은 커피는 줄여 봐요"], "m": ""}], [1, {"e": "🍵", "n": "가끔 한 잔", "d": "필요할 때만 커피를 찾아요.", "g": ["균형"], "w": ["지금처럼!"], "m": ""}], [0, {"e": "🧃", "n": "카페인 프리", "d": "커피 없이도 활기찬 건강 체질이에요.", "g": ["건강"], "w": ["좋은 습관 유지!"], "m": ""}]]}, {"e": "🧳", "n": "여행러 빙고", "s": "떠나고 싶은 마음, 여행러 빙고로 확인해요.", "k": ["여행", "여행러", "여행빙고", "해외여행"], "m": "bingo", "items": ["항공권 특가 알림을 켜 둠", "여권 유효기간을 안다", "캐리어 2개 이상", "여행 사진만 수천 장", "혼자 여행해 본 적 있다", "현지 음식은 무조건 도전", "기념품으로 냉장고 자석 수집", "여행 계획이 취미", "공항 냄새가 좋다", "돌아오자마자 다음 여행 검색", "여행 유튜브 정주행", "외국어 인사 5개 이상", "숙소 고르는 데 몇 시간", "당일치기 여행 자주", "여행 가계부를 따로 씀", "연차는 여행용"], "b": [[6, {"e": "✈️", "n": "프로 여행러", "d": "인생이 곧 여행! 떠날 준비가 늘 되어 있어요.", "g": ["모험심", "적응력"], "w": ["여행 후 휴식도 챙겨요"], "m": ""}], [3, {"e": "🗺️", "n": "여행 애호가", "d": "틈만 나면 떠날 궁리를 해요.", "g": ["호기심"], "w": ["가까운 곳부터 자주 떠나요"], "m": ""}], [1, {"e": "🚞", "n": "가끔 여행러", "d": "가끔 떠나는 여행이 큰 힘이 돼요.", "g": ["여유"], "w": ["올해 한 곳 정해 보기"], "m": ""}], [0, {"e": "🏡", "n": "집이 최고", "d": "익숙한 곳에서 행복을 찾는 사람이에요.", "g": ["안정"], "w": ["동네 여행도 여행이에요"], "m": ""}]]}, {"e": "🎓", "n": "대학생 빙고", "s": "대학 생활 공감 포인트, 몇 줄이나 해당될까요?", "k": ["대학생", "대학생활", "캠퍼스", "새내기"], "m": "bingo", "items": ["아침 9시 수업은 고통", "과제 마감 1시간 전 제출", "학식 메뉴 외웠다", "팀플 무임승차 목격", "도서관 자리 맡기 경쟁", "시험 기간에 방 청소", "강의실 맨 뒷자리 선호", "동아리 1개 이상", "MT 다녀옴", "교수님 메일 쓰는 법 검색", "수강 신청 광클", "휴강 공지에 환호", "학교 앞 단골 식당", "밤샘 과제 경험", "교양 수업이 더 재밌다", "졸업 학점 계산해 봄"], "b": [[6, {"e": "🎓", "n": "캠퍼스 그 자체", "d": "대학 생활의 모든 걸 경험한 진정한 캠퍼스 주민이에요.", "g": ["적응력", "추억"], "w": ["졸업 후에도 이 열정 그대로!"], "m": ""}], [3, {"e": "📚", "n": "성실한 대학생", "d": "공감 포인트 가득한 현실 대학생이에요.", "g": ["성실"], "w": ["방학엔 푹 쉬어요"], "m": ""}], [1, {"e": "🌱", "n": "새내기", "d": "아직 모든 게 새로워요.", "g": ["호기심"], "w": ["동아리부터 도전해 봐요"], "m": ""}], [0, {"e": "🧑‍💼", "n": "졸업한 지 오래", "d": "대학 시절이 아련한 추억이 됐어요.", "g": ["추억"], "w": ["옛 친구에게 연락해 봐요"], "m": ""}]]}]}, {"id": "etc", "emoji": "🔮", "name": "기타", "items": [{"e": "9️⃣", "n": "에니어그램 9유형 테스트", "s": "사람을 아홉 가지 유형으로 나누는 에니어그램으로 나를 알아봐요.", "k": ["에니어그램", "enneagram", "9유형", "성격유형"], "m": "tally", "q": [["가장 중요하게 여기는 것", ["옳고 바른 것", "1"], ["사랑받고 도움이 되는 것", "2"], ["성공과 인정", "3"]], ["가장 두려운 것", ["나만의 특별함을 잃는 것", "4"], ["무능해 보이는 것", "5"], ["의지할 곳이 없는 것", "6"]], ["행복한 순간", ["즐거운 일이 가득할 때", "7"], ["내 뜻대로 상황을 이끌 때", "8"], ["모두가 평화로울 때", "9"]], ["친구들이 말하는 나", ["원칙주의자", "1"], ["감성적인 예술가", "4"], ["즐거운 낙천가", "7"]], ["스트레스받을 때", ["남을 돕느라 지친다", "2"], ["혼자 숨어서 생각한다", "5"], ["더 강하게 밀어붙인다", "8"]], ["일할 때 나는", ["목표 달성에 집중", "3"], ["위험 요소부터 점검", "6"], ["모두의 의견을 조율", "9"]], ["갈등 상황에서", ["무엇이 옳은지 따진다", "1"], ["상대 기분을 먼저 챙긴다", "2"], ["분위기를 부드럽게 만든다", "9"]], ["나를 움직이는 힘", ["특별한 존재가 되고 싶음", "4"], ["더 알고 싶음", "5"], ["새로운 경험", "7"]], ["리더가 된다면", ["성과로 증명", "3"], ["팀을 지키는 든든한 리더", "6"], ["강력한 추진력", "8"]]], "r": {"1": {"e": "⚖️", "n": "1유형 개혁가", "d": "옳은 일을 하려는 원칙주의자예요. 책임감과 성실함이 돋보여요.", "g": ["원칙", "성실"], "w": ["완벽하지 않아도 괜찮아요"], "m": ""}, "2": {"e": "🤲", "n": "2유형 조력가", "d": "사람을 돕는 데서 기쁨을 느끼는 따뜻한 사람이에요.", "g": ["배려", "헌신"], "w": ["나 자신도 돌봐 주세요"], "m": ""}, "3": {"e": "🏅", "n": "3유형 성취가", "d": "목표를 향해 달리는 능력자예요. 효율적이고 자신감 있어요.", "g": ["추진력", "적응력"], "w": ["성과가 아닌 나 자체도 소중해요"], "m": ""}, "4": {"e": "🎭", "n": "4유형 예술가", "d": "자신만의 감성과 개성이 뚜렷해요. 깊은 감정을 지녔어요.", "g": ["감수성", "창의"], "w": ["비교 대신 나만의 길을 즐겨요"], "m": ""}, "5": {"e": "🔬", "n": "5유형 탐구가", "d": "지식과 관찰로 세상을 이해하는 사색가예요.", "g": ["통찰", "독립"], "w": ["생각을 행동으로 옮겨 봐요"], "m": ""}, "6": {"e": "🛡️", "n": "6유형 충성가", "d": "믿음직하고 준비성이 철저한 수호자예요.", "g": ["신뢰", "책임감"], "w": ["걱정보다 나를 믿어 봐요"], "m": ""}, "7": {"e": "🎠", "n": "7유형 열정가", "d": "즐거움과 모험을 사랑하는 낙천가예요.", "g": ["긍정", "아이디어"], "w": ["하나를 끝까지 해내는 기쁨도 누려요"], "m": ""}, "8": {"e": "🦁", "n": "8유형 도전가", "d": "강한 의지로 사람들을 이끄는 리더예요.", "g": ["결단력", "보호 본능"], "w": ["부드러움도 힘이 돼요"], "m": ""}, "9": {"e": "🕊️", "n": "9유형 평화주의자", "d": "갈등을 싫어하고 모두를 편안하게 하는 중재자예요.", "g": ["포용", "온화"], "w": ["내 의견도 당당하게 말해요"], "m": ""}}}, {"e": "✈️", "n": "여행 성향 테스트", "s": "함께 떠나고 싶은 나의 여행 스타일은?", "k": ["여행", "여행성향", "여행스타일", "여행유형"], "m": "tally", "q": [["여행지를 고를 때", ["볼거리 많은 대도시", "plan"], ["맛집이 유명한 곳", "food"], ["조용한 휴양지", "heal"], ["액티비티 천국", "act"]], ["숙소 기준", ["동선 최적화", "plan"], ["뷰와 감성", "photo"], ["푹 쉴 수 있는 곳", "heal"], ["아무 데나 OK", "free"]], ["여행 첫날 아침", ["일정표 확인", "plan"], ["현지 브런치 맛집", "food"], ["늦잠", "heal"], ["발길 닿는 대로", "free"]], ["꼭 챙기는 것", ["보조배터리와 카메라", "photo"], ["운동화", "act"], ["책 한 권", "heal"], ["맛집 리스트", "food"]], ["여행에서 남는 것", ["사진", "photo"], ["맛의 기억", "food"], ["새로운 경험", "act"], ["예상 못 한 만남", "free"]], ["일정이 틀어졌다", ["바로 대안 찾기", "plan"], ["근처 카페에서 쉬기", "heal"], ["오히려 모험", "free"], ["액티비티로 대체", "act"]], ["여행 동행 스타일", ["가이드 역할", "plan"], ["포토그래퍼 역할", "photo"], ["먹방 담당", "food"], ["분위기 담당", "act"]]], "r": {"plan": {"e": "🗺️", "n": "철저한 플래너", "d": "완벽한 일정으로 알찬 여행을 만드는 여행 PD예요.", "g": ["계획력", "효율"], "w": ["여유 시간도 일정에 넣어요"], "m": ""}, "food": {"e": "🍜", "n": "미식 탐험가", "d": "여행은 곧 먹는 것! 현지의 맛을 찾아다녀요.", "g": ["탐구심", "미각"], "w": ["소화제는 필수!"], "m": ""}, "heal": {"e": "🏝️", "n": "힐링 여행자", "d": "쉼이 목적인 여행을 좋아해요.", "g": ["여유", "재충전"], "w": ["가끔은 새로운 경험도 넣어 봐요"], "m": ""}, "act": {"e": "🏄", "n": "액티비티 러버", "d": "몸으로 부딪히는 경험을 즐겨요.", "g": ["도전", "에너지"], "w": ["안전 장비는 꼭!"], "m": ""}, "photo": {"e": "📸", "n": "감성 포토그래퍼", "d": "예쁜 순간을 기록으로 남기는 감성 여행가예요.", "g": ["감각", "기록"], "w": ["눈으로도 충분히 즐겨요"], "m": ""}, "free": {"e": "🎒", "n": "자유로운 방랑자", "d": "계획 없이 떠나도 즐거운 진짜 여행가예요.", "g": ["적응력", "모험심"], "w": ["숙소만큼은 미리 확인해요"], "m": ""}}}, {"e": "🧘", "n": "스트레스 해소 유형", "s": "지친 나를 가장 빨리 회복시키는 방법은?", "k": ["스트레스", "스트레스해소", "힐링", "휴식"], "m": "tally", "q": [["힘든 하루를 마치고", ["운동하러 간다", "move"], ["맛있는 걸 먹는다", "eat"], ["친구에게 전화", "talk"], ["혼자 조용히", "alone"], ["무언가 만든다", "make"]], ["주말 계획", ["등산·러닝", "move"], ["맛집 탐방", "eat"], ["친구들과 모임", "talk"], ["집콕", "alone"], ["취미 활동", "make"]], ["가장 위로가 되는 것", ["땀 흘린 뒤 개운함", "move"], ["달콤한 디저트", "eat"], ["누군가의 공감", "talk"], ["나만의 시간", "alone"], ["몰입의 즐거움", "make"]], ["화가 날 때", ["걷거나 뛴다", "move"], ["매운 걸 먹는다", "eat"], ["털어놓는다", "talk"], ["잠을 잔다", "alone"], ["그림·글로 푼다", "make"]], ["완벽한 휴가", ["액티비티 여행", "move"], ["미식 여행", "eat"], ["친구들과 여행", "talk"], ["혼자 호캉스", "alone"], ["원데이 클래스", "make"]], ["요즘 끌리는 것", ["새 운동", "move"], ["새 맛집", "eat"], ["새 모임", "talk"], ["새 드라마", "alone"], ["새 취미", "make"]]], "r": {"move": {"e": "🏃", "n": "몸으로 푸는 타입", "d": "땀과 함께 스트레스를 날려 버려요.", "g": ["활력", "건강"], "w": ["무리한 운동은 금물"], "m": ""}, "eat": {"e": "🍰", "n": "맛있게 푸는 타입", "d": "맛있는 음식이 최고의 처방이에요.", "g": ["즐거움", "감각"], "w": ["과식은 피하기"], "m": ""}, "talk": {"e": "🗣️", "n": "말로 푸는 타입", "d": "이야기를 나누면 마음이 가벼워져요.", "g": ["소통", "관계"], "w": ["들어 주는 사람에게 고마움 전하기"], "m": ""}, "alone": {"e": "🌙", "n": "혼자 푸는 타입", "d": "조용한 혼자만의 시간으로 충전해요.", "g": ["자기 이해", "휴식"], "w": ["너무 오래 고립되지 않게"], "m": ""}, "make": {"e": "🧶", "n": "몰입으로 푸는 타입", "d": "무언가에 몰두하며 잡생각을 잊어요.", "g": ["창의", "집중"], "w": ["완성도에 집착하지 않기"], "m": ""}}}, {"e": "🧑‍💻", "n": "업무 스타일 테스트", "s": "팀에서 나는 어떤 역할로 빛날까요?", "k": ["업무스타일", "협업", "팀플", "직장", "역할"], "m": "tally", "q": [["새 프로젝트를 받으면", ["큰 그림부터 그린다", "strat"], ["일단 손부터 움직인다", "doer"], ["팀원 의견부터 모은다", "coord"], ["자료부터 조사한다", "anal"]], ["회의에서 나는", ["방향을 제시", "strat"], ["실행 계획을 짠다", "doer"], ["분위기를 조율", "coord"], ["데이터로 근거 제시", "anal"]], ["칭찬받는 포인트", ["비전이 있다", "strat"], ["일 처리가 빠르다", "doer"], ["함께 일하기 편하다", "coord"], ["정확하다", "anal"]], ["싫은 상황", ["목적 없는 일", "strat"], ["말만 하고 안 움직이는 것", "doer"], ["팀 내 갈등", "coord"], ["근거 없는 결정", "anal"]], ["위기 상황", ["전략을 수정", "strat"], ["직접 해결", "doer"], ["팀을 다독인다", "coord"], ["원인을 분석", "anal"]], ["나의 무기", ["아이디어", "strat"], ["실행력", "doer"], ["소통", "coord"], ["논리", "anal"]]], "r": {"strat": {"e": "♟️", "n": "전략가", "d": "방향을 제시하고 큰 그림을 그리는 팀의 나침반이에요.", "g": ["비전", "기획력"], "w": ["세부 실행은 동료와 나눠요"], "m": ""}, "doer": {"e": "⚡", "n": "실행가", "d": "말보다 행동! 일을 현실로 만드는 엔진이에요.", "g": ["추진력", "속도"], "w": ["가끔 멈춰 방향을 점검해요"], "m": ""}, "coord": {"e": "🤝", "n": "조율가", "d": "사람과 사람을 이어 팀을 하나로 만드는 연결고리예요.", "g": ["소통", "배려"], "w": ["내 의견도 분명히!"], "m": ""}, "anal": {"e": "📊", "n": "분석가", "d": "데이터와 논리로 정확한 판단을 돕는 브레인이에요.", "g": ["정확성", "논리"], "w": ["완벽한 분석보다 빠른 결정이 필요할 때도 있어요"], "m": ""}}}, {"e": "💳", "n": "돈 관리 유형 테스트", "s": "나의 소비와 저축 습관은 어떤 유형일까요?", "k": ["돈관리", "소비습관", "재테크", "저축", "짠테크"], "m": "tally", "q": [["월급날", ["바로 적금 이체", "save"], ["투자 계좌로", "invest"], ["사고 싶던 걸 산다", "yolo"], ["예산표부터 짠다", "plan"], ["어디 갔지 내 월급", "impulse"]], ["세일 문자", ["무시", "save"], ["주식 할인이 더 좋다", "invest"], ["일단 구경", "impulse"], ["필요한 것만 산다", "plan"], ["경험에 쓰자", "yolo"]], ["돈을 쓰는 기준", ["꼭 필요한가", "save"], ["나중에 가치가 오르는가", "invest"], ["지금 행복한가", "yolo"], ["예산 안인가", "plan"], ["기분", "impulse"]], ["가계부", ["매일 쓴다", "plan"], ["앱이 알아서", "invest"], ["안 쓴다", "yolo"], ["가끔 확인", "save"], ["무섭다", "impulse"]], ["보너스를 받았다", ["비상금으로", "save"], ["투자", "invest"], ["여행", "yolo"], ["목적별로 나눈다", "plan"], ["벌써 썼다", "impulse"]], ["돈에 대한 나의 생각", ["모으는 게 최고", "save"], ["불리는 게 최고", "invest"], ["쓰려고 버는 것", "yolo"], ["관리가 최고", "plan"], ["생각 안 해 봤다", "impulse"]]], "r": {"save": {"e": "🐷", "n": "저축왕", "d": "차곡차곡 모으는 기쁨을 아는 알뜰파예요.", "g": ["절약", "안정"], "w": ["가끔은 나를 위한 소비도 필요해요"], "m": ""}, "invest": {"e": "📈", "n": "투자형", "d": "돈이 돈을 벌게 하는 미래 지향형이에요.", "g": ["분석", "미래 대비"], "w": ["무리한 투자는 금물"], "m": ""}, "yolo": {"e": "🎡", "n": "욜로형", "d": "지금의 행복을 위해 경험에 투자해요.", "g": ["경험", "즐거움"], "w": ["비상금은 꼭 챙겨요"], "m": ""}, "plan": {"e": "🧮", "n": "계획 소비형", "d": "예산 안에서 똑똑하게 쓰는 관리왕이에요.", "g": ["계획력", "균형"], "w": ["너무 빡빡하면 지쳐요"], "m": ""}, "impulse": {"e": "🛍️", "n": "충동구매형", "d": "기분 따라 지갑이 열리는 자유로운 소비자예요.", "g": ["감각", "즉흥"], "w": ["장바구니에 하루 묵혀 보기"], "m": ""}}}, {"e": "🥊", "n": "갈등 대처 유형 테스트", "s": "부딪혔을 때 나는 어떻게 대처할까요? 갈등 대처 5유형 모델을 참고했어요.", "k": ["갈등", "갈등대처", "싸움", "다툼", "협상", "갈등관리"], "m": "tally", "q": [["의견이 부딪히면", ["내 의견을 끝까지 주장", "compete"], ["둘 다 만족할 방법을 찾는다", "collab"], ["반씩 양보하자", "comp"], ["일단 넘어간다", "avoid"], ["상대 의견을 따른다", "accom"]], ["팀 회의에서 반대 의견이 나오면", ["논리로 설득한다", "compete"], ["함께 대안을 만든다", "collab"], ["중간안을 제안", "comp"], ["말을 아낀다", "avoid"], ["분위기를 위해 수긍", "accom"]], ["친구와 약속 장소로 다툴 때", ["내가 정한 곳으로", "compete"], ["둘 다 좋은 곳을 다시 찾는다", "collab"], ["이번엔 너, 다음엔 나", "comp"], ["아무 데나 괜찮다고", "avoid"], ["친구가 원하는 곳으로", "accom"]], ["갈등 후 나는", ["이겨야 마음이 편하다", "compete"], ["깊이 대화해야 풀린다", "collab"], ["적당히 정리되면 OK", "comp"], ["시간이 해결하길", "avoid"], ["먼저 사과한다", "accom"]], ["가장 중요한 것", ["옳은 결과", "compete"], ["모두의 만족", "collab"], ["빠른 해결", "comp"], ["평화", "avoid"], ["관계", "accom"]]], "r": {"compete": {"e": "🦁", "n": "경쟁형", "d": "목표가 분명하고 결단력이 있어요. 위기에서 빠르게 결정해요.", "g": ["결단력", "추진력"], "w": ["상대의 입장도 한 번 더 들어 봐요"], "m": "협력형"}, "collab": {"e": "🤝", "n": "협력형", "d": "모두가 만족하는 해법을 찾는 대화의 달인이에요.", "g": ["소통", "창의적 해결"], "w": ["시간이 오래 걸릴 수 있어요"], "m": "모든 유형"}, "comp": {"e": "⚖️", "n": "타협형", "d": "빠르고 공정한 중간점을 찾는 현실주의자예요.", "g": ["균형", "효율"], "w": ["중요한 가치는 양보하지 않아도 돼요"], "m": "협력형"}, "avoid": {"e": "🐢", "n": "회피형", "d": "불필요한 다툼을 피하는 평화주의자예요.", "g": ["침착", "신중"], "w": ["피한 문제는 쌓일 수 있어요. 작게라도 말해 봐요"], "m": "협력형"}, "accom": {"e": "🕊️", "n": "수용형", "d": "관계를 위해 기꺼이 양보하는 따뜻한 사람이에요.", "g": ["배려", "포용"], "w": ["내 의견도 소중해요"], "m": "협력형"}}}, {"e": "📖", "n": "학습 스타일 테스트", "s": "나는 보면서, 들으면서, 읽으면서, 해 보면서 중 어떻게 배울 때 가장 잘 이해할까요?", "k": ["학습스타일", "공부법", "VARK", "공부", "학습유형"], "m": "tally", "q": [["새 프로그램을 배울 때", ["영상 튜토리얼", "visual"], ["누가 설명해 주는 것", "aural"], ["설명서를 읽는다", "read"], ["직접 눌러 본다", "kin"]], ["길을 찾을 때", ["지도 앱 화면", "visual"], ["음성 안내", "aural"], ["주소와 설명 글", "read"], ["일단 걸어 본다", "kin"]], ["시험공부", ["마인드맵·도표", "visual"], ["소리 내어 외우기", "aural"], ["요약 노트", "read"], ["문제 풀기", "kin"]], ["기억에 오래 남는 것", ["그림과 색깔", "visual"], ["들은 말과 소리", "aural"], ["읽은 문장", "read"], ["직접 해 본 경험", "kin"]], ["요리 배우기", ["사진 많은 레시피", "visual"], ["누가 옆에서 알려 주기", "aural"], ["글로 된 레시피", "read"], ["일단 만들어 보기", "kin"]], ["회의 내용 정리", ["화이트보드 그림", "visual"], ["녹음해서 다시 듣기", "aural"], ["회의록 작성", "read"], ["바로 실행해 보기", "kin"]]], "r": {"visual": {"e": "👀", "n": "시각형", "d": "그림, 도표, 색깔로 볼 때 가장 잘 이해해요.", "g": ["구조 파악", "기억력"], "w": ["핵심을 그림으로 정리해 봐요"], "m": ""}, "aural": {"e": "👂", "n": "청각형", "d": "듣고 말하면서 배울 때 머리에 쏙쏙 들어와요.", "g": ["이해력", "소통"], "w": ["강의·팟캐스트를 활용해 봐요"], "m": ""}, "read": {"e": "📝", "n": "읽기·쓰기형", "d": "읽고 쓰면서 정리할 때 가장 잘 배워요.", "g": ["정리력", "분석"], "w": ["요약 노트를 꾸준히!"], "m": ""}, "kin": {"e": "🖐️", "n": "체험형", "d": "직접 해 보면서 몸으로 익히는 실전파예요.", "g": ["실행력", "응용력"], "w": ["문제 풀이와 실습 위주로 공부해요"], "m": ""}}}, {"e": "🎯", "n": "DISC 소통 유형 테스트", "s": "주도·사교·안정·신중. 나의 소통 스타일은? DISC 모델을 참고했어요.", "k": ["DISC", "디스크", "소통유형", "행동유형", "커뮤니케이션"], "m": "tally", "q": [["회의에서 나는", ["결론을 빨리 낸다", "D"], ["분위기를 띄운다", "I"], ["다른 사람 의견을 듣는다", "S"], ["자료를 꼼꼼히 본다", "C"]], ["칭찬받고 싶은 점", ["성과", "D"], ["인기", "I"], ["신뢰", "S"], ["정확성", "C"]], ["스트레스받는 상황", ["일이 느릴 때", "D"], ["혼자 일할 때", "I"], ["갑작스러운 변화", "S"], ["대충 처리될 때", "C"]], ["말하는 스타일", ["직설적", "D"], ["재밌고 생동감 있게", "I"], ["부드럽고 차분하게", "S"], ["논리적이고 정확하게", "C"]], ["팀에서 내 역할", ["리더", "D"], ["분위기 메이커", "I"], ["서포터", "S"], ["품질 관리자", "C"]], ["결정할 때", ["빠르게", "D"], ["직감과 사람", "I"], ["모두의 동의", "S"], ["충분한 근거", "C"]]], "r": {"D": {"e": "🦅", "n": "D 주도형", "d": "결과를 향해 빠르게 나아가는 추진력의 리더예요.", "g": ["결단력", "도전"], "w": ["속도를 늦춰 주변을 살펴요"], "m": "S 안정형"}, "I": {"e": "🦚", "n": "I 사교형", "d": "사람을 좋아하고 분위기를 이끄는 에너지의 원천이에요.", "g": ["열정", "설득력"], "w": ["세부 사항도 챙겨요"], "m": "S 안정형"}, "S": {"e": "🐨", "n": "S 안정형", "d": "차분하고 믿음직한 팀의 버팀목이에요.", "g": ["인내", "협력"], "w": ["변화도 기회예요"], "m": "I 사교형"}, "C": {"e": "🦉", "n": "C 신중형", "d": "정확하고 체계적인 분석가예요.", "g": ["정확성", "분석력"], "w": ["완벽보다 완료를!"], "m": "S 안정형"}}}, {"e": "🧭", "n": "리더십 유형 테스트", "s": "내가 리더가 된다면 어떤 스타일일까요?", "k": ["리더십", "리더", "팀장", "리더십유형", "조직"], "m": "tally", "q": [["팀이 길을 잃었을 때", ["비전을 제시한다", "vision"], ["모두와 대화한다", "coach"], ["내가 먼저 해 보인다", "pace"], ["역할을 정리한다", "manage"]], ["팀원이 실수하면", ["더 큰 목표를 상기시킨다", "vision"], ["성장의 기회로 이끈다", "coach"], ["내가 대신 수습한다", "pace"], ["프로세스를 개선한다", "manage"]], ["중요하게 여기는 것", ["방향", "vision"], ["사람", "coach"], ["성과", "pace"], ["체계", "manage"]], ["회의 스타일", ["큰 그림 공유", "vision"], ["모두의 의견 청취", "coach"], ["빠른 실행 지시", "pace"], ["안건별 정리", "manage"]], ["좋은 리더란", ["꿈을 꾸게 하는 사람", "vision"], ["사람을 키우는 사람", "coach"], ["앞장서는 사람", "pace"], ["믿고 맡길 수 있는 사람", "manage"]]], "r": {"vision": {"e": "🔭", "n": "비전형 리더", "d": "방향을 제시하고 꿈을 꾸게 하는 리더예요.", "g": ["비전", "영감"], "w": ["실행 계획도 함께 그려요"], "m": ""}, "coach": {"e": "🌱", "n": "코치형 리더", "d": "팀원의 성장을 돕는 따뜻한 리더예요.", "g": ["공감", "육성"], "w": ["결정이 필요할 땐 단호하게"], "m": ""}, "pace": {"e": "🏃", "n": "솔선수범형 리더", "d": "누구보다 먼저 뛰며 본보기가 되는 리더예요.", "g": ["실행력", "책임감"], "w": ["혼자 다 하지 말고 맡겨요"], "m": ""}, "manage": {"e": "🗂️", "n": "체계형 리더", "d": "역할과 시스템으로 팀을 안정적으로 운영해요.", "g": ["체계", "신뢰"], "w": ["유연함도 필요해요"], "m": ""}}}]}, {"id": "pro", "emoji": "📋", "name": "공개 심리검사", "items": [{"e": "🌧️", "n": "PHQ-9 우울 선별 검사", "s": "지난 2주 동안의 기분과 생활을 9개 문항으로 살펴보는 국제적으로 쓰이는 우울 선별 도구예요.", "k": ["PHQ9", "우울", "우울증", "우울검사", "우울증테스트", "기분"], "m": "scale", "intro": "지난 2주 동안 다음과 같은 문제로 얼마나 자주 불편함을 느꼈는지 골라 주세요.", "src": "Patient Health Questionnaire-9 (Kroenke, Spitzer & Williams, 2001). 개발사가 허가 없이 사용·번역할 수 있도록 공개했어요. 이 페이지의 문구는 원문을 바탕으로 옮긴 것이라 공식 한국어판과 표현이 다를 수 있어요.", "opts": [["전혀 아니다", 0], ["며칠 동안", 1], ["일주일 이상", 2], ["거의 매일", 3]], "items": [{"t": "일을 하는 것에 대한 흥미나 즐거움이 거의 없다"}, {"t": "기분이 가라앉거나, 우울하거나, 희망이 없다고 느낀다"}, {"t": "잠들기 어렵거나 자주 깨거나, 혹은 너무 많이 잔다"}, {"t": "피곤하거나 기운이 거의 없다"}, {"t": "식욕이 줄었거나 반대로 너무 많이 먹는다"}, {"t": "내 자신이 실패자라고 느끼거나, 나 때문에 나 자신이나 가족을 실망시켰다고 느낀다"}, {"t": "신문을 읽거나 TV를 보는 것과 같은 일에 집중하기 어렵다"}, {"t": "다른 사람들이 알아챌 정도로 말이나 행동이 느려졌다. 혹은 반대로 안절부절못해서 평소보다 많이 움직였다"}, {"t": "차라리 죽는 것이 낫겠다고 생각하거나, 어떤 식으로든 스스로를 해치는 생각을 했다", "crisis": 1}], "bands": [[20, "심한 수준", "지금 많이 힘든 상태일 수 있어요. 가능한 한 빨리 정신건강의학과 전문의나 상담 전문가와 이야기해 보시길 권해요.", 4], [15, "중등도 이상", "일상에 꽤 영향을 줄 만큼 힘든 시기일 수 있어요. 전문가 상담을 받아 보시길 권해요.", 3], [10, "중등도", "우울감이 일상에 영향을 주고 있을 수 있어요. 2주 이상 이어진다면 전문가와 상담해 보세요.", 2], [5, "경미한 수준", "가벼운 우울감이 있어요. 수면·운동·사람과의 연결 같은 생활 습관을 챙기고, 지속되면 상담을 고려해 보세요.", 1], [0, "최소 수준", "현재 우울 관련 어려움은 거의 없는 편이에요.", 0]], "alert": 3}, {"e": "🌀", "n": "GAD-7 불안 선별 검사", "s": "지난 2주 동안의 걱정과 긴장을 7개 문항으로 살펴보는 범불안 선별 도구예요.", "k": ["GAD7", "불안", "불안장애", "불안검사", "걱정", "긴장"], "m": "scale", "intro": "지난 2주 동안 다음과 같은 문제로 얼마나 자주 불편함을 느꼈는지 골라 주세요.", "src": "Generalized Anxiety Disorder-7 (Spitzer, Kroenke, Williams & Löwe, 2006). 개발사가 허가 없이 사용·번역할 수 있도록 공개했어요. 문구는 원문을 바탕으로 옮긴 것이에요.", "opts": [["전혀 아니다", 0], ["며칠 동안", 1], ["일주일 이상", 2], ["거의 매일", 3]], "items": [{"t": "초조하거나 불안하거나 조마조마하게 느낀다"}, {"t": "걱정하는 것을 멈추거나 조절할 수가 없다"}, {"t": "여러 가지 것들에 대해 걱정을 너무 많이 한다"}, {"t": "편하게 있기가 어렵다"}, {"t": "너무 안절부절못해서 가만히 있기가 힘들다"}, {"t": "쉽게 짜증이 나거나 쉽게 성을 낸다"}, {"t": "마치 끔찍한 일이 생길 것처럼 두렵게 느껴진다"}], "bands": [[15, "심한 수준", "불안이 일상에 크게 영향을 주고 있을 수 있어요. 전문가와 상담해 보시길 권해요.", 3], [10, "중등도", "불안이 꽤 자주 찾아오고 있어요. 지속된다면 전문가 상담을 받아 보세요.", 2], [5, "경미한 수준", "가벼운 불안이 있어요. 호흡·휴식·수면 관리가 도움이 될 수 있어요.", 1], [0, "최소 수준", "현재 불안 관련 어려움은 거의 없는 편이에요.", 0]], "alert": 2}, {"e": "🪞", "n": "로젠버그 자존감 척도", "s": "자기 자신을 얼마나 가치 있게 느끼는지 10개 문항으로 알아보는 대표적인 자존감 척도예요.", "k": ["로젠버그", "자존감", "자존감검사", "자아존중감", "RSES"], "m": "scale", "intro": "평소 자신에 대해 느끼는 생각과 가장 가까운 것을 골라 주세요.", "src": "Rosenberg Self-Esteem Scale (Rosenberg, 1965). 교육·연구 목적으로 자유롭게 쓰이는 공개 척도예요. 문구는 원문을 바탕으로 옮긴 것이에요.", "opts": [["매우 그렇다", 3], ["그렇다", 2], ["그렇지 않다", 1], ["전혀 그렇지 않다", 0]], "items": [{"t": "대체로 나는 나 자신에게 만족한다"}, {"t": "때때로 나는 내가 전혀 쓸모없는 사람이라고 생각한다", "r": 1}, {"t": "나에게는 좋은 점이 많이 있다고 느낀다"}, {"t": "나는 대부분의 다른 사람들만큼 일을 잘할 수 있다"}, {"t": "나에게는 자랑할 만한 것이 별로 없다고 느낀다", "r": 1}, {"t": "가끔 나는 확실히 내가 쓸모없다고 느낀다", "r": 1}, {"t": "나는 적어도 다른 사람들만큼 가치 있는 사람이라고 느낀다"}, {"t": "나 자신을 좀 더 존중할 수 있으면 좋겠다", "r": 1}, {"t": "전체적으로 나는 실패한 사람이라고 느끼는 편이다", "r": 1}, {"t": "나는 나 자신에 대해 긍정적인 태도를 가지고 있다"}], "bands": [[26, "높은 편", "자기 자신을 가치 있게 여기고 긍정적으로 바라보고 있어요.", 0], [15, "보통 범위", "대부분의 사람들과 비슷한 건강한 범위예요. 상황에 따라 흔들릴 때도 있지만 자연스러운 일이에요.", 0], [0, "낮은 편", "요즘 자신을 엄격하게 바라보고 있을 수 있어요. 작은 성취를 기록하고, 힘들다면 믿을 만한 사람이나 상담 전문가와 이야기해 보세요.", 1]], "max": 30}, {"e": "🌤️", "n": "삶의 만족도 척도 (SWLS)", "s": "내 삶 전반에 대해 얼마나 만족하는지 5개 문항으로 알아봐요.", "k": ["삶의만족도", "행복", "SWLS", "만족도", "행복지수"], "m": "scale", "intro": "각 문장에 얼마나 동의하는지 골라 주세요.", "src": "Satisfaction With Life Scale (Diener, Emmons, Larsen & Griffin, 1985). 출처를 밝히면 자유롭게 쓸 수 있는 공개 척도예요. 문구는 원문을 바탕으로 옮긴 것이에요.", "opts": [["매우 그렇지 않다", 1], ["그렇지 않다", 2], ["약간 그렇지 않다", 3], ["보통이다", 4], ["약간 그렇다", 5], ["그렇다", 6], ["매우 그렇다", 7]], "items": [{"t": "대부분의 면에서 내 삶은 내가 바라는 이상에 가깝다"}, {"t": "내 삶의 조건들은 아주 좋다"}, {"t": "나는 내 삶에 만족한다"}, {"t": "지금까지 나는 삶에서 원하는 중요한 것들을 얻었다"}, {"t": "다시 태어나도 지금처럼 살고 싶다"}], "bands": [[31, "매우 만족", "삶 전반에 대해 아주 만족하고 있어요.", 0], [26, "만족", "대체로 삶에 만족하며 잘 지내고 있어요.", 0], [21, "약간 만족", "평균적인 수준으로, 대체로 괜찮지만 나아지고 싶은 부분도 있어요.", 0], [20, "중립", "만족과 불만족이 비슷한 상태예요.", 0], [15, "약간 불만족", "몇몇 영역에서 아쉬움이 있어요. 무엇이 바뀌면 좋을지 생각해 보는 계기로 삼아 보세요.", 0], [10, "불만족", "삶의 여러 면에서 불만족을 느끼고 있어요. 혼자 고민하기보다 주변과 나눠 보세요.", 1], [5, "매우 불만족", "요즘 삶이 많이 힘들게 느껴질 수 있어요. 믿을 만한 사람이나 전문가와 이야기해 보시길 권해요.", 1]], "min": 5, "max": 35}, {"e": "🍺", "n": "AUDIT 음주 습관 검사", "s": "세계보건기구(WHO)가 만든 10문항 음주 습관 선별 검사예요.", "k": ["AUDIT", "음주", "술", "알코올", "음주습관", "알코올중독"], "m": "scale", "intro": "지난 1년 동안의 음주 습관을 생각하며 답해 주세요. '1잔'은 소주 1잔, 맥주 1캔(355ml) 정도의 표준 1잔을 뜻해요.", "src": "Alcohol Use Disorders Identification Test (세계보건기구 WHO, 2001). WHO가 자유롭게 사용할 수 있도록 공개했어요. 문구는 원문을 바탕으로 옮긴 것이에요.", "items": [{"t": "술을 얼마나 자주 마시나요?", "o": [["전혀 안 마심", 0], ["월 1회 이하", 1], ["월 2~4회", 2], ["주 2~3회", 3], ["주 4회 이상", 4]]}, {"t": "술을 마시는 날에는 보통 몇 잔을 마시나요?", "o": [["1~2잔", 0], ["3~4잔", 1], ["5~6잔", 2], ["7~9잔", 3], ["10잔 이상", 4]]}, {"t": "한 번에 6잔 이상 마시는 경우는 얼마나 자주 있나요?", "o": [["전혀 없음", 0], ["월 1회 미만", 1], ["월 1회", 2], ["주 1회", 3], ["매일 또는 거의 매일", 4]]}, {"t": "지난 1년간, 일단 술을 마시기 시작하면 멈출 수 없었던 적이 얼마나 자주 있었나요?", "o": [["전혀 없음", 0], ["월 1회 미만", 1], ["월 1회", 2], ["주 1회", 3], ["매일 또는 거의 매일", 4]]}, {"t": "지난 1년간, 술 때문에 평소 해야 할 일을 하지 못한 적이 얼마나 자주 있었나요?", "o": [["전혀 없음", 0], ["월 1회 미만", 1], ["월 1회", 2], ["주 1회", 3], ["매일 또는 거의 매일", 4]]}, {"t": "지난 1년간, 과음한 다음 날 아침 정신을 차리기 위해 해장술을 마신 적이 얼마나 자주 있었나요?", "o": [["전혀 없음", 0], ["월 1회 미만", 1], ["월 1회", 2], ["주 1회", 3], ["매일 또는 거의 매일", 4]]}, {"t": "지난 1년간, 술을 마신 뒤 죄책감이나 후회를 느낀 적이 얼마나 자주 있었나요?", "o": [["전혀 없음", 0], ["월 1회 미만", 1], ["월 1회", 2], ["주 1회", 3], ["매일 또는 거의 매일", 4]]}, {"t": "지난 1년간, 술 때문에 전날 밤 일이 기억나지 않은 적이 얼마나 자주 있었나요?", "o": [["전혀 없음", 0], ["월 1회 미만", 1], ["월 1회", 2], ["주 1회", 3], ["매일 또는 거의 매일", 4]]}, {"t": "술 때문에 당신이나 다른 사람이 다친 적이 있나요?", "o": [["없다", 0], ["있지만 지난 1년간은 없었다", 2], ["지난 1년간 있었다", 4]]}, {"t": "가족, 친구, 의사 등이 당신의 음주를 걱정하거나 줄이라고 권한 적이 있나요?", "o": [["없다", 0], ["있지만 지난 1년간은 없었다", 2], ["지난 1년간 있었다", 4]]}], "bands": [[20, "알코올 사용 장애 가능성", "음주가 몸과 생활에 큰 영향을 주고 있을 수 있어요. 전문가 상담을 꼭 받아 보시길 권해요.", 3], [16, "해로운 음주", "건강과 생활에 이미 해를 주는 음주 습관일 수 있어요. 줄이는 계획을 세우고 전문가 도움을 받아 보세요.", 2], [8, "위험 음주", "지금 습관이 이어지면 건강에 위험할 수 있어요. 마시는 횟수와 양을 줄여 보세요.", 1], [0, "저위험 음주", "현재 음주 습관은 비교적 위험이 낮은 편이에요.", 0]], "alert": 2, "max": 40, "line": "가까운 보건소나 지역 중독관리통합지원센터, 정신건강 위기상담전화(1577-0199)에서 상담을 받을 수 있어요."}, {"e": "🫂", "n": "토론토 공감 척도 (TEQ)", "s": "다른 사람의 감정을 얼마나 느끼고 반응하는지 16개 문항으로 알아봐요.", "k": ["공감", "공감능력", "TEQ", "공감척도", "공감검사"], "m": "scale", "intro": "각 문장이 평소 나에게 얼마나 해당하는지 골라 주세요.", "src": "Toronto Empathy Questionnaire (Spreng, McKinnon, Mar & Levine, 2009). 연구 목적으로 공개된 척도예요. 문구는 원문을 바탕으로 옮긴 것이에요.", "opts": [["전혀 그렇지 않다", 0], ["드물게", 1], ["가끔", 2], ["자주", 3], ["항상", 4]], "items": [{"t": "다른 사람이 신나 하면 나도 덩달아 신이 난다"}, {"t": "다른 사람의 불행이 나를 크게 흔들지는 않는다", "r": 1}, {"t": "누군가 무례한 대접을 받는 걸 보면 속상하다"}, {"t": "가까운 사람이 행복해해도 나는 별 느낌이 없다", "r": 1}, {"t": "다른 사람의 기분을 나아지게 해 주는 게 즐겁다"}, {"t": "나보다 어려운 처지의 사람들에게 마음이 쓰인다"}, {"t": "친구가 자기 고민을 이야기하기 시작하면 다른 화제로 돌리려 한다", "r": 1}, {"t": "말하지 않아도 다른 사람이 슬퍼하는 걸 알아챈다"}, {"t": "다른 사람의 기분과 잘 맞춰진다고 느낀다"}, {"t": "스스로 건강을 해쳐 아프게 된 사람에게는 동정심이 들지 않는다", "r": 1}, {"t": "누군가 울면 짜증이 난다", "r": 1}, {"t": "다른 사람이 어떻게 느끼는지에 별로 관심이 없다", "r": 1}, {"t": "속상해하는 사람을 보면 도와주고 싶은 마음이 강하게 든다"}, {"t": "부당한 대우를 받는 사람을 봐도 크게 안타깝지 않다", "r": 1}, {"t": "기뻐서 우는 사람을 보면 유난스럽다고 생각한다", "r": 1}, {"t": "누군가 이용당하는 걸 보면 그 사람을 지켜 주고 싶다"}], "bands": [[50, "평균보다 높음", "다른 사람의 감정을 깊이 느끼고 잘 반응해요. 연구에서 보고된 평균(약 44~46점)보다 높은 편이에요.", 0], [40, "평균 범위", "대부분의 사람들과 비슷한 공감 수준이에요.", 0], [0, "평균보다 낮음", "감정보다 상황을 먼저 보는 편일 수 있어요. 상대의 표정과 말투에 조금 더 귀 기울여 보세요.", 0]], "max": 64}, {"e": "🖐️", "n": "IPIP 빅파이브 성격검사 (50문항)", "s": "전 세계 연구에서 쓰이는 공개 성격 문항(IPIP)으로 다섯 가지 성격 요인을 알아봐요.", "k": ["IPIP", "빅파이브", "bigfive", "성격5요인", "성격검사", "OCEAN"], "m": "scale", "dims": 1, "intro": "각 문장이 평소의 나를 얼마나 정확하게 설명하는지 골라 주세요. 미래에 되고 싶은 모습이 아니라 지금의 모습으로 답해 주세요.", "src": "International Personality Item Pool, 50-item Big-Five Factor Markers (Goldberg, 1992). 공공 영역(public domain)으로 공개된 문항이에요. 문구는 원문을 바탕으로 옮긴 것이고, 한국인 규준이 아니라 응답 범위 기준으로 보여 드려요.", "opts": [["전혀 아니다", 1], ["아니다", 2], ["보통이다", 3], ["그렇다", 4], ["매우 그렇다", 5]], "items": [{"t": "나는 모임의 분위기 메이커다", "d": "E", "r": 0}, {"t": "나는 말을 많이 하지 않는다", "d": "E", "r": 1}, {"t": "사람들 사이에 있으면 편안하다", "d": "E", "r": 0}, {"t": "나는 눈에 띄지 않는 뒤쪽에 있는 편이다", "d": "E", "r": 1}, {"t": "내가 먼저 대화를 시작한다", "d": "E", "r": 0}, {"t": "나는 할 말이 별로 없는 편이다", "d": "E", "r": 1}, {"t": "파티에서 여러 사람과 이야기한다", "d": "E", "r": 0}, {"t": "주목받는 것을 좋아하지 않는다", "d": "E", "r": 1}, {"t": "관심의 중심이 되어도 괜찮다", "d": "E", "r": 0}, {"t": "낯선 사람 앞에서는 조용하다", "d": "E", "r": 1}, {"t": "다른 사람에 대한 관심이 적다", "d": "A", "r": 1}, {"t": "나는 사람들에게 관심이 많다", "d": "A", "r": 0}, {"t": "다른 사람을 모욕하는 말을 하기도 한다", "d": "A", "r": 1}, {"t": "다른 사람의 감정에 공감한다", "d": "A", "r": 0}, {"t": "다른 사람의 문제에는 관심이 없다", "d": "A", "r": 1}, {"t": "나는 마음이 여리다", "d": "A", "r": 0}, {"t": "다른 사람에게 크게 관심이 없다", "d": "A", "r": 1}, {"t": "다른 사람을 위해 시간을 낸다", "d": "A", "r": 0}, {"t": "다른 사람의 감정을 함께 느낀다", "d": "A", "r": 0}, {"t": "사람들을 편안하게 해 준다", "d": "A", "r": 0}, {"t": "나는 늘 준비되어 있다", "d": "C", "r": 0}, {"t": "물건을 아무 데나 둔다", "d": "C", "r": 1}, {"t": "세부 사항에 주의를 기울인다", "d": "C", "r": 0}, {"t": "일을 엉망으로 만들곤 한다", "d": "C", "r": 1}, {"t": "할 일을 바로바로 처리한다", "d": "C", "r": 0}, {"t": "물건을 제자리에 두는 걸 자주 잊는다", "d": "C", "r": 1}, {"t": "질서 있는 것을 좋아한다", "d": "C", "r": 0}, {"t": "해야 할 일을 회피한다", "d": "C", "r": 1}, {"t": "계획한 일정에 따른다", "d": "C", "r": 0}, {"t": "일을 꼼꼼하고 정확하게 한다", "d": "C", "r": 0}, {"t": "쉽게 스트레스를 받는다", "d": "N", "r": 0}, {"t": "대부분의 시간에 편안하다", "d": "N", "r": 1}, {"t": "여러 가지를 걱정한다", "d": "N", "r": 0}, {"t": "우울함을 느끼는 일이 드물다", "d": "N", "r": 1}, {"t": "쉽게 마음이 흔들린다", "d": "N", "r": 0}, {"t": "쉽게 화가 난다", "d": "N", "r": 0}, {"t": "기분이 자주 바뀐다", "d": "N", "r": 0}, {"t": "감정 기복이 잦다", "d": "N", "r": 0}, {"t": "쉽게 짜증이 난다", "d": "N", "r": 0}, {"t": "자주 우울함을 느낀다", "d": "N", "r": 0}, {"t": "어휘력이 풍부하다", "d": "O", "r": 0}, {"t": "추상적인 개념을 이해하기 어렵다", "d": "O", "r": 1}, {"t": "상상력이 생생하다", "d": "O", "r": 0}, {"t": "추상적인 생각에는 관심이 없다", "d": "O", "r": 1}, {"t": "좋은 아이디어가 많다", "d": "O", "r": 0}, {"t": "상상력이 그리 좋지 않다", "d": "O", "r": 1}, {"t": "무언가를 빨리 이해한다", "d": "O", "r": 0}, {"t": "어려운 단어를 쓰는 편이다", "d": "O", "r": 0}, {"t": "곰곰이 생각하는 데 시간을 쓴다", "d": "O", "r": 0}, {"t": "아이디어가 넘친다", "d": "O", "r": 0}], "dimset": [["E", "외향성", "사람들 속에서 활력을 얻는 정도"], ["A", "우호성", "타인에 대한 따뜻함과 협조성"], ["C", "성실성", "계획성과 책임감"], ["N", "신경성", "부정적 감정을 쉽게 느끼는 정도 (높을수록 예민함)"], ["O", "개방성(지성·상상력)", "새로운 생각과 경험에 대한 열린 정도"]]}]}];
+(function () {
+  var cats = document.getElementById('cats');
+  var jump = document.getElementById('jump');
+  var layer = document.getElementById('layer');
+  var layerBody = document.getElementById('layerBody');
+  var ITEMS = {};
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // ── 첫 화면: 대분류 패널과 항목 버튼 ──
+  DATA.forEach(function (c) {
+    var sec = el('section', 'cat-sec');
+    sec.id = 'sec-' + c.id;
+    var t = el('h2', 'cat-title');
+    var inner = el('span');
+    inner.append(el('span', 'emo', c.emoji + ' '), document.createTextNode(c.name));
+    t.appendChild(inner);
+    sec.appendChild(t);
+    var wrap = el('div', 'chips');
+    c.items.forEach(function (it, i) {
+      it.id = c.id + '-' + (i + 1); it.cat = c; ITEMS[it.id] = it;
+      var b = el('button', 'chip');
+      b.type = 'button';
+      b.setAttribute('aria-haspopup', 'dialog');
+      b.setAttribute('data-item', it.id);
+      b.append(el('span', 'e', it.e), document.createTextNode(it.n));
+      b.addEventListener('click', function () { requestOpen(it.id); });
+      wrap.appendChild(b);
+    });
+    sec.appendChild(wrap);
+    cats.appendChild(sec);
+
+    var j = el('button', 'jump-btn', c.emoji + ' ' + c.name);
+    j.type = 'button';
+    j.addEventListener('click', function () {
+      sec.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      sec.classList.remove('flash'); void sec.offsetWidth; sec.classList.add('flash');
+    });
+    jump.appendChild(j);
+  });
+
+  // ── 상황 검색: 항목 이름·요약·본문에서 찾아 버튼만 걸러 보여줘요 ──
+  var q = document.getElementById('q'), qClear = document.getElementById('qClear'), qResult = document.getElementById('qResult'), noResult = document.getElementById('noResult');
+  // 검색: 띄어쓰기·대소문자 무시, 상황 이름·다른 이름(별칭)·본문에서 찾기
+  function norm(t) { return String(t || '').toLowerCase().replace(/\s+/g, ''); }
+  function textOf(it) { if (it._t) return it._t; it._t = norm([it.n, it.s, it.cat.name].concat(it.k || []).join(' ')); return it._t; }
+  function aliasHit(it, t) {
+    var list = it.k || [];
+    for (var i = 0; i < list.length; i++) {
+      var a = norm(list[i]);
+      if (a.length >= 2 && (t.indexOf(a) >= 0 || (t.length >= 2 && a.indexOf(t) === 0))) return true;
+    }
+    return false;
+  }
+  function filter() {
+    var raw = q.value.trim(), term = norm(raw);
+    qClear.hidden = !raw;
+    var total = 0, viaAlias = [];
+    DATA.forEach(function (c) {
+      var sec = document.getElementById('sec-' + c.id), shown = 0;
+      c.items.forEach(function (it) {
+        var b = sec.querySelector('[data-item="' + it.id + '"]');
+        var ok = true;
+        if (term) {
+          var byName = norm(it.n).indexOf(term) >= 0 || term.indexOf(norm(it.n)) >= 0 && norm(it.n).length >= 2;
+          var byAlias = aliasHit(it, term);
+          var byText = textOf(it).indexOf(term) >= 0 || norm(c.name).indexOf(term) >= 0;
+          ok = byName || byAlias || byText;
+          if (byAlias && !byName) viaAlias.push(it.n);
+        }
+        b.classList.toggle('dim', !ok);
+        b.classList.toggle('hit', !!term && ok);
+        if (ok) shown++;
+      });
+      sec.classList.toggle('dim', shown === 0);
+      total += shown;
+    });
+    jump.hidden = !!term;
+    noResult.classList.toggle('show', !!term && total === 0);
+    if (!term || !total) { qResult.textContent = ''; return; }
+    var msg = '‘' + raw + '’ 관련 테스트 ' + total + '개';
+    if (viaAlias.length) msg = '‘' + raw + '’ → ' + viaAlias.slice(0, 4).join(', ') + (viaAlias.length > 4 ? ' 외' : '') + ' · 관련 테스트 ' + total + '개';
+    qResult.textContent = msg;
+  }
+  q.addEventListener('input', filter);
+  qClear.addEventListener('click', function () { q.value = ''; filter(); q.focus(); });
+
+  // ── 팝업 내용 ──
+  // ═══ 심리테스트 엔진 ═══
+  var AX = { E: ['E', 'I', '에너지', '외향(E)', '내향(I)'], S: ['S', 'N', '인식', '감각(S)', '직관(N)'], T: ['T', 'F', '판단', '사고(T)', '감정(F)'], J: ['J', 'P', '생활', '계획(J)', '즉흥(P)'] };
+  var LIKERT = ['전혀 아니다', '아니다', '보통이다', '그렇다', '매우 그렇다'];
+  function qCount(it) { return it.m === 'bingo' ? it.items.length : it.q.length; }
+  function render(it) {
+    layerBody.innerHTML = '';
+    var box = el('div', 'quiz');
+    layerBody.appendChild(box);
+    intro(it, box);
+  }
+
+  // ── 궁합 (결과 조합형) ──
+  var MBTI_IDEAL = { ISTJ: 'ESFP ESTP', ISFJ: 'ESFP ESTP', INFJ: 'ENFP ENTP', INTJ: 'ENFP ENTP', ISTP: 'ESFJ ESTJ', ISFP: 'ESFJ ENFJ', INFP: 'ENFJ ENTJ', INTP: 'ENTJ ESTJ',
+    ESTP: 'ISFJ ISTJ', ESFP: 'ISFJ ISTJ', ENFP: 'INFJ INTJ', ENTP: 'INFJ INTJ', ESTJ: 'ISTP INTP', ESFJ: 'ISFP ISTP', ENFJ: 'INFP ISFP', ENTJ: 'INTP INFP' };
+  var LANG_TIP = { words: '말로 자주 칭찬하고 고마움을 표현하기', time: '휴대폰을 내려놓고 온전히 함께하는 시간 만들기', gift: '작은 선물이나 깜짝 간식 챙기기', service: '상대의 일을 대신 도와주기', touch: '손잡기와 포옹을 자주 하기' };
+  function pairLabel(s) { return s >= 85 ? '찰떡궁합' : s >= 70 ? '잘 맞아요' : s >= 55 ? '노력하면 좋아요' : '배려가 필요해요'; }
+  function pairCalc(it, a, b) {
+    var oa = it.opts.filter(function (o) { return o[0] === a; })[0], ob = it.opts.filter(function (o) { return o[0] === b; })[0];
+    if (it.pt === 'mbti') {
+      var ideal = (MBTI_IDEAL[a] || '').indexOf(b) >= 0 || (MBTI_IDEAL[b] || '').indexOf(a) >= 0;
+      var tips = [], s = 50;
+      if (a[0] !== b[0]) { s += 8; tips.push('한 명은 사람들 속에서, 한 명은 혼자서 충전해요. 만남의 강도와 쉬는 시간을 맞춰요.'); } else { s += 3; tips.push('에너지 리듬이 비슷해 함께 있는 시간이 편해요.'); }
+      if (a[1] === b[1]) { s += 15; tips.push('세상을 보는 눈이 비슷해 대화가 잘 통해요.'); } else { tips.push('현실파와 상상파의 만남! 서로 다른 관점이 시야를 넓혀 줘요.'); }
+      if (a[2] === b[2]) { s += 7; tips.push('판단 방식이 비슷해 갈등을 푸는 방법도 비슷해요.'); } else { s += 4; tips.push('한 명은 논리, 한 명은 마음을 먼저 봐요. 힘들 땐 해결책보다 공감부터!'); }
+      if (a[3] !== b[3]) { s += 6; tips.push('계획형과 즉흥형이 서로 균형을 잡아 줘요. 일정은 J가, 즉흥 재미는 P가!'); } else { s += 3; tips.push(a[3] === 'J' ? '둘 다 계획파라 약속과 일정이 척척 맞아요.' : '둘 다 즉흥파라 재밌지만 중요한 일정은 꼭 메모해요.'); }
+      if (a[1] !== b[1] && a[2] !== b[2]) s -= 5;
+      if (ideal) s = 95;
+      var txt = ideal ? '서로에게 부족한 부분을 채워 주는 대표적인 찰떡 조합이에요.' : s >= 78 ? '공통점과 차이가 적당히 섞인 좋은 조합이에요.' : '서로 다른 점이 많아 처음엔 낯설지만, 그만큼 배울 점이 많은 조합이에요.';
+      return { s: s, t: txt, tips: tips, ea: '🧩', eb: '🧩', la: a, lb: b };
+    }
+    if (it.pt === 'lang') {
+      if (a === b) return { s: 92, t: '같은 사랑의 언어를 써서 마음이 그대로 전해져요. 서로가 원하는 걸 이미 잘 알고 있어요.', tips: ['둘 다 ' + LANG_TIP[a] + '를 꾸준히 이어 가요.'], ea: oa[2], eb: ob[2], la: oa[1], lb: ob[1] };
+      return { s: 72, t: '사랑을 표현하는 방식이 달라 가끔 마음이 엇갈릴 수 있어요. 상대의 언어로 표현해 주면 훨씬 잘 전해져요.',
+        tips: ['나 → 상대: ' + LANG_TIP[b], '상대 → 나: ' + LANG_TIP[a]], ea: oa[2], eb: ob[2], la: oa[1], lb: ob[1] };
+    }
+    var v = it.pairs[a + '|' + b] || it.pairs[b + '|' + a];
+    return { s: v[0], t: v[1], tips: [], ea: oa[2], eb: ob[2], la: oa[1], lb: ob[1] };
+  }
+  function pairUI(it, box) {
+    box.innerHTML = '';
+    var head = el('div', 'q-intro');
+    head.append(el('div', 'q-emoji', it.e), el('h3', 'q-title', it.n), el('p', 'q-desc', it.s));
+    box.appendChild(head);
+    var sel = { a: null, b: null };
+    ['a', 'b'].forEach(function (who) {
+      var w = el('div', 'pick');
+      w.appendChild(el('p', 'pick-lab', who === 'a' ? '🙋 나' : '💁 상대'));
+      var row = el('div', 'chips pick-row'), btns = [];
+      it.opts.forEach(function (o) {
+        var bt = el('button', 'chip sm', (o[2] ? o[2] + ' ' : '') + o[1]); bt.type = 'button'; bt.setAttribute('aria-pressed', 'false');
+        bt.addEventListener('click', function () { sel[who] = o[0]; btns.forEach(function (x) { x.setAttribute('aria-pressed', x === bt ? 'true' : 'false'); }); });
+        btns.push(bt); row.appendChild(bt);
+      });
+      w.appendChild(row); box.appendChild(w);
+    });
+    var go = el('button', 'q-start', '궁합 보기'); go.type = 'button';
+    var msg = el('p', 'r-note');
+    var link = el('button', 'pick-link', '유형을 모르면? ' + it.link + ' 하러 가기 →'); link.type = 'button';
+    link.addEventListener('click', function () { for (var k in ITEMS) if (ITEMS[k].n === it.link) { openItem(k, true); return; } });
+    var bw = el('div', 'r-btns'); bw.appendChild(go);
+    box.append(bw, msg, link);
+    go.addEventListener('click', function () {
+      if (!sel.a || !sel.b) { msg.textContent = '두 사람의 유형을 모두 골라 주세요.'; return; }
+      var r = pairCalc(it, sel.a, sel.b);
+      var c = el('div', 'r-card');
+      c.append(el('div', 'r-emoji pair-emo', r.ea + ' 💞 ' + r.eb), el('p', 'r-kicker', r.la + ' × ' + r.lb), el('h3', 'r-name', pairLabel(r.s)));
+      var sc = el('div', 'r-score'); sc.append(el('b', null, r.s + '점'), bars([['궁합', r.s]])); c.appendChild(sc);
+      c.appendChild(el('p', 'r-desc', r.t));
+      if (r.tips.length) { var info = el('div', 'r-info'); var row = el('div', 'r-row'); row.appendChild(el('b', null, '💡 관계 팁')); var ul = el('ul', 'r-lines'); r.tips.forEach(function (t) { ul.appendChild(el('li', null, t)); }); row.appendChild(ul); info.appendChild(row); c.appendChild(info); }
+      finish(it, box, c, it.pt === 'mbti' ? '16유형 궁합은 인터넷에서 널리 쓰이는 재미용 기준이에요. 실제 관계는 서로의 노력이 가장 중요해요.' : null);
+    });
+  }
+  // ── 공개 심리검사 (척도형) ──
+  function scaleOpts(it, item) { return item.o || it.opts; }
+  function scaleIntro(it, box) {
+    box.innerHTML = '';
+    var c = el('div', 'q-intro pro');
+    c.append(el('div', 'q-emoji', it.e), el('h3', 'q-title', it.n), el('p', 'q-desc', it.s));
+    c.appendChild(el('p', 'pro-guide', it.intro));
+    c.appendChild(el('p', 'q-meta', '문항 ' + it.items.length + '개 · 약 ' + Math.max(1, Math.round(it.items.length / 8)) + '분 · 답변은 저장되지 않아요'));
+    var go = el('button', 'q-start', '검사 시작'); go.type = 'button';
+    go.addEventListener('click', function () { scaleAsk(it, box, 0, []); });
+    c.appendChild(go);
+    c.appendChild(el('p', 'pro-src', '출처: ' + it.src));
+    box.appendChild(c);
+  }
+  function scaleAsk(it, box, i, ans) {
+    var n = it.items.length;
+    if (i >= n) { scaleResult(it, box, ans); return; }
+    box.innerHTML = '';
+    box.appendChild(progress(i, n));
+    var item = it.items[i];
+    var card = el('div', 'q-card');
+    card.appendChild(el('p', 'pro-guide small', it.intro));
+    card.appendChild(el('p', 'q-text', item.t));
+    var opts = el('div', 'q-opts');
+    scaleOpts(it, item).forEach(function (o, k) {
+      var b = el('button', 'q-opt', o[0]); b.type = 'button';
+      if (ans[i] === k) b.classList.add('sel');
+      b.addEventListener('click', function () { var a = ans.slice(0, i); a[i] = k; scaleAsk(it, box, i + 1, a); });
+      opts.appendChild(b);
+    });
+    card.appendChild(opts);
+    box.appendChild(card);
+    if (i > 0) { var back = el('button', 'q-back', '← 이전 문항'); back.type = 'button'; back.addEventListener('click', function () { scaleAsk(it, box, i - 1, ans); }); box.appendChild(back); }
+    var sc = document.getElementById('layerScroll'); if (sc) sc.scrollTop = 0;
+  }
+  function itemValue(it, item, k) {
+    var os = scaleOpts(it, item), v = os[k][1];
+    if (item.r) { var vals = os.map(function (o) { return o[1]; }); v = Math.max.apply(null, vals) + Math.min.apply(null, vals) - v; }
+    return v;
+  }
+  function supportBox(strong, extraLine) {
+    var b = el('div', 'support' + (strong ? ' strong' : ''));
+    b.appendChild(el('b', null, strong ? '💜 지금 많이 힘드시다면, 혼자 견디지 않아도 돼요' : '💜 도움이 필요할 때 연락할 수 있는 곳'));
+    var ul = el('ul');
+    ul.appendChild(el('li', null, '자살예방상담전화 109 (24시간)'));
+    ul.appendChild(el('li', null, '정신건강 위기상담전화 1577-0199 (24시간)'));
+    ul.appendChild(el('li', null, '긴급한 위험이 있다면 119 또는 112'));
+    if (extraLine) ul.appendChild(el('li', null, extraLine));
+    b.appendChild(ul);
+    if (strong) b.appendChild(el('p', null, '죽음이나 자해에 대한 생각이 든다면 지금 바로 위 번호로 전화하거나, 믿을 수 있는 사람에게 이야기해 주세요.'));
+    return b;
+  }
+  function scaleResult(it, box, ans) {
+    var root = el('div', 'pro-result');
+    var crisis = it.items.some(function (item, i) { return item.crisis && scaleOpts(it, item)[ans[i]][1] >= 1; });
+    if (it.dims) {
+      var sums = {};
+      it.items.forEach(function (item, i) { sums[item.d] = (sums[item.d] || 0) + itemValue(it, item, ans[i]); });
+      var card = el('div', 'r-card pro');
+      card.append(el('p', 'r-kicker', '검사 결과'), el('h3', 'r-name', '다섯 가지 성격 요인'));
+      var rows = el('div', 'r-bars');
+      var lines = el('ul', 'r-lines');
+      it.dimset.forEach(function (d) {
+        var s = sums[d[0]], p = (s - 10) / 40 * 100, lv = p >= 65 ? '높음' : p >= 35 ? '보통' : '낮음';
+        var row = el('div', 'r-bar');
+        var tr = el('div', 'r-track'); var f = el('span'); f.style.width = Math.max(3, p) + '%'; tr.appendChild(f);
+        row.append(el('span', 'r-lab', d[1]), tr, el('span', 'r-pct', s + '점'));
+        rows.appendChild(row);
+        lines.appendChild(el('li', null, d[1] + ' ' + lv + ' (' + s + '/50) — ' + d[2]));
+      });
+      card.append(rows, lines);
+      card.appendChild(el('p', 'r-desc small', '각 요인은 10~50점 범위예요. 한국인 평균(규준)이 아닌 응답 범위를 기준으로 낮음·보통·높음을 표시했어요. 성격에는 좋고 나쁨이 없어요.'));
+      root.appendChild(card);
+    } else {
+      var total = 0, mx = 0, mn = 0;
+      it.items.forEach(function (item, i) {
+        total += itemValue(it, item, ans[i]);
+        var vals = scaleOpts(it, item).map(function (o) { return o[1]; });
+        mx += Math.max.apply(null, vals); mn += Math.min.apply(null, vals);
+      });
+      var band = it.bands.filter(function (b) { return total >= b[0]; })[0];
+      if (crisis) root.appendChild(supportBox(true));
+      var card2 = el('div', 'r-card pro');
+      card2.append(el('p', 'r-kicker', '검사 결과'), el('h3', 'r-name', band[1]));
+      var sc = el('div', 'r-score'); sc.append(el('b', null, total + '점'), el('p', 'q-meta', '가능한 범위 ' + mn + '~' + mx + '점'));
+      sc.appendChild(bars([['점수', (total - mn) / (mx - mn) * 100]]));
+      card2.appendChild(sc);
+      card2.appendChild(el('p', 'r-desc', band[2]));
+      var scale = el('div', 'r-row'); scale.appendChild(el('b', null, '📏 점수 구간'));
+      var ul = el('ul', 'r-lines');
+      it.bands.slice().reverse().forEach(function (b, idx, arr) {
+        var hi = idx < arr.length - 1 ? arr[idx + 1][0] - 1 : mx;
+        var li = el('li', b === band ? 'cur' : null, b[0] + (hi > b[0] ? '~' + hi : '') + '점: ' + b[1]);
+        ul.appendChild(li);
+      });
+      scale.appendChild(ul);
+      var info = el('div', 'r-info'); info.appendChild(scale); card2.appendChild(info);
+      root.appendChild(card2);
+      if (!crisis && it.alert != null && band[3] >= it.alert) root.appendChild(supportBox(false, it.line));
+      else if (!crisis && band[3] >= 1) root.appendChild(supportBox(false, it.line));
+    }
+    var src = el('details', 'pro-details');
+    src.append(el('summary', null, '검사 정보와 출처'), el('p', null, it.src));
+    root.appendChild(src);
+    box.innerHTML = '';
+    box.appendChild(root);
+    box.appendChild(el('p', 'r-note', '이 검사는 선별(스크리닝) 도구로, 진단이 아니에요. 결과가 걱정된다면 전문가와 상담해 보세요.'));
+    var btns = el('div', 'r-btns');
+    var again = el('button', 'q-start ghost', '다시 하기'); again.type = 'button';
+    again.addEventListener('click', function () { scaleIntro(it, box); });
+    var other = el('button', 'q-start', '다른 검사 보기'); other.type = 'button';
+    other.addEventListener('click', function () { document.getElementById('closeBtn').click(); });
+    btns.append(again, other);
+    box.appendChild(btns);
+    var sc2 = document.getElementById('layerScroll'); if (sc2) sc2.scrollTop = 0;
+    if (window.fitAds) window.fitAds();
+  }
+  function intro(it, box) {
+    if (it.m === 'pair') { pairUI(it, box); return; }
+    if (it.m === 'scale') { scaleIntro(it, box); return; }
+    box.innerHTML = '';
+    var c = el('div', 'q-intro');
+    c.append(el('div', 'q-emoji', it.e), el('h3', 'q-title', it.n), el('p', 'q-desc', it.s));
+    var meta = it.m === 'bingo' ? '빙고판 16칸 · 약 1분' : '문항 ' + qCount(it) + '개 · 약 ' + Math.max(1, Math.round(qCount(it) / 6)) + '분';
+    c.appendChild(el('p', 'q-meta', meta));
+    var go = el('button', 'q-start', '테스트 시작'); go.type = 'button';
+    go.addEventListener('click', function () { if (it.m === 'bingo') bingo(it, box); else ask(it, box, 0, []); });
+    c.appendChild(go);
+    box.appendChild(c);
+  }
+  function progress(i, n) {
+    var p = el('div', 'q-prog');
+    var bar = el('div', 'q-bar'); var f = el('span'); f.style.width = ((i) / n * 100) + '%'; bar.appendChild(f);
+    p.append(el('span', 'q-num', 'Q' + (i + 1) + ' / ' + n), bar);
+    return p;
+  }
+  function ask(it, box, i, ans) {
+    var n = it.q.length;
+    if (i >= n) { result(it, box, ans); return; }
+    box.innerHTML = '';
+    box.appendChild(progress(i, n));
+    var q = it.q[i];
+    var card = el('div', 'q-card');
+    var opts = el('div', 'q-opts');
+    function pick(v) { var a = ans.slice(0, i); a[i] = v; ask(it, box, i + 1, a); }
+    if (it.m === 'multi') {
+      card.appendChild(el('p', 'q-text', q[0]));
+      LIKERT.forEach(function (t, k) {
+        var b = el('button', 'q-opt lk', t); b.type = 'button';
+        if (ans[i] === k + 1) b.classList.add('sel');
+        b.addEventListener('click', function () { pick(k + 1); });
+        opts.appendChild(b);
+      });
+    } else {
+      card.appendChild(el('p', 'q-text', q[0]));
+      q.slice(1).forEach(function (o, k) {
+        var b = el('button', 'q-opt', o[0]); b.type = 'button';
+        if (ans[i] === k) b.classList.add('sel');
+        b.addEventListener('click', function () { pick(k); });
+        opts.appendChild(b);
+      });
+    }
+    card.appendChild(opts);
+    box.appendChild(card);
+    if (i > 0) {
+      var back = el('button', 'q-back', '← 이전 문항'); back.type = 'button';
+      back.addEventListener('click', function () { ask(it, box, i - 1, ans); });
+      box.appendChild(back);
+    }
+    var sc = document.getElementById('layerScroll'); if (sc) sc.scrollTop = 0;
+  }
+  function bars(rows) {
+    var w = el('div', 'r-bars');
+    rows.forEach(function (r) {
+      var row = el('div', 'r-bar');
+      var tr = el('div', 'r-track'); var f = el('span'); f.style.width = Math.max(3, r[1]) + '%'; tr.appendChild(f);
+      row.append(el('span', 'r-lab', r[0]), tr, el('span', 'r-pct', Math.round(r[1]) + '%'));
+      w.appendChild(row);
+    });
+    return w;
+  }
+  function duo(l, r, pl) {
+    var w = el('div', 'r-duo');
+    var tr = el('div', 'r-duo-track'); var f = el('span'); f.style.width = pl + '%'; tr.appendChild(f);
+    var labs = el('div', 'r-duo-labs');
+    labs.append(el('span', null, l + ' ' + Math.round(pl) + '%'), el('span', null, r + ' ' + Math.round(100 - pl) + '%'));
+    w.append(tr, labs);
+    return w;
+  }
+  function card(R, extra) {
+    var c = el('div', 'r-card');
+    c.append(el('div', 'r-emoji', R.e), el('p', 'r-kicker', '나의 결과는'), el('h3', 'r-name', R.n), el('p', 'r-desc', R.d));
+    if (extra) c.appendChild(extra);
+    var info = el('div', 'r-info');
+    if (R.g && R.g.length) { var g = el('div', 'r-row'); g.appendChild(el('b', null, '💪 강점')); var tg = el('div', 'r-tags'); R.g.forEach(function (t) { tg.appendChild(el('span', 'r-tag', t)); }); g.appendChild(tg); info.appendChild(g); }
+    if (R.w && R.w.length) { var w = el('div', 'r-row'); w.append(el('b', null, '🌱 이런 점은 챙겨요'), el('p', null, R.w.join(' '))); info.appendChild(w); }
+    if (R.m) { var m = el('div', 'r-row'); m.append(el('b', null, '💞 잘 맞는'), el('p', null, R.m)); info.appendChild(m); }
+    c.appendChild(info);
+    return c;
+  }
+  function finish(it, box, node, note) {
+    box.innerHTML = '';
+    box.appendChild(node);
+    if (note) box.appendChild(el('p', 'r-note', note));
+    var btns = el('div', 'r-btns');
+    var again = el('button', 'q-start ghost', '다시 하기'); again.type = 'button';
+    again.addEventListener('click', function () { intro(it, box); });
+    var other = el('button', 'q-start', '다른 테스트 보기'); other.type = 'button';
+    other.addEventListener('click', function () { document.getElementById('closeBtn').click(); });
+    btns.append(again, other);
+    box.appendChild(btns);
+    box.appendChild(el('p', 'r-disc', '재미로 보는 테스트예요. 전문적인 심리 진단이 아니에요.'));
+    var sc = document.getElementById('layerScroll'); if (sc) sc.scrollTop = 0;
+    if (window.fitAds) window.fitAds();
+  }
+  function result(it, box, ans) {
+    var R, extra = null, note = null;
+    if (it.m === 'axis16' || it.m === 'axis4') {
+      var cnt = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0 }, last = {};
+      it.q.forEach(function (q, i) { var l = q[1 + ans[i]][1]; cnt[l]++; last[l === 'I' ? 'E' : l === 'N' ? 'S' : l === 'F' ? 'T' : l === 'P' ? 'J' : l] = l; });
+      function side(a) { var x = AX[a]; return cnt[x[0]] > cnt[x[1]] ? x[0] : cnt[x[1]] > cnt[x[0]] ? x[1] : (last[a] || x[0]); }
+      var rows = [];
+      if (it.m === 'axis16') {
+        var key = side('E') + side('S') + side('T') + side('J');
+        R = it.r[key];
+        R = Object.assign({}, R, { n: key + ' · ' + R.n });
+        ['E', 'S', 'T', 'J'].forEach(function (a) { var x = AX[a], tot = cnt[x[0]] + cnt[x[1]] || 1; rows.push([x[0] + ' / ' + x[1], cnt[x[0]] / tot * 100]); });
+        extra = el('div', 'r-axes');
+        ['E', 'S', 'T', 'J'].forEach(function (a) { var x = AX[a], tot = cnt[x[0]] + cnt[x[1]] || 1; var d = duo(x[3], x[4], cnt[x[0]] / tot * 100); extra.appendChild(d); });
+      } else {
+        var sN = side('S'), k2 = sN === 'S' ? 'S' + side('J') : 'N' + side('T');
+        R = it.r[k2];
+      }
+    } else if (it.m === 'tally') {
+      var c = {}, lastK = {};
+      it.q.forEach(function (q, i) { var k = q[1 + ans[i]][1]; c[k] = (c[k] || 0) + 1; lastK[k] = i; });
+      var keys = Object.keys(it.r).filter(function (k) { return k[0] !== '_'; });
+      keys.sort(function (a, b) { return (c[b] || 0) - (c[a] || 0) || (lastK[b] || -1) - (lastK[a] || -1); });
+      R = it.r[keys[0]];
+      var tot = it.q.length;
+      extra = bars(keys.slice(0, 3).map(function (k) { return [it.r[k].e + ' ' + it.r[k].n, (c[k] || 0) / tot * 100]; }));
+      note = it.r._note || null;
+    } else if (it.m === 'score') {
+      var sum = 0, mx = 0;
+      it.q.forEach(function (q, i) { sum += q[1 + ans[i]][1]; mx += Math.max.apply(null, q.slice(1).map(function (o) { return o[1]; })); });
+      var pct = sum / mx * 100;
+      R = it.b.filter(function (b) { return pct >= b[0]; })[0][1];
+      extra = el('div', 'r-score'); extra.append(el('b', null, Math.round(pct) + '%'), bars([['점수', pct]]));
+    } else if (it.m === 'ratio') {
+      var a = 0;
+      it.q.forEach(function (q, i) { if (q[1 + ans[i]][1] === 'A') a++; });
+      var pa = a / it.q.length * 100;
+      var idx = pa >= 80 ? 0 : pa >= 60 ? 1 : pa > 40 ? 2 : pa > 20 ? 3 : 4;
+      R = it.b5[idx];
+      extra = duo(it.p[0], it.p[1], pa);
+    } else if (it.m === 'multi') {
+      var sums = {}, ns = {};
+      it.q.forEach(function (q, i) { var v = ans[i]; if (q[2]) v = 6 - v; sums[q[1]] = (sums[q[1]] || 0) + v; ns[q[1]] = (ns[q[1]] || 0) + 1; });
+      var dims = it.dims.map(function (d) { return { d: d, p: ((sums[d[0]] / ns[d[0]]) - 1) / 4 * 100 }; });
+      var top = dims.slice().sort(function (x, y) { return y.p - x.p; })[0];
+      var lines = dims.map(function (x) { return x.d[2] + ' ' + x.d[1] + ': ' + (x.p >= 50 ? x.d[3] : x.d[4]); });
+      R = { e: top.d[2], n: top.d[1] + ' 강점형', d: '나의 ' + it.title + ' 중 가장 높은 능력치는 ' + top.d[1] + '(' + Math.round(top.p) + '%)예요. ' + top.d[3], g: dims.filter(function (x) { return x.p >= 60; }).map(function (x) { return x.d[1]; }), w: [] };
+      extra = el('div', 'r-multi');
+      extra.appendChild(bars(dims.map(function (x) { return [x.d[2] + ' ' + x.d[1], x.p]; })));
+      var ul = el('ul', 'r-lines'); lines.forEach(function (t) { ul.appendChild(el('li', null, t)); }); extra.appendChild(ul);
+    }
+    finish(it, box, card(R, extra), note);
+  }
+  function bingo(it, box) {
+    box.innerHTML = '';
+    box.appendChild(el('p', 'q-text center', '나에게 해당하는 칸을 모두 눌러 주세요.'));
+    var on = it.items.map(function () { return false; });
+    var grid = el('div', 'bingo');
+    var info = el('p', 'bingo-info', '0칸 · 0빙고');
+    function lines() {
+      var L = 0, g = function (r, c) { return on[r * 4 + c]; };
+      for (var r = 0; r < 4; r++) if (g(r, 0) && g(r, 1) && g(r, 2) && g(r, 3)) L++;
+      for (var c = 0; c < 4; c++) if (g(0, c) && g(1, c) && g(2, c) && g(3, c)) L++;
+      if (g(0, 0) && g(1, 1) && g(2, 2) && g(3, 3)) L++;
+      if (g(0, 3) && g(1, 2) && g(2, 1) && g(3, 0)) L++;
+      return L;
+    }
+    it.items.forEach(function (t, i) {
+      var b = el('button', 'bcell', t); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
+      b.addEventListener('click', function () { on[i] = !on[i]; b.setAttribute('aria-pressed', on[i] ? 'true' : 'false'); info.textContent = on.filter(Boolean).length + '칸 · ' + lines() + '빙고'; });
+      grid.appendChild(b);
+    });
+    var go = el('button', 'q-start', '결과 보기'); go.type = 'button';
+    go.addEventListener('click', function () {
+      var L = lines(), n = on.filter(Boolean).length;
+      var R = it.b.filter(function (b) { return L >= b[0]; })[0][1];
+      var ex = el('div', 'r-score'); ex.append(el('b', null, L + '빙고'), el('p', 'q-meta', '16칸 중 ' + n + '칸 체크'));
+      finish(it, box, card(R, ex));
+    });
+    box.append(grid, info, go);
+  }
+
+  // ── 주소(#항목) 변경: 막힌 환경에서는 건너뜀 ──
+  var historyOk = true;
+  function safeHistory(kind, state, hash) {
+    if (!historyOk) return false;
+    try { history[kind](state, '', hash); return true; } catch (e) { historyOk = false; return false; }
+  }
+  function openItem(id, push) {
+    var it = ITEMS[id];
+    if (!it) return;
+    document.getElementById('layerEmo').textContent = it.e;
+    document.getElementById('layerSub').textContent = it.cat.emoji + ' ' + it.cat.name;
+    document.getElementById('layerTitle').textContent = it.n;
+    render(it);
+    if (!layer.open) { layer.showModal(); layer.querySelector('.layer-inner').focus(); }
+    document.body.classList.add('layer-open');
+    document.getElementById('layerScroll').scrollTop = 0;
+    if (window.fitAds) window.fitAds();
+    if (push) safeHistory('pushState', { item: id }, '#' + id);
+  }
+  function finishClose() {
+    layerBody.innerHTML = '';
+    if (layer.open) layer.close();
+    document.body.classList.remove('layer-open');
+  }
+  function closeLayer() {
+    if (historyOk && history.state && history.state.item && location.hash) { history.back(); return; }
+    finishClose();
+  }
+  document.getElementById('closeBtn').addEventListener('click', closeLayer);
+  layer.addEventListener('cancel', function (e) { e.preventDefault(); closeLayer(); });
+  layer.addEventListener('click', function (e) { if (e.target === layer) closeLayer(); });
+  window.addEventListener('popstate', function () {
+    var id = location.hash.slice(1);
+    if (ITEMS[id]) openItem(id, false); else finishClose();
+  });
+  var initial = location.hash.slice(1);
+  if (ITEMS[initial]) { safeHistory('replaceState', { item: initial }, '#' + initial); openItem(initial, false); }
+
+  // ── 광고 팝업: 무작위 간격(1~10)마다 세부 팝업 전에 3초 표시 ──
+  var adGate = document.getElementById('adGate');
+  var pendingId = null, gateTimer = 0, GATE_MS = 3000;
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function randGap() { return 1 + Math.floor(Math.random() * 10); }
+  function isAdTurn() {
+    var rec = null;
+    try { rec = JSON.parse(localStorage.getItem('simli-ad-gate') || 'null'); } catch (e) {}
+    if (!rec || rec.date !== todayKey() || !rec.next) rec = { date: todayKey(), n: 0, next: randGap() };
+    rec.n += 1;
+    var due = rec.n >= rec.next;
+    if (due) rec.next = rec.n + randGap();
+    try { localStorage.setItem('simli-ad-gate', JSON.stringify(rec)); } catch (e) {}
+    return due;
+  }
+  function adReady() { var s = adGate.querySelector('.ad-gate-slot'); return !s.classList.contains('ad-empty') && !!s.querySelector('iframe'); }
+  function requestOpen(id) {
+    hideTip();
+    if (isAdTurn() && adReady()) {
+      pendingId = id;
+      adGate.showModal();
+      document.body.classList.add('layer-open');
+      if (window.fitAds) window.fitAds();
+      adGate.querySelector('.ad-gate-inner').focus();
+      var bar = document.getElementById('adGateBar');
+      bar.style.animationDuration = GATE_MS + 'ms';
+      bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run');
+      bar.onanimationend = function () { setTimeout(closeGate, 120); };
+      clearTimeout(gateTimer);
+      gateTimer = setTimeout(closeGate, GATE_MS + 400);
+      return;
+    }
+    openItem(id, true);
+  }
+  function closeGate() {
+    clearTimeout(gateTimer);
+    if (!adGate.open) return;
+    adGate.close();
+    var id = pendingId; pendingId = null;
+    if (id) openItem(id, true); else document.body.classList.remove('layer-open');
+  }
+  adGate.addEventListener('cancel', function (e) { e.preventDefault(); closeGate(); });
+
+  // ── 툴팁: 마우스를 올리면 한 줄 요약 ──
+  var canHover = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var tip = el('div', 'tip'); tip.hidden = true; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip);
+  var tipTimer = 0, tipFor = null;
+  function hideTip() { clearTimeout(tipTimer); tipFor = null; tip.hidden = true; }
+  function showTip(btn) {
+    var it = ITEMS[btn.getAttribute('data-item')]; if (!it) return;
+    tipFor = btn;
+    tip.innerHTML = '';
+    tip.append(el('b', null, it.e + ' ' + it.n), document.createTextNode(it.s));
+    tip.hidden = false;
+    var r = btn.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+    var x = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 8);
+    var y = r.top - th - 10; if (y < 8) y = r.bottom + 10;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  if (canHover) {
+    cats.addEventListener('mouseover', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (!b || b === tipFor) return;
+      clearTimeout(tipTimer); tipTimer = setTimeout(function () { showTip(b); }, 120);
+    });
+    cats.addEventListener('mouseout', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (b && !b.contains(e.relatedTarget)) hideTip();
+    });
+    window.addEventListener('scroll', hideTip, { passive: true });
+  }
+})();
+</script>
+<script>
+// ═══ 광고 배너: 화면 폭에 맞춰 비율 축소, 불러오지 못하면 접기 ═══
+(function () {
+  var slots = Array.prototype.slice.call(document.querySelectorAll('.ad-slot'));
+  function fit() {
+    slots.forEach(function (s) {
+      var box = s.querySelector('.ad-fit');
+      var w = box.clientWidth;
+      if (!w) return;                         // 닫힌 팝업 안에서는 열릴 때 다시 계산
+      var frame = s.querySelector('.ad-frame');
+      var base = parseFloat(frame.getAttribute('data-w')) || 680;
+      var k = Math.min(1, w / base);
+      s.style.setProperty('--ad-scale', k.toFixed(4));
+    });
+  }
+  window.fitAds = fit;
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(fit);
+    slots.forEach(function (s) { ro.observe(s.querySelector('.ad-fit')); });
+  }
+  fit();
+  // 스크립트가 막혔거나 광고 차단으로 배너가 없으면 칸을 접어요.
+  setTimeout(function () {
+    slots.forEach(function (s) {
+      var f = s.querySelector('iframe');
+      if (!f) s.classList.add('ad-empty');
+    });
+  }, 5000);
+})();
+</script>
+</body>
+</html>

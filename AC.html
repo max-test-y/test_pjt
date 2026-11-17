@@ -1,0 +1,2010 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>세상의 모든 계산기</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<style>
+  :root {
+    --bg: #f4f0fb;
+    --surface: #fffdff;
+    --surface-2: #efe8fa;
+    --ink: #2a1f3d;
+    --muted: #6c6080;
+    --line: #e2d8f1;
+    --focus: #7b4fd6;
+    --accent: #7b4fd6;
+    --good: #1f8a5a;
+    --bad: #c8463d;
+    --scrim: rgba(42, 31, 61, .35);
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--ink); position: relative; min-height: 100vh; overflow-x: hidden;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; word-break: keep-all;
+  }
+  button { font: inherit; }
+  a { color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  [hidden] { display: none !important; }
+
+  .bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    background:
+      radial-gradient(1100px 650px at 85% -10%, rgba(170, 120, 255, .22), transparent 60%),
+      radial-gradient(900px 600px at -10% 30%, rgba(255, 150, 220, .14), transparent 60%),
+      var(--bg);
+  }
+  .bg canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .main { position: relative; z-index: 1; max-width: 1080px; margin: 0 auto; padding: 64px 20px 64px; text-align: center; }
+  h1 {
+    margin: 0 auto 14px; font-size: clamp(40px, 8vw, 84px); font-weight: 800; letter-spacing: -0.045em; line-height: 1.02;
+    background: linear-gradient(100deg, #2a1f3d 0%, #5a2fb0 50%, #a77bf0 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .lead { margin: 0 auto; max-width: 26em; color: var(--muted); font-size: 17px; text-wrap: balance; }
+
+  .search { position: relative; max-width: 520px; margin: 26px auto 0; }
+  .search input {
+    width: 100%; font: inherit; font-size: 16px; color: var(--ink);
+    padding: 14px 44px 14px 46px; border-radius: 999px; border: 1px solid var(--line);
+    background: rgba(255, 255, 255, .82); box-shadow: 0 6px 24px rgba(60, 30, 110, .08);
+    -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  }
+  .search input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 4px rgba(123, 79, 214, .14); }
+  .search .ico { position: absolute; left: 18px; top: 50%; transform: translateY(-50%); font-size: 17px; opacity: .65; pointer-events: none; }
+  .search .clear {
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 30px; height: 30px; border-radius: 50%;
+    border: 0; background: var(--surface-2); color: var(--muted); cursor: pointer; font-size: 14px;
+  }
+  .search-result { margin: 10px 0 0; font-size: 14px; color: var(--muted); min-height: 1.4em; }
+
+  .jump { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 4px; margin: 20px auto 0; max-width: 900px; }
+  .jump-btn { font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer; padding: 6px 10px; border-radius: 8px; }
+  .jump-btn:hover { color: var(--ink); background: rgba(42, 31, 61, .05); }
+
+  .cat-list { display: grid; gap: 18px; margin-top: 30px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 860px) { .cat-list { grid-template-columns: 1fr; } }
+  .cat-sec {
+    position: relative; overflow: hidden; border-radius: 20px; padding: 22px 24px 18px; scroll-margin-top: 24px;
+    background: rgba(255, 253, 255, .74); border: 1px solid rgba(42, 31, 61, .07);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .9) inset, 0 12px 32px rgba(60, 30, 110, .08);
+    -webkit-backdrop-filter: blur(8px) saturate(140%); backdrop-filter: blur(8px) saturate(140%);
+  }
+  .cat-sec::before { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: linear-gradient(135deg, rgba(123, 79, 214, .06), transparent 40%); }
+  .cat-title { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 0 0 14px; font-size: 22px; font-weight: 800; letter-spacing: -0.02em; }
+  .cat-title::before, .cat-title::after {
+    content: ""; flex: 0 1 72px; height: 2px;
+    background-image: radial-gradient(circle, rgba(123, 79, 214, .5) 1px, transparent 1.2px); background-size: 6px 2px; background-repeat: repeat-x; background-position: center;
+  }
+  .cat-title .emo { font-size: 24px; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; position: relative; }
+  .chip {
+    font-size: 16px; color: var(--ink); background: rgba(255, 255, 255, .9); border: 1px solid var(--line);
+    border-radius: 999px; padding: 9px 15px; cursor: pointer; line-height: 1.3;
+    transition: border-color .15s, box-shadow .2s, background .15s;
+  }
+  .chip .e { margin-right: 5px; }
+  .chip:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(123, 79, 214, .12); }
+  .chip.hit { border-color: var(--accent); background: #f1e9ff; }
+  .cat-sec.dim { display: none; }
+  .chip.dim { display: none; }
+  @keyframes flash { 0% { box-shadow: 0 0 0 2px rgba(123, 79, 214, .45); } 100% { box-shadow: 0 12px 32px rgba(60, 30, 110, .08); } }
+  .cat-sec.flash { animation: flash 1.2s ease-out; }
+  .empty-result { display: none; margin: 30px auto 0; color: var(--muted); }
+  .empty-result.show { display: block; }
+
+  /* 레이어 */
+  dialog.layer {
+    border: 0; padding: 0; color: var(--ink); text-align: left;
+    width: min(760px, calc(100vw - 48px)); height: fit-content; max-height: calc(100dvh - 48px);
+    max-width: none; margin: auto; inset: 0; border-radius: 20px; overflow: hidden;
+    background: rgba(255, 253, 255, .96); border: 1px solid rgba(42, 31, 61, .08);
+    box-shadow: 0 24px 60px rgba(60, 30, 110, .22);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  }
+  dialog.layer::backdrop { background: var(--scrim); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
+  @media (prefers-reduced-motion: no-preference) {
+    dialog.layer[open], dialog.ad-gate[open] { animation: rise .2s ease-out; }
+    @keyframes rise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+  }
+  .layer-inner { display: flex; flex-direction: column; max-height: calc(100dvh - 48px); }
+  .layer-inner:focus { outline: none; }
+  .layer-head { display: flex; align-items: center; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, .85); position: relative; }
+  .layer-emo { font-size: 34px; line-height: 1; }
+  .layer-titles { display: grid; gap: 2px; }
+  .layer-sub { margin: 0; font-size: 13px; color: var(--muted); }
+  .layer-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; }
+  .close { margin-left: auto; flex: none; width: 44px; height: 44px; margin-right: -8px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; color: var(--ink); cursor: pointer; padding: 0; }
+  .close svg { width: 22px; height: 22px; }
+  .close:hover { background: rgba(42, 31, 61, .06); }
+  .layer-scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .layer-body { padding: 18px 20px 14px; }
+
+  .guide-sum { margin: 0 0 16px; font-size: 17px; line-height: 1.6; text-align: center; padding: 14px 16px; border-radius: 14px; background: #f1e9ff; color: #3d2470; }
+  .guide-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .box { border-radius: 14px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); }
+  .box h3 { margin: 0 0 8px; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+  .box ul { margin: 0; padding-left: 1.15em; display: grid; gap: 6px; font-size: 15px; }
+  .box.do h3 { color: var(--good); }
+  .box.dont h3 { color: var(--bad); }
+  .box.wear, .box.cash, .box.rule { grid-column: 1 / -1; }
+  .box.steps { grid-column: 1 / -1; background: #f3f8f5; border-color: #d3e8dc; }
+  .box.steps h3 { color: #1f6b48; }
+  .box.steps ol { margin: 0; padding: 0; list-style: none; counter-reset: st; display: grid; gap: 8px; }
+  .box.steps li { counter-increment: st; position: relative; padding-left: 34px; font-size: 15px; line-height: 1.55; }
+  .box.steps li::before { content: counter(st); position: absolute; left: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: #1f8a5a; color: #fff; font-size: 13px; font-weight: 700; display: grid; place-items: center; }
+  .box p { margin: 0; font-size: 15px; }
+  .box.wear { background: #f2f6ff; border-color: #d9e3fb; }
+  .box.wear h3 { color: #2f4f9e; }
+  .box.cash { background: #fff8ec; border-color: #f1dfbd; }
+  .box.cash h3 { color: #9a6514; }
+  .box.rule h3 { color: var(--muted); }
+  .badge { margin-left: auto; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+  .badge.avg { background: #9a6514; color: #fff; }
+  .badge.range { background: #f1dfbd; color: #7a4f0e; }
+  .box .src { margin-top: 8px; font-size: 12px; color: #8a6a3a; }
+  .cash-sum { margin-bottom: 10px !important; }
+  .rel { display: grid; gap: 6px; }
+  .rel-row { background: rgba(255, 255, 255, .75); border: 1px solid #f1dfbd; border-radius: 10px; padding: 9px 12px; }
+  .rel-top { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .rel-who { font-size: 14px; color: #6b4a14; min-width: 7.5em; }
+  .rel-amt { font-size: 16px; font-weight: 700; color: var(--ink); }
+  .rel-tag { margin-left: auto; font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 999px; }
+  .rel-tag.avg { background: #9a6514; color: #fff; }
+  .rel-tag.range { background: #f1dfbd; color: #7a4f0e; }
+  .rel-note { margin: 4px 0 0 !important; font-size: 12.5px !important; color: #7a6342; }
+  .guide-note { margin: 14px 0 0; font-size: 12px; color: var(--muted); text-align: center; }
+  @media (max-width: 640px) {
+    .guide-grid { grid-template-columns: 1fr; }
+    dialog.layer { width: calc(100vw - 24px); max-height: calc(100dvh - 24px); border-radius: 18px; }
+    .layer-inner { max-height: calc(100dvh - 24px); }
+    .layer-body { padding: 14px 12px 12px; }
+    .main { padding-top: 40px; }
+    .cat-sec { padding: 18px 14px 14px; }
+    .cat-title::before, .cat-title::after { flex-basis: 36px; }
+    .chip { font-size: 15px; padding: 8px 13px; }
+  }
+
+  /* 툴팁 */
+  .tip { position: fixed; z-index: 60; pointer-events: none; max-width: 280px; padding: 10px 12px; border-radius: 12px; text-align: left; font-size: 13px; line-height: 1.5;
+    background: rgba(255, 255, 255, .97); color: var(--ink); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(60, 30, 110, .18); }
+  .tip b { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 2px; }
+
+  /* 광고 */
+  .ad-slot { position: relative; margin: 28px auto 0; max-width: 712px; padding: 28px 16px 14px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, .7); }
+  .ad-page { max-width: none; padding-left: 12px; padding-right: 12px; }
+  .ad-layer { margin: 0 20px 18px; max-width: none; }
+  .ad-tag { position: absolute; top: 6px; left: 12px; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .ad-fit { width: 100%; height: calc(var(--ad-h, 140px) * var(--ad-scale, 1)); overflow: hidden; display: flex; justify-content: center; }
+  .ad-frame { width: var(--ad-w, 680px); height: var(--ad-h, 140px); flex: none; transform: scale(var(--ad-scale, 1)); transform-origin: top center; border-radius: 8px; overflow: hidden; }
+  .ad-frame iframe { display: block; max-width: none; }
+  .ad-slot.ad-empty { display: none; }
+  @media (max-width: 640px) { .ad-slot { padding: 26px 10px 10px; } .ad-layer { margin: 0 12px 12px; } }
+
+  dialog.ad-gate { border: 0; padding: 0; background: transparent; overflow: visible; width: min(440px, calc(100vw - 24px)); height: fit-content; max-height: calc(100dvh - 24px); margin: auto; inset: 0; }
+  dialog.ad-gate::backdrop { background: rgba(42, 31, 61, .45); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+  .ad-gate-inner { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 14px 14px 10px; border-radius: 18px; background: rgba(255, 255, 255, .97); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(60, 30, 110, .3); }
+  .ad-gate-inner:focus { outline: none; }
+  .ad-gate-tag { margin: 0; align-self: flex-start; font-size: 11px; letter-spacing: .06em; color: var(--muted); }
+  .ad-gate-slot { margin: 0; padding: 0; width: 100%; max-width: 400px; border: 0; background: none; }
+  .ad-gate-wait { margin: 2px 0 0; font-size: 15px; font-weight: 600; color: var(--ink); }
+  .ad-gate-bar { width: 100%; max-width: 400px; height: 3px; border-radius: 3px; background: var(--surface-2); overflow: hidden; margin-bottom: 6px; }
+  .ad-gate-bar span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #5a2fb0, #a77bf0); border-radius: inherit; }
+  .ad-gate-bar span.run { animation: gateFill 3s linear forwards; }
+  @keyframes gateFill { from { width: 0; } to { width: 100%; } }
+
+  /* ═══ 청록 다크 테마 ═══ */
+  :root { --bg: #051518; --surface: #0b2328; --surface-2: #113038; --ink: #e6fbf8; --muted: #93bdb8; --line: #1b4248; --focus: #5eead4; --accent: #2dd4bf; --scrim: rgba(0, 8, 10, .6); color-scheme: dark; }
+  body { background: var(--bg); color: var(--ink); }
+  .bg { background: radial-gradient(1100px 650px at 85% -10%, rgba(45, 212, 191, .28), transparent 60%), radial-gradient(900px 600px at -10% 30%, rgba(56, 189, 248, .14), transparent 60%), radial-gradient(800px 500px at 50% 110%, rgba(16, 120, 110, .3), transparent 60%), var(--bg); }
+  h1 { background: linear-gradient(100deg, #ffffff 0%, #c9fbf2 45%, #2dd4bf 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lead, .search-result, .empty-result { color: var(--muted); }
+  .search input { color: var(--ink); background: rgba(11, 35, 40, .78); border-color: #1f5158; box-shadow: 0 8px 28px rgba(0, 0, 0, .35); }
+  .search input::placeholder { color: #7fa9a4; }
+  .search input:focus { border-color: #2dd4bf; box-shadow: 0 0 0 4px rgba(45, 212, 191, .2); }
+  .search .clear { background: #164047; color: var(--ink); }
+  .jump-btn { color: var(--muted); } .jump-btn:hover { color: #fff; background: rgba(255, 255, 255, .06); }
+  .cat-sec { background: rgba(11, 35, 40, .62); border-color: rgba(94, 234, 212, .14); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05), 0 14px 36px rgba(0, 0, 0, .4); }
+  .cat-sec::before { background: linear-gradient(135deg, rgba(45, 212, 191, .12), transparent 40%); }
+  .cat-title { color: #fff; }
+  .cat-title::before, .cat-title::after { background-image: radial-gradient(circle, rgba(94, 234, 212, .7) 1px, transparent 1.2px); }
+  .chip { color: #fff; background: rgba(5, 21, 24, .65); border-color: rgba(94, 234, 212, .22); }
+  .chip:hover { border-color: #5eead4; box-shadow: 0 0 0 3px rgba(45, 212, 191, .18); background: rgba(17, 60, 66, .7); }
+  .chip.hit { background: #11454a; border-color: #5eead4; }
+  dialog.layer { background: rgba(7, 26, 30, .97); border-color: rgba(94, 234, 212, .18); box-shadow: 0 24px 60px rgba(0, 0, 0, .6); }
+  dialog.layer::backdrop { background: rgba(0, 8, 10, .6); }
+  .layer-head { background: rgba(11, 35, 40, .92); border-bottom-color: var(--line); }
+  .layer-title { color: #fff; } .close { color: #fff; } .close:hover { background: rgba(255, 255, 255, .08); }
+  .tip { background: rgba(9, 30, 34, .97); color: var(--ink); border-color: #1f5158; box-shadow: 0 12px 30px rgba(0, 0, 0, .5); }
+  .tip b { color: var(--muted); }
+  .ad-slot { background: rgba(5, 21, 24, .7); border-color: var(--line); }
+  .ad-gate-inner { background: rgba(9, 30, 34, .97); border-color: #1f5158; }
+  .ad-gate-wait { color: #fff; } .ad-gate-bar { background: #113038; }
+  .ad-gate-bar span { background: linear-gradient(90deg, #14b8a6, #5eead4); }
+  dialog.ad-gate::backdrop { background: rgba(0, 8, 10, .7); }
+  /* 계산기 */
+  .calc { display: grid; gap: 14px; }
+  .calc-desc { margin: 0; color: var(--muted); text-align: center; }
+  .calc-form { display: grid; gap: 10px; background: rgba(11, 35, 40, .7); border: 1px solid var(--line); border-radius: 16px; padding: 16px; }
+  .fld { display: grid; gap: 5px; }
+  .fld > span { font-size: 13.5px; color: var(--muted); font-weight: 600; }
+  .fld .in { display: flex; align-items: center; gap: 8px; }
+  .fld input, .fld select { flex: 1; min-width: 0; font: inherit; font-size: 17px; color: var(--ink); background: #061c20; border: 1.5px solid #1f5158; border-radius: 12px; padding: 11px 12px; color-scheme: dark; }
+  .fld input:focus, .fld select:focus { outline: none; border-color: #2dd4bf; box-shadow: 0 0 0 3px rgba(45, 212, 191, .18); }
+  .fld .unit { color: var(--muted); font-size: 14px; white-space: nowrap; }
+  .fld .hint { font-size: 12.5px; color: #5eead4; min-height: 1em; }
+  .calc-out { display: grid; gap: 10px; }
+  .res-main { text-align: center; padding: 18px 14px; border-radius: 18px; background: linear-gradient(160deg, #0f3a3d, #0a2427); border: 1px solid #1f5c5c; }
+  .res-main span { display: block; font-size: 13.5px; color: var(--muted); }
+  .res-main b { display: block; margin-top: 4px; font-size: clamp(26px, 6vw, 34px); color: #5eead4; letter-spacing: -0.02em; word-break: keep-all; font-variant-numeric: tabular-nums; }
+  .res-rows { display: grid; gap: 0; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); }
+  .res-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; font-size: 15px; background: rgba(11, 35, 40, .6); }
+  .res-row:nth-child(odd) { background: rgba(17, 48, 56, .55); }
+  .res-row span { color: var(--muted); } .res-row b { text-align: right; font-variant-numeric: tabular-nums; }
+  .res-note { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+  .tabs { display: flex; gap: 6px; background: rgba(5, 21, 24, .7); border: 1px solid var(--line); border-radius: 999px; padding: 4px; justify-self: center; }
+  .tab { font: inherit; font-size: 14px; font-weight: 700; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 8px 16px; cursor: pointer; }
+  .tab[aria-pressed="true"] { background: linear-gradient(120deg, #14b8a6, #5eead4); color: #04201d; }
+  .plist { display: grid; gap: 6px; }
+  .prow { display: flex; gap: 6px; align-items: center; }
+  .prow input { font: inherit; font-size: 15px; color: var(--ink); background: #061c20; border: 1.5px solid #1f5158; border-radius: 10px; padding: 9px 10px; min-width: 0; color-scheme: dark; }
+  .prow .pname { width: 7.5em; flex: none; } .prow input:not(.pname) { flex: 1; text-align: right; }
+  .prow .unit { color: var(--muted); font-size: 14px; }
+  .prow .rm { border: 0; background: none; color: var(--muted); cursor: pointer; font-size: 15px; padding: 4px 8px; }
+  .addp { justify-self: start; font: inherit; font-size: 14px; font-weight: 700; color: #5eead4; background: none; border: 1.5px dashed #1f5c5c; border-radius: 10px; padding: 8px 14px; cursor: pointer; }
+  .optchk { display: flex; align-items: center; gap: 8px; font-weight: 700; cursor: pointer; padding: 4px 2px; }
+  .optchk input { width: 20px; height: 20px; accent-color: #2dd4bf; }
+  .extra-box { display: grid; gap: 10px; padding: 12px; border-radius: 12px; background: rgba(45, 212, 191, .07); border: 1px dashed #1f5c5c; }
+  .res-row.tot { background: rgba(45, 212, 191, .12) !important; }
+
+  .sc-bar { display: flex; gap: 8px; justify-content: center; }
+  .sc-disp { border-radius: 16px; padding: 14px 16px; background: #041114; border: 1px solid #1f5158; text-align: right; min-height: 92px; display: grid; align-content: end; gap: 4px; overflow-wrap: anywhere; }
+  .sc-expr { font-size: 15px; color: var(--muted); min-height: 1.3em; font-variant-numeric: tabular-nums; }
+  .sc-res { font-size: clamp(28px, 7vw, 40px); font-weight: 800; color: #5eead4; font-variant-numeric: tabular-nums; }
+  .sc-res.err { font-size: 16px; color: #fca5a5; font-weight: 600; }
+  .sc-pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .sc-pad.sci { grid-template-columns: repeat(7, 1fr); }
+  .sc-k { font: inherit; font-size: 20px; font-weight: 700; padding: 14px 0; border-radius: 14px; border: 1px solid #1f4a50; background: #0c2b30; color: var(--ink); cursor: pointer; transition: background .12s, transform .06s; }
+  .sc-pad.sci .sc-k { font-size: 15px; padding: 10px 0; }
+  .sc-k:hover { background: #12393f; } .sc-k:active { transform: scale(.97); }
+  .sc-k.op { color: #5eead4; background: #0a2226; }
+  .sc-k.clr { color: #fca5a5; }
+  .sc-k.eq { background: linear-gradient(120deg, #14b8a6, #5eead4); color: #04201d; border: 0; }
+  .sc-hist { display: grid; gap: 4px; }
+  .sc-hl { margin: 4px 0 0; font-size: 12.5px; color: var(--muted); }
+  .sc-hi { display: flex; justify-content: space-between; gap: 10px; font: inherit; font-size: 14px; text-align: left; color: var(--muted); background: rgba(11, 35, 40, .6); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; cursor: pointer; }
+  .sc-hi b { color: var(--ink); }
+  @media (max-width: 640px) { .sc-pad.sci { grid-template-columns: repeat(4, 1fr); } }
+  .gsel { font: inherit; font-size: 15px; color: var(--ink); background: #061c20; border: 1.5px solid #1f5158; border-radius: 10px; padding: 9px 8px; color-scheme: dark; }
+  .calc-form.inner { padding: 0; border: 0; background: none; }
+  .res-table { border: 1px solid var(--line); border-radius: 14px; background: rgba(11, 35, 40, .6); }
+  .res-table summary { cursor: pointer; padding: 10px 14px; font-weight: 700; color: #5eead4; }
+  .tbl-wrap { max-height: 360px; overflow: auto; }
+  .res-table table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .res-table th, .res-table td { padding: 6px 10px; text-align: right; border-top: 1px solid var(--line); white-space: nowrap; }
+  .res-table th { position: sticky; top: 0; background: #0b2328; color: var(--muted); }
+
+  .fld textarea { flex: 1; font: inherit; font-size: 16px; color: var(--ink); background: #061c20; border: 1.5px solid #1f5158; border-radius: 12px; padding: 10px 12px; }
+  .gbar { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; }
+  .gbar .tab { background: rgba(5, 21, 24, .7); border: 1px solid var(--line); }
+  .gcanvas { width: 100%; border-radius: 14px; border: 1px solid #1f5158; touch-action: none; cursor: grab; display: block; }
+
+  .cat-sec.grouped { grid-column: 1 / -1; }
+  .cat-sec.grouped { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; align-items: start; }
+  .cat-sec.grouped > .cat-title { grid-column: 1 / -1; }
+  .sub-group { border: 1px solid rgba(94, 234, 212, .14); border-radius: 14px; padding: 12px 10px 12px; background: rgba(5, 21, 24, .35); height: 100%; }
+  .sub-title { margin: 0 0 10px; text-align: center; font-size: 14px; font-weight: 700; color: #9cd9cf; letter-spacing: .02em; }
+  .sub-group .chips { gap: 6px; }
+  .sub-group .chip { font-size: 14.5px; padding: 7px 12px; }
+  @media (max-width: 1000px) { .cat-sec.grouped { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .cat-sec.grouped { grid-template-columns: 1fr; } }
+  .res-err { margin: 0; text-align: center; color: #fca5a5; }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><canvas id="bgCanvas"></canvas></div>
+<script>
+// ═══ 배경: 점 격자 물결면 + 노드 연결선 + 계측 눈금 ═══════════════════
+(function () {
+  var cv = document.getElementById('bgCanvas');
+  if (!cv || !cv.getContext) return;
+  var ctx = cv.getContext('2d');
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var W = 0, H = 0, DPR = 1, small = false;
+  var COLS, ROWS, grid = [], nodes = [], floaters = [], last = 0, raf = 0, t0 = performance.now();
+
+  function setup() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth; H = window.innerHeight;
+    cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    small = W < 700;
+    COLS = small ? 84 : 150; ROWS = small ? 18 : 28;
+    grid = [];
+    for (var r = 0; r < ROWS; r++) {
+      for (var c = 0; c < COLS; c++) {
+        grid.push({ u: c / (COLS - 1) * 2 - 1, v: r / (ROWS - 1) });   // u: 좌우 -1~1, v: 앞(0)~뒤(1)
+      }
+    }
+    // 노드: 격자 위 임의의 점에 붙어 물결을 따라 움직임
+    nodes = [];
+    var n = small ? 8 : 14;
+    for (var i = 0; i < n; i++) {
+      var rr = 2 + Math.floor(Math.random() * (ROWS - 6));
+      var cc = Math.floor(COLS * 0.08) + Math.floor(Math.random() * COLS * 0.84);
+      nodes.push({ idx: rr * COLS + cc, phase: Math.random() * Math.PI * 2, label: Math.random() < 0.4, seed: Math.random() * 1000 });
+    }
+    // 위쪽 공간에 떠다니는 노드 (시스템 연결망)
+    floaters = [];
+    var m = small ? 0 : 16;   // 휴대폰에서는 제목을 가리지 않도록 생략
+    for (var k = 0; k < m; k++) {
+      var leftSide = k % 2 === 0;
+      var lo = small ? 0.02 : (leftSide ? 0.02 : 0.78), hi = small ? 0.98 : (leftSide ? 0.22 : 0.98);
+      floaters.push({ x: lo + Math.random() * (hi - lo), y: 0.06 + Math.random() * 0.36, minX: lo, maxX: hi, vx: (Math.random() - 0.5) * 0.006, vy: (Math.random() - 0.5) * 0.004,
+        phase: Math.random() * Math.PI * 2, label: Math.random() < 0.3, seed: Math.random() * 1000 });
+    }
+  }
+
+  // 여러 파동을 겹친 비선형 높이 함수
+  function height(u, v, t) {
+    var x = u * 3.2, z = v * 4.0;
+    return 0.55 * Math.sin(x * 1.3 + t * 0.35 + z * 0.6)
+         + 0.35 * Math.sin(z * 2.1 - t * 0.27 + Math.sin(x * 0.7 + t * 0.11) * 1.6)
+         + 0.22 * Math.sin((x + z) * 2.7 + t * 0.52)
+         + 0.12 * Math.sin(x * 5.3 - z * 3.1 - t * 0.8);
+  }
+
+  function project(u, v, y) {
+    var depth = 1 + v * 4.2;                      // 1(앞) ~ 5.2(뒤)
+    var horizon = H * 0.44;
+    var sx = W / 2 + u * W * 1.15 / depth;
+    var sy = horizon + (1 - y * 0.28) * H * 0.58 / depth;
+    return { x: sx, y: sy, s: 1 / depth };
+  }
+
+  function drawTicks() {
+    ctx.fillStyle = 'rgba(94,234,212,0.16)';
+    var step = 24;
+    for (var x = step; x < W; x += step) {
+      var big = (x / step) % 8 === 0;
+      ctx.fillRect(x, 14, big ? 2 : 1, big ? 2 : 1);
+      ctx.fillRect(x, H - 16, big ? 2 : 1, big ? 2 : 1);
+    }
+    for (var y = step; y < H; y += step) {
+      var big2 = (y / step) % 8 === 0;
+      ctx.fillRect(14, y, big2 ? 2 : 1, big2 ? 2 : 1);
+      ctx.fillRect(W - 16, y, big2 ? 2 : 1, big2 ? 2 : 1);
+    }
+  }
+
+  function frame(now) {
+    raf = requestAnimationFrame(frame);
+    if (document.hidden || document.body.classList.contains('layer-open')) return;
+    var minGap = small ? 1000 / 24 : 1000 / 30;
+    if (now - last < minGap) return;
+    last = now;
+    render((now - t0) / 1000);
+  }
+
+  function render(t) {
+    ctx.clearRect(0, 0, W, H);
+    drawTicks();
+
+    // 점 격자 물결면 (뒤에서 앞으로)
+    var pts = new Array(grid.length);
+    for (var i = grid.length - 1; i >= 0; i--) {
+      var g = grid[i];
+      var y = height(g.u, g.v, t);
+      var p = project(g.u, g.v, y);
+      pts[i] = p;
+      if (p.x < -10 || p.x > W + 10 || p.y < -10 || p.y > H + 10) continue;
+      var crest = (y + 1.2) / 2.4;                // 0~1, 마루일수록 밝게
+      var a = (0.16 + 0.62 * p.s) * (0.40 + 0.90 * crest);
+      var r = 0.8 + 1.8 * p.s + crest * 0.6;
+      ctx.fillStyle = 'rgba(94,234,212,' + Math.min(a * 0.9, 0.8).toFixed(3) + ')';
+      ctx.fillRect(p.x - r / 2, p.y - r / 2, r, r);
+    }
+
+    // 노드와 점선 연결
+    var np = nodes.map(function (n) {
+      var p = pts[n.idx];
+      return { x: p.x, y: p.y - 26 * p.s - 6, s: p.s, n: n, anchored: true };
+    });
+    floaters.forEach(function (f) {
+      f.x += f.vx / 30; f.y += f.vy / 30;
+      if (f.x < f.minX || f.x > f.maxX) f.vx *= -1;
+      if (f.y < 0.05 || f.y > 0.45) f.vy *= -1;
+      np.push({ x: f.x * W + Math.sin(t * 0.3 + f.phase) * 12, y: f.y * H + Math.cos(t * 0.25 + f.phase) * 8, s: 0.45, n: f, anchored: false });
+    });
+    ctx.setLineDash([1, 5]);
+    ctx.lineWidth = 1;
+    var maxD = small ? 150 : 230;
+    for (var a1 = 0; a1 < np.length; a1++) {
+      for (var b1 = a1 + 1; b1 < np.length; b1++) {
+        var dx = np[a1].x - np[b1].x, dy = np[a1].y - np[b1].y;
+        var d = Math.sqrt(dx * dx + dy * dy);
+        if (d > maxD) continue;
+        var al = (1 - d / maxD) * 0.5;
+        ctx.strokeStyle = 'rgba(94,234,212,' + al.toFixed(3) + ')';
+        ctx.beginPath(); ctx.moveTo(np[a1].x, np[a1].y); ctx.lineTo(np[b1].x, np[b1].y); ctx.stroke();
+      }
+    }
+    // 노드에서 수면까지 내려오는 점선
+    ctx.setLineDash([1, 3]);
+    np.forEach(function (q) {
+      if (!q.anchored) return;
+      var base = pts[q.n.idx];
+      ctx.strokeStyle = 'rgba(94,234,212,0.14)';
+      ctx.beginPath(); ctx.moveTo(q.x, q.y); ctx.lineTo(base.x, base.y); ctx.stroke();
+    });
+    ctx.setLineDash([]);
+
+    ctx.font = '10px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace';
+    np.forEach(function (q) {
+      var pulse = 0.5 + 0.5 * Math.sin(t * 1.4 + q.n.phase);
+      var r = 1.6 + 2.2 * q.s;
+      ctx.fillStyle = 'rgba(94,234,212,' + (0.30 + 0.30 * pulse).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = 'rgba(94,234,212,' + (0.22 * (1 - pulse)).toFixed(3) + ')';
+      ctx.beginPath(); ctx.arc(q.x, q.y, r + 4 + 8 * pulse, 0, Math.PI * 2); ctx.stroke();
+    });
+  }
+
+  setup();
+  window.addEventListener('resize', function () { setup(); if (reduce) render(8); });
+  if (reduce) render(8);
+  else raf = requestAnimationFrame(frame);
+})();
+</script>
+<main class="main">
+  <h1>세상의 모든 계산기</h1>
+  <p class="lead">공학 계산기부터 연봉 실수령액, 대출 이자, 취득세, BMI, 음력 변환까지. 필요한 계산기를 눌러 바로 계산해 보세요.</p>
+  <div class="search" role="search">
+    <span class="ico" aria-hidden="true">🔎</span>
+    <input type="search" id="q" placeholder="어떤 계산이 필요하세요? 예: 실수령액, 대출, 평수" aria-label="계산기 검색" autocomplete="off">
+    <button type="button" class="clear" id="qClear" aria-label="검색어 지우기" hidden>✕</button>
+  </div>
+  <p class="search-result" id="qResult" aria-live="polite"></p>
+  <nav class="jump" id="jump" aria-label="분류 바로가기"></nav>
+  <div class="cat-list" id="cats"></div>
+  <p class="empty-result" id="noResult">찾는 계산기가 없어요. 다른 단어로 검색해 보세요.</p>
+  <aside class="ad-slot ad-page" aria-label="광고">
+    <span class="ad-tag">광고</span>
+    <div class="ad-fit"><div class="ad-frame" id="adPageFrame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	// 화면이 넓으면 1040px 배너, 좁으면(태블릿·휴대폰) 680px 배너를 넣고, 둘 다 칸 폭에 맞춰 늘고 줄어요.
+	(function () {
+		var wide = (window.innerWidth || document.documentElement.clientWidth) >= 760;
+		var frame = document.getElementById('adPageFrame');
+		frame.setAttribute('data-w', wide ? '1040' : '680');
+		frame.style.setProperty('--ad-w', (wide ? 1040 : 680) + 'px');
+		if (wide) {
+			new PartnersCoupang.G({"id":1049550,"template":"carousel","trackingCode":"AF6707602","width":"1040","height":"140","tsource":""});
+		} else {
+			new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+		}
+	})();
+</script>
+    </div></div>
+  </aside>
+</main>
+<dialog class="layer" id="layer" aria-labelledby="layerTitle">
+  <div class="layer-inner" tabindex="-1">
+    <header class="layer-head">
+      <span class="layer-emo" id="layerEmo" aria-hidden="true"></span>
+      <div class="layer-titles"><p class="layer-sub" id="layerSub"></p><h2 class="layer-title" id="layerTitle">항목</h2></div>
+      <button type="button" class="close" id="closeBtn" aria-label="닫기"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </header>
+    <div class="layer-scroll" id="layerScroll">
+      <div class="layer-body" id="layerBody"></div>
+      <aside class="ad-slot ad-layer" aria-label="광고">
+        <span class="ad-tag">광고</span>
+        <div class="ad-fit"><div class="ad-frame">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049548,"template":"carousel","trackingCode":"AF6707602","width":"680","height":"140","tsource":""});
+</script>
+        </div></div>
+      </aside>
+    </div>
+  </div>
+</dialog>
+
+<dialog class="ad-gate" id="adGate" aria-label="광고">
+  <div class="ad-gate-inner" tabindex="-1">
+    <p class="ad-gate-tag">광고</p>
+    <div class="ad-slot ad-gate-slot" style="--ad-w:400px; --ad-h:400px;">
+      <div class="ad-fit"><div class="ad-frame" data-w="400">
+<script src="https://ads-partners.coupang.com/g.js"></script>
+<script>
+	new PartnersCoupang.G({"id":1049552,"template":"carousel","trackingCode":"AF6707602","width":"400","height":"400","tsource":""});
+</script>
+      </div></div>
+    </div>
+    <p class="ad-gate-wait" aria-live="polite">잠시만 기다려 주세요.</p>
+    <div class="ad-gate-bar" aria-hidden="true"><span id="adGateBar"></span></div>
+  </div>
+</dialog>
+<script>
+var DATA = [{"id": "math", "emoji": "🧮", "name": "수학", "items": [{"c": "sci", "e": "🧮", "n": "일반·공학 계산기", "s": "사칙연산부터 √, 삼각함수, 로그까지 계산해요. 키보드로도 입력할 수 있어요.", "k": ["계산기", "일반계산기", "공학용계산기", "사칙연산", "루트", "로그", "삼각함수"], "g": "🧮 일반 계산"}, {"c": "graph", "e": "📈", "n": "함수 그래프", "s": "식을 넣으면 그래프를 그리고 x절편·극값·교점을 찾아 줘요.", "k": ["그래프", "함수그래프", "이차함수", "일차함수", "교점", "극값", "그래프그리기"], "g": "🧮 일반 계산"}, {"c": "cas", "e": "∫", "n": "식 계산 (인수분해·미분·적분)", "s": "인수분해, 전개, 미분, 적분, 방정식 풀이를 식으로 계산해요.", "k": ["인수분해", "전개", "미분", "적분", "도함수", "부정적분", "정적분", "방정식", "근", "다항식"], "g": "🧮 일반 계산"}, {"c": "powroot", "e": "✖️", "n": "거듭제곱·제곱근", "s": "xⁿ과 n제곱근을 계산해요.", "k": ["거듭제곱", "제곱근", "루트", "세제곱"], "g": "🧮 일반 계산"}, {"c": "base", "e": "🔢", "n": "진법 변환", "s": "2·8·10·16진수를 서로 바꿔요.", "k": ["진법", "2진수", "16진수", "이진수", "변환"], "g": "🧮 일반 계산"}, {"c": "frac", "e": "➗", "n": "분수 계산", "s": "분수의 덧셈·뺄셈·곱셈·나눗셈을 기약분수와 대분수로 계산해요.", "k": ["분수", "분수계산", "기약분수", "대분수", "통분"], "g": "🧒 초등수학"}, {"c": "ratio", "e": "⚖️", "n": "비례식", "s": "비와 비율, 비례식 a : b = c : x를 풀어요.", "k": ["비례식", "비율", "비례", "내항", "외항"], "g": "🧒 초등수학"}, {"c": "stats", "e": "📊", "n": "평균", "s": "자료의 평균을 구해요. (중학교에서 배우는 중앙값·최빈값·표준편차도 함께 나와요)", "k": ["평균", "표준편차", "중앙값", "최빈값", "분산", "통계"], "g": "🧒 초등수학"}, {"c": "shape", "e": "🔺", "n": "도형 넓이·부피", "s": "평면도형의 넓이·둘레와 입체도형의 부피·겉넓이를 구해요.", "k": ["도형", "넓이", "부피", "겉넓이", "원넓이", "삼각형"], "g": "🧒 초등수학"}, {"c": "prime", "e": "🧩", "n": "약수·배수 (최대공약수)", "s": "약수와 배수, 최대공약수·최소공배수를 구해요.", "k": ["소인수분해", "최대공약수", "최소공배수", "소수", "약수"], "g": "🧒 초등수학"}, {"c": "prime", "e": "🧩", "n": "소인수분해·최대공약수", "s": "소인수분해와 최대공약수·최소공배수를 구해요. (중1)", "k": ["소인수분해", "최대공약수", "최소공배수", "소수", "약수"], "g": "📘 중등수학"}, {"c": "linsys", "e": "🟰", "n": "방정식·연립방정식·부등식", "s": "일차방정식, 연립방정식, 일차부등식을 풀어요. (중1~2)", "k": ["연립방정식", "일차방정식", "부등식", "일차부등식", "방정식풀이"], "g": "📘 중등수학"}, {"c": "line", "e": "📉", "n": "일차함수 (직선의 방정식)", "s": "일차함수: 두 점·기울기로 직선의 방정식을 구해요. (중2)", "k": ["직선의방정식", "기울기", "일차함수", "두점", "중점", "거리"], "g": "📘 중등수학"}, {"c": "quad", "e": "📐", "n": "이차방정식 풀이", "s": "이차방정식을 근의 공식으로 풀어요. (중3)", "k": ["이차방정식", "근의공식", "판별식", "방정식"], "g": "📘 중등수학"}, {"c": "triangle", "e": "📐", "n": "피타고라스·삼각비", "s": "피타고라스 정리와 삼각비(sin·cos·tan)를 계산해요. (중2~3)", "k": ["삼각비", "피타고라스", "사인법칙", "코사인법칙", "삼각형", "sin", "cos", "tan"], "g": "📘 중등수학"}, {"c": "perm", "e": "🎲", "n": "경우의 수·확률", "s": "경우의 수와 확률을 계산해요. (중2)", "k": ["순열", "조합", "중복조합", "경우의수", "확률", "팩토리얼", "nCr", "nPr"], "g": "📘 중등수학"}, {"c": "stats", "e": "📊", "n": "대푯값·산포도", "s": "대푯값(평균·중앙값·최빈값)과 산포도(분산·표준편차)를 구해요. (중1·중3)", "k": ["평균", "표준편차", "중앙값", "최빈값", "분산", "통계"], "g": "📘 중등수학"}, {"c": "graph", "e": "📈", "n": "함수 그래프", "s": "일차함수·이차함수 그래프를 그리고 교점·꼭짓점을 찾아요. (중2~3)", "k": ["그래프", "함수그래프", "이차함수", "일차함수", "교점", "극값", "그래프그리기"], "g": "📘 중등수학"}, {"c": "quad", "e": "📐", "n": "이차방정식 풀이", "s": "이차방정식의 판별식, 허근까지 구해요. (공통수학)", "k": ["이차방정식", "근의공식", "판별식", "방정식"], "g": "🎓 고등수학"}, {"c": "cas", "e": "∫", "n": "식 계산 (인수분해·미분·적분)", "s": "다항식 전개·인수분해, 미분·적분을 식으로 계산해요.", "k": ["인수분해", "전개", "미분", "적분", "도함수", "부정적분", "정적분", "방정식", "근", "다항식"], "g": "🎓 고등수학"}, {"c": "perm", "e": "🎲", "n": "순열·조합", "s": "순열·조합·중복조합과 확률을 계산해요. (공통수학·확률과 통계)", "k": ["순열", "조합", "중복조합", "경우의수", "확률", "팩토리얼", "nCr", "nPr"], "g": "🎓 고등수학"}, {"c": "seq", "e": "🔢", "n": "수열 (등차·등비·Σ)", "s": "등차·등비수열의 일반항과 합, 시그마 합을 구해요.", "k": ["수열", "등차수열", "등비수열", "시그마", "급수"], "g": "🎓 고등수학"}, {"c": "logexp", "e": "🪵", "n": "지수·로그", "s": "로그값, 거듭제곱, 지수방정식을 계산해요.", "k": ["로그", "지수", "log", "상용로그", "자연로그", "지수방정식"], "g": "🎓 고등수학"}, {"c": "dist", "e": "🔔", "n": "확률분포 (이항·정규)", "s": "이항분포 확률과 정규분포 구간 확률(표준정규분포표)을 계산해요.", "k": ["이항분포", "정규분포", "표준정규분포", "확률분포", "z값", "표준정규분포표"], "g": "🎓 고등수학"}, {"c": "triangle", "e": "📐", "n": "삼각형 풀이 (사인·코사인 법칙)", "s": "사인 법칙·코사인 법칙으로 삼각형을 풀어요. (대수)", "k": ["삼각비", "피타고라스", "사인법칙", "코사인법칙", "삼각형", "sin", "cos", "tan"], "g": "🎓 고등수학"}, {"c": "matrix", "e": "🧮", "n": "행렬", "s": "행렬식, 역행렬, 전치, 행렬의 덧셈·곱셈을 계산해요.", "k": ["행렬", "행렬식", "역행렬", "행렬곱셈"], "g": "🎓 고등수학"}, {"c": "vector", "e": "➡️", "n": "벡터", "s": "벡터의 크기, 내적, 사잇각, 외적을 계산해요.", "k": ["벡터", "내적", "외적", "사잇각", "단위벡터"], "g": "🎓 고등수학"}, {"c": "calcnum", "e": "📏", "n": "미적분 수치 계산", "s": "정적분 값, 미분계수와 접선, 극한, 함숫값 표를 구해요.", "k": ["정적분", "미분계수", "접선", "극한", "넓이", "미적분"], "g": "🎓 고등수학"}]}, {"id": "money", "emoji": "💰", "name": "돈·급여", "items": [{"c": "salary", "e": "💵", "n": "연봉 실수령액", "s": "2026년 4대보험 요율로 월 실수령액을 계산해요.", "k": ["실수령액", "연봉", "월급", "세후", "4대보험", "연봉계산기"]}, {"c": "sal2hour", "e": "⏳", "n": "연봉 → 시급", "s": "연봉을 주휴 포함 유급시간으로 나눠 시급으로 바꿔요.", "k": ["연봉시급", "시급환산", "연봉을시급으로"]}, {"c": "hourly", "e": "⏱️", "n": "시급 ↔ 월급", "s": "시급을 월급으로 바꾸고 연장·야간·휴일 수당까지 계산해요.", "k": ["시급", "월급", "주휴수당", "최저임금", "알바", "연장수당", "야간수당", "휴일수당", "가산수당"]}, {"c": "raise", "e": "📈", "n": "연봉 인상 계산", "s": "인상률로 새 연봉과 월 차이를 계산해요.", "k": ["연봉인상", "인상률", "연봉협상"]}, {"c": "severance", "e": "🧾", "n": "퇴직금", "s": "입사일·퇴사일과 급여로 예상 퇴직금을 계산해요.", "k": ["퇴직금", "퇴직금계산", "평균임금"]}, {"c": "vat", "e": "🧮", "n": "부가세", "s": "공급가액과 부가세 10%를 나눠 계산해요.", "k": ["부가세", "부가가치세", "공급가액", "VAT"]}, {"c": "percent", "e": "％", "n": "퍼센트·할인율", "s": "할인율, 할인가, 증감률을 계산해요.", "k": ["퍼센트", "할인율", "할인", "증감률", "비율"]}, {"c": "dutch", "e": "🍽️", "n": "더치페이 (N빵)", "s": "똑같이 나누거나, '내가 더 낼게'·'술 안 마신 사람은 덜 내기'까지 반영해 1인당 금액을 계산해요.", "k": ["더치페이", "N빵", "엔빵", "정산", "더낼게", "덜내기", "사람별정산"]}]}, {"id": "work", "emoji": "👔", "name": "근로·복지", "items": [{"c": "annual", "e": "🏖️", "n": "연차 개수", "s": "입사일로 올해 연차와 근속 연수별 연차를 계산해요.", "k": ["연차", "연차개수", "연차계산", "휴가", "연차일수"]}, {"c": "ub", "e": "🧾", "n": "실업급여", "s": "평균임금·나이·가입 기간으로 구직급여를 계산해요.", "k": ["실업급여", "구직급여", "실업급여계산", "퇴사"]}, {"c": "parental", "e": "👶", "n": "육아휴직 급여", "s": "월별 육아휴직 급여와 6+6 부모육아휴직제를 계산해요.", "k": ["육아휴직", "육아휴직급여", "6+6", "부모육아휴직"]}, {"c": "juhu", "e": "📆", "n": "주휴수당", "s": "시급과 주 근무시간으로 주휴수당을 계산해요.", "k": ["주휴수당", "주휴", "알바", "시급"]}, {"c": "free33", "e": "🧑‍💻", "n": "프리랜서 3.3%", "s": "세전·세후 금액과 원천징수액을 계산해요.", "k": ["3.3%", "프리랜서", "원천징수", "사업소득", "세후"]}, {"c": "pension", "e": "👵", "n": "국민연금 예상 수령액", "s": "평균 소득과 가입 기간으로 대략적인 월 연금을 계산해요.", "k": ["국민연금", "연금수령액", "노령연금", "예상연금"]}]}, {"id": "biz", "emoji": "🏪", "name": "사장님", "items": [{"c": "margin", "e": "💹", "n": "마진율·판매가", "s": "원가와 판매가로 마진율을, 목표 마진율로 판매가를 계산해요.", "k": ["마진율", "마진", "판매가", "원가", "이익률", "마크업"]}, {"c": "payroll", "e": "🧑‍🍳", "n": "사업주 인건비", "s": "월급에 사업주 4대보험·퇴직금 적립을 더한 총 인건비를 계산해요.", "k": ["인건비", "사업주", "4대보험", "사업주부담", "직원월급"]}, {"c": "card", "e": "💳", "n": "카드 할부 수수료", "s": "할부 개월과 수수료율로 월 납부액과 총수수료를 계산해요.", "k": ["할부", "할부수수료", "카드할부", "무이자"]}, {"c": "prepay", "e": "🏦", "n": "대출 중도상환수수료", "s": "남은 기간에 따라 줄어드는 중도상환수수료를 계산해요.", "k": ["중도상환수수료", "중도상환", "대출상환"]}]}, {"id": "finance", "emoji": "🏦", "name": "금융", "items": [{"c": "loan", "e": "🏠", "n": "대출 이자·상환액", "s": "원리금균등·원금균등·만기일시 상환액을 계산해요.", "k": ["대출", "이자", "상환", "원리금균등", "원금균등", "주담대"]}, {"c": "saving", "e": "🐷", "n": "예금·적금 이자", "s": "세후 이자와 만기 수령액을 계산해요.", "k": ["예금", "적금", "이자", "만기", "세후이자"]}, {"c": "compound", "e": "🌱", "n": "복리 투자", "s": "매달 투자 시 복리로 불어나는 금액을 계산해요.", "k": ["복리", "투자", "수익", "적립식"]}, {"c": "stock", "e": "📉", "n": "주식 평단가 (물타기)", "s": "추가 매수 후 평균 단가와 수익률을 계산해요.", "k": ["평단가", "물타기", "불타기", "주식", "평균단가", "수익률"]}, {"c": "fx", "e": "💱", "n": "환율 계산", "s": "실시간 환율로 외화와 원화를 바꿔요.", "k": ["환율", "환전", "달러", "엔화", "유로", "환율계산"]}, {"c": "gift", "e": "🎁", "n": "증여세", "s": "관계별 공제를 반영해 증여세를 계산해요.", "k": ["증여세", "증여", "자녀증여", "부모증여", "증여공제"]}, {"c": "gold", "e": "🥇", "n": "금 시세 계산", "s": "금 무게와 순도로 현재 금 가치를 계산해요.", "k": ["금값", "금시세", "금한돈", "18K", "14K", "순금"]}]}, {"id": "realty", "emoji": "🏘️", "name": "부동산", "items": [{"c": "pyeong", "e": "📐", "n": "평수 ↔ ㎡", "s": "평과 제곱미터를 바꿔요.", "k": ["평수", "평", "제곱미터", "면적", "34평"]}, {"c": "acqtax", "e": "🧾", "n": "주택 취득세", "s": "주택 취득가로 취득세·지방교육세를 계산해요.", "k": ["취득세", "지방교육세", "농특세", "주택취득"]}, {"c": "brokerage", "e": "🤝", "n": "중개보수 (복비)", "s": "매매·전월세 중개보수 상한을 계산해요.", "k": ["중개보수", "복비", "중개수수료", "부동산수수료"]}, {"c": "conv", "e": "🔄", "n": "전월세 전환", "s": "전세와 월세를 법정 전환율로 바꿔요.", "k": ["전월세전환", "전환율", "월세", "전세"]}, {"c": "apply", "e": "🏢", "n": "청약 가점", "s": "무주택 기간·부양가족·통장 기간으로 가점을 계산해요.", "k": ["청약", "청약가점", "가점", "청약점수", "무주택"]}, {"c": "proptax", "e": "🏠", "n": "재산세 (주택)", "s": "공시가격으로 7월·9월 주택 재산세를 추정해요.", "k": ["재산세", "주택재산세", "공시가격", "보유세"]}]}, {"id": "health", "emoji": "🧍", "name": "건강", "items": [{"c": "bmi", "e": "⚖️", "n": "BMI 비만도", "s": "키와 몸무게로 비만도를 확인해요.", "k": ["BMI", "비만도", "체질량지수"]}, {"c": "bmr", "e": "🔥", "n": "기초대사량·칼로리", "s": "기초대사량과 목표별 칼로리, 탄수화물·단백질·지방 양을 계산해요.", "k": ["기초대사량", "칼로리", "BMR", "TDEE", "다이어트", "탄단지", "단백질", "식단", "매크로"]}, {"c": "stdweight", "e": "🎯", "n": "표준 체중", "s": "키로 표준 체중과 정상 범위를 계산해요.", "k": ["표준체중", "적정체중"]}, {"c": "water", "e": "💧", "n": "물 섭취량", "s": "하루에 마실 물의 양을 계산해요.", "k": ["물", "수분", "물섭취량"]}, {"c": "sleep", "e": "😴", "n": "수면 사이클", "s": "90분 주기로 개운한 기상·취침 시각을 알려 줘요.", "k": ["수면", "수면사이클", "기상시간", "취침시간"]}, {"c": "due", "e": "🤰", "n": "출산 예정일", "s": "마지막 생리일로 출산 예정일과 임신 주수를 계산해요.", "k": ["출산예정일", "임신주수", "임신"]}, {"c": "ovul", "e": "🌸", "n": "배란일·생리 주기", "s": "다음 생리 예정일과 배란일, 가임기를 계산해요.", "k": ["배란일", "생리주기", "가임기", "생리예정일"]}, {"c": "bodyfat", "e": "📏", "n": "체지방률", "s": "둘레 측정값으로 체지방률을 추정해요.", "k": ["체지방률", "체지방", "다이어트"]}, {"c": "exercise", "e": "🏃", "n": "운동 칼로리 소모", "s": "운동 종류·시간·체중으로 소모 칼로리를 계산해요.", "k": ["운동칼로리", "칼로리소모", "MET", "다이어트", "운동"]}, {"c": "pace", "e": "👟", "n": "러닝 페이스", "s": "거리와 기록으로 페이스와 예상 기록을 계산해요.", "k": ["러닝", "페이스", "마라톤", "달리기", "기록"]}, {"c": "petage", "e": "🐶", "n": "반려동물 나이", "s": "강아지·고양이 나이를 사람 나이로 바꿔요.", "k": ["강아지나이", "고양이나이", "반려동물", "사람나이"]}, {"c": "kidheight", "e": "📏", "n": "자녀 예상 키", "s": "부모 키로 자녀의 예상 최종 키를 계산해요.", "k": ["예상키", "키성장", "자녀키", "성장"]}]}, {"id": "date", "emoji": "📅", "name": "날짜", "items": [{"c": "dday", "e": "🎯", "n": "D-day·기념일", "s": "목표일까지 남은 날, 또는 사귄 날·결혼일 기준 100일·1000일·주년 기념일을 계산해요.", "k": ["디데이", "dday", "D-day", "남은날", "기념일", "사귄날", "100일", "1000일", "주년", "커플"]}, {"c": "age", "e": "🎂", "n": "만 나이·띠", "s": "생년월일로 만 나이와 띠를 계산해요.", "k": ["만나이", "나이계산", "띠", "생일"]}, {"c": "dateadd", "e": "➕", "n": "날짜 더하기·빼기", "s": "100일, 1000일 같은 날짜를 계산해요.", "k": ["날짜계산", "100일", "1000일", "기념일"]}, {"c": "datediff", "e": "↔️", "n": "날짜 차이", "s": "두 날짜 사이의 일수, 평일 수, 공휴일을 뺀 영업일 수를 계산해요.", "k": ["날짜차이", "기간계산", "일수", "근무일", "영업일", "공휴일제외", "근무일수"]}, {"c": "lunar", "e": "🌙", "n": "양력 ↔ 음력", "s": "양력과 음력(윤달 포함)을 서로 바꿔요.", "k": ["음력", "양력", "음력변환", "음력생일", "윤달"]}, {"c": "discharge", "e": "🎖️", "n": "전역일", "s": "입대일과 군별로 전역일과 남은 날을 계산해요.", "k": ["전역일", "전역", "군대", "입대", "제대"]}, {"c": "timecalc", "e": "⏰", "n": "시간 계산 (근무시간)", "s": "시작·종료 시각과 휴게 시간으로 근무시간을 계산해요.", "k": ["시간계산", "근무시간", "야간근무", "휴게시간"]}, {"c": "worldtime", "e": "🌍", "n": "세계 시간·시차", "s": "도시별 현재 시각과 서울과의 시차를 보여 줘요.", "k": ["세계시간", "시차", "현지시간", "해외시간"]}]}, {"id": "unit", "emoji": "🔁", "name": "단위 변환", "items": [{"c": "len", "e": "📏", "n": "길이", "s": "m, cm, inch, feet, 자 등을 바꿔요.", "k": ["길이", "인치", "피트", "센티", "단위변환"]}, {"c": "weight", "e": "⚖️", "n": "무게", "s": "kg, lb, 근, 돈, 냥 등을 바꿔요.", "k": ["무게", "파운드", "온스", "근", "돈", "냥"]}, {"c": "area", "e": "🗺️", "n": "넓이", "s": "㎡, 평, 에이커, 헥타르 등을 바꿔요.", "k": ["넓이", "면적", "에이커", "헥타르"]}, {"c": "volume", "e": "🧪", "n": "부피", "s": "L, mL, 갤런, 되, 말 등을 바꿔요.", "k": ["부피", "리터", "갤런", "되"]}, {"c": "temp", "e": "🌡️", "n": "온도", "s": "섭씨, 화씨, 켈빈을 바꿔요.", "k": ["온도", "섭씨", "화씨", "켈빈"]}, {"c": "cook", "e": "🥄", "n": "요리 계량", "s": "컵·큰술을 재료별 그램으로 바꿔요.", "k": ["요리", "계량", "컵", "큰술", "작은술", "그램"]}, {"c": "shoe", "e": "👟", "n": "신발 사이즈", "s": "mm를 US·UK·EU 사이즈로 바꿔요.", "k": ["신발사이즈", "US", "UK", "EU", "사이즈표"]}, {"c": "screen", "e": "📺", "n": "TV·모니터 인치", "s": "인치를 가로·세로 cm로 바꿔요.", "k": ["인치", "TV크기", "모니터크기", "화면크기", "65인치"]}]}, {"id": "life", "emoji": "🚗", "name": "생활", "items": [{"c": "elec", "e": "⚡", "n": "전기요금", "s": "사용량으로 주택용 누진제 전기요금을 계산해요.", "k": ["전기요금", "전기세", "누진제", "한전"]}, {"c": "fuel", "e": "⛽", "n": "유류비·연비", "s": "거리와 연비로 기름값을 계산해요.", "k": ["유류비", "기름값", "연비", "주유"]}, {"c": "gpa", "e": "🎓", "n": "학점 변환", "s": "4.5↔4.3 만점, 100점 환산을 해요.", "k": ["학점", "학점변환", "GPA", "4.5", "4.3"]}, {"c": "cartax", "e": "🚘", "n": "자동차세", "s": "배기량·차령으로 연 자동차세와 연납 금액을 계산해요.", "k": ["자동차세", "연납", "자동차세계산"]}, {"c": "alcohol", "e": "🍺", "n": "알코올 분해 시간", "s": "마신 양으로 혈중알코올농도와 분해 시간을 추정해요.", "k": ["알코올", "혈중알코올농도", "음주", "분해시간", "숙취", "위드마크"]}, {"c": "gpaavg", "e": "🧾", "n": "학점 평균 (GPA)", "s": "과목별 학점과 성적으로 평균 평점을 계산해요.", "k": ["학점평균", "평점", "GPA", "성적", "학점계산"]}]}];
+(function () {
+  var cats = document.getElementById('cats');
+  var jump = document.getElementById('jump');
+  var layer = document.getElementById('layer');
+  var layerBody = document.getElementById('layerBody');
+  var ITEMS = {};
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  // ── 첫 화면: 대분류 패널과 항목 버튼 ──
+  DATA.forEach(function (c) {
+    var sec = el('section', 'cat-sec');
+    sec.id = 'sec-' + c.id;
+    var t = el('h2', 'cat-title');
+    var inner = el('span');
+    inner.append(el('span', 'emo', c.emoji + ' '), document.createTextNode(c.name));
+    t.appendChild(inner);
+    sec.appendChild(t);
+    var wrap = el('div', 'chips'), lastG = null, holder = sec;
+    if (c.items.some(function (x) { return x.g; })) { sec.classList.add('grouped'); }
+    c.items.forEach(function (it, i) {
+      it.id = c.id + '-' + (i + 1); it.cat = c; ITEMS[it.id] = it;
+      if (it.g && it.g !== lastG) { lastG = it.g; var grp = el('div', 'sub-group'); grp.appendChild(el('p', 'sub-title', it.g)); wrap = el('div', 'chips'); grp.appendChild(wrap); sec.appendChild(grp); holder = null; }
+      var b = el('button', 'chip');
+      b.type = 'button';
+      b.setAttribute('aria-haspopup', 'dialog');
+      b.setAttribute('data-item', it.id);
+      b.append(el('span', 'e', it.e), document.createTextNode(it.n));
+      b.addEventListener('click', function () { requestOpen(it.id); });
+      wrap.appendChild(b);
+    });
+    if (holder) sec.appendChild(wrap);
+    cats.appendChild(sec);
+
+    var j = el('button', 'jump-btn', c.emoji + ' ' + c.name);
+    j.type = 'button';
+    j.addEventListener('click', function () {
+      sec.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'start' });
+      sec.classList.remove('flash'); void sec.offsetWidth; sec.classList.add('flash');
+    });
+    jump.appendChild(j);
+  });
+
+  // ── 상황 검색: 항목 이름·요약·본문에서 찾아 버튼만 걸러 보여줘요 ──
+  var q = document.getElementById('q'), qClear = document.getElementById('qClear'), qResult = document.getElementById('qResult'), noResult = document.getElementById('noResult');
+  // 검색: 띄어쓰기·대소문자 무시, 상황 이름·다른 이름(별칭)·본문에서 찾기
+  function norm(t) { return String(t || '').toLowerCase().replace(/\s+/g, ''); }
+  function textOf(it) { if (it._t) return it._t; it._t = norm([it.n, it.s, it.cat.name].concat(it.k || []).join(' ')); return it._t; }
+  function aliasHit(it, t) {
+    var list = it.k || [];
+    for (var i = 0; i < list.length; i++) {
+      var a = norm(list[i]);
+      if (a.length >= 2 && (t.indexOf(a) >= 0 || (t.length >= 2 && a.indexOf(t) === 0))) return true;
+    }
+    return false;
+  }
+  function filter() {
+    var raw = q.value.trim(), term = norm(raw);
+    qClear.hidden = !raw;
+    var total = 0, viaAlias = [];
+    DATA.forEach(function (c) {
+      var sec = document.getElementById('sec-' + c.id), shown = 0;
+      c.items.forEach(function (it) {
+        var b = sec.querySelector('[data-item="' + it.id + '"]');
+        var ok = true;
+        if (term) {
+          var byName = norm(it.n).indexOf(term) >= 0 || term.indexOf(norm(it.n)) >= 0 && norm(it.n).length >= 2;
+          var byAlias = aliasHit(it, term);
+          var byText = textOf(it).indexOf(term) >= 0 || norm(c.name).indexOf(term) >= 0;
+          ok = byName || byAlias || byText;
+          if (byAlias && !byName) viaAlias.push(it.n);
+        }
+        b.classList.toggle('dim', !ok);
+        b.classList.toggle('hit', !!term && ok);
+        if (ok) shown++;
+      });
+      sec.classList.toggle('dim', shown === 0);
+      Array.prototype.forEach.call(sec.querySelectorAll('.sub-group'), function (gEl) { gEl.hidden = !gEl.querySelector('.chip:not(.dim)'); });
+      total += shown;
+    });
+    jump.hidden = !!term;
+    noResult.classList.toggle('show', !!term && total === 0);
+    if (!term || !total) { qResult.textContent = ''; return; }
+    var msg = '‘' + raw + '’ 관련 계산기 ' + total + '개';
+    if (viaAlias.length) msg = '‘' + raw + '’ → ' + viaAlias.slice(0, 4).join(', ') + (viaAlias.length > 4 ? ' 외' : '') + ' · 관련 계산기 ' + total + '개';
+    qResult.textContent = msg;
+  }
+  q.addEventListener('input', filter);
+  qClear.addEventListener('click', function () { q.value = ''; filter(); q.focus(); });
+
+  // ── 팝업 내용 ──
+// ── 천문 계산 (절기·합삭) ──
+  function jdn(y, m, d) { var a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3; return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045; }
+  function sunLon(jd) { var n = jd - 2451545, L = (280.46 + 0.9856474 * n) % 360, g = (357.528 + 0.9856003 * n) * Math.PI / 180; return ((L + 1.915 * Math.sin(g) + 0.02 * Math.sin(2 * g)) % 360 + 360) % 360; }
+  function lonDiff(jd, target) { return ((sunLon(jd) - target + 540) % 360) - 180; }
+  function termJD(jd0, target, dir) {
+    var a = jd0, b = jd0;
+    for (var i = 0; i < 40; i++) { b = a + dir; if ((lonDiff(a, target) < 0) !== (lonDiff(b, target) < 0)) break; a = b; }
+    var lo = Math.min(a, b), hi = Math.max(a, b);
+    for (var k = 0; k < 40; k++) { var mid = (lo + hi) / 2; if ((lonDiff(lo, target) < 0) === (lonDiff(mid, target) < 0)) lo = mid; else hi = mid; }
+    return (lo + hi) / 2;
+  }
+  function jdToDate(jd) {
+    var Z = Math.floor(jd + 0.5), F = jd + 0.5 - Z, A = Z;
+    if (Z >= 2299161) { var al = Math.floor((Z - 1867216.25) / 36524.25); A = Z + 1 + al - Math.floor(al / 4); }
+    var B = A + 1524, C = Math.floor((B - 122.1) / 365.25), D = Math.floor(365.25 * C), E = Math.floor((B - D) / 30.6001);
+    var day = B - D - Math.floor(30.6001 * E) + F, mon = E < 14 ? E - 1 : E - 13, yr = mon > 2 ? C - 4716 : C - 4715;
+    return [yr, mon, Math.floor(day)];
+  }
+  function newMoon(k) {
+    var T = k / 1236.85, rad = Math.PI / 180;
+    var jde = 2451550.09766 + 29.530588861 * k + 0.00015437 * T * T;
+    var E = 1 - 0.002516 * T, M = (2.5534 + 29.1053567 * k) * rad, Mp = (201.5643 + 385.81693528 * k + 0.0107582 * T * T) * rad;
+    var F = (160.7108 + 390.67050284 * k - 0.0016118 * T * T) * rad, Om = (124.7746 - 1.56375588 * k) * rad;
+    jde += -0.4072 * Math.sin(Mp) + 0.17241 * E * Math.sin(M) + 0.01608 * Math.sin(2 * Mp) + 0.01039 * Math.sin(2 * F) + 0.00739 * E * Math.sin(Mp - M)
+      - 0.00514 * E * Math.sin(Mp + M) + 0.00208 * E * E * Math.sin(2 * M) - 0.00111 * Math.sin(Mp - 2 * F) - 0.00057 * Math.sin(Mp + 2 * F)
+      + 0.00056 * E * Math.sin(2 * Mp + M) - 0.00042 * Math.sin(3 * Mp) + 0.00042 * E * Math.sin(M + 2 * F) + 0.00038 * E * Math.sin(M - 2 * F)
+      - 0.00024 * E * Math.sin(2 * Mp - M) - 0.00017 * Math.sin(Om);
+    return jde - 70 / 86400;
+  }
+  function kstDay(jd) { var d = jdToDate(jd + 9 / 24); return jdn(d[0], d[1], d[2]); }
+  function dayStartJD(dayNum) { return dayNum - 0.5 - 9 / 24; }
+  // 동지가 든 달의 시작일(KST 일련번호)
+  function m11Start(S) {
+    var sol = termJD(jdn(S, 12, 15), 270, 1), solDay = kstDay(sol);
+    var k = Math.floor((sol - 2451550.1) / 29.530588861) - 2;
+    while (kstDay(newMoon(k + 1)) <= solDay) k++;
+    return { k: k, day: kstDay(newMoon(k)) };
+  }
+  var _win = {};
+  function lunarWindow(S) {
+    if (_win[S]) return _win[S];
+    var a = m11Start(S), b = m11Start(S + 1), starts = [];
+    for (var k = a.k; ; k++) { var d = kstDay(newMoon(k)); if (d >= b.day) break; starts.push(d); }
+    starts.push(b.day);
+    var n = starts.length - 1, months = [], leapUsed = false, num = 10;
+    for (var i = 0; i < n; i++) {
+      var s = starts[i], e = starts[i + 1];
+      var z1 = Math.floor(sunLon(dayStartJD(s)) / 30), z2 = Math.floor(sunLon(dayStartJD(e)) / 30);
+      var hasZ = z1 !== z2;
+      var leap = false;
+      if (n === 13 && !leapUsed && !hasZ && i > 0) { leap = true; leapUsed = true; }
+      else { num = num % 12 + 1; }
+      months.push({ start: s, len: e - s, m: num, leap: leap, ly: (num >= 11 && i < 3) ? S : S + 1 });
+    }
+    _win[S] = months;
+    return months;
+  }
+  function solarToLunar(y, m, d) {
+    var day = jdn(y, m, d);
+    for (var S = y - 1; S <= y; S++) {
+      var ms = lunarWindow(S);
+      for (var i = 0; i < ms.length; i++) { var x = ms[i]; if (day >= x.start && day < x.start + x.len) return { y: x.ly, m: x.m, d: day - x.start + 1, leap: x.leap, len: x.len }; }
+    }
+    return null;
+  }
+  function lunarToSolar(ly, lm, ld, leap) {
+    var cands = [lunarWindow(ly - 1), lunarWindow(ly)];
+    for (var c = 0; c < 2; c++) {
+      var ms = cands[c];
+      for (var i = 0; i < ms.length; i++) {
+        var x = ms[i];
+        if (x.ly === ly && x.m === lm && x.leap === !!leap) {
+          if (ld < 1 || ld > x.len) return { err: lm + '월은 ' + x.len + '일까지 있어요.' };
+          return { date: jdToDate(x.start + ld - 1 - 0.5 + 0.5) };
+        }
+      }
+    }
+    return { err: leap ? '그해에는 윤' + lm + '월이 없어요.' : '날짜를 찾지 못했어요.' };
+  }
+  function leapMonthOf(ly) {
+    var ws = [lunarWindow(ly - 1), lunarWindow(ly)];
+    for (var c = 0; c < 2; c++) for (var i = 0; i < ws[c].length; i++) if (ws[c][i].leap && ws[c][i].ly === ly) return ws[c][i].m;
+    return 0;
+  }
+  
+// ═══ 계산기 모음 ═══
+var R26 = { np: 0.0475, npMax: 6590000, npMin: 410000, hi: 0.03595, ltc: 0.1314, ei: 0.009, minWage: 10320, baseRate: 3.00 };
+function n0(v) { return Math.round(v).toLocaleString('ko-KR'); }
+function won(v) { return n0(v) + '원'; }
+function nf(v, d) { return Number(v).toLocaleString('ko-KR', { maximumFractionDigits: d == null ? 2 : d }); }
+function manwon(v) { v = Math.round(v); var eok = Math.floor(v / 1e8), man = Math.floor((v % 1e8) / 1e4), rest = v % 1e4; var s = ''; if (eok) s += eok + '억 '; if (man) s += man.toLocaleString('ko-KR') + '만 '; if (rest && !eok) s += rest.toLocaleString('ko-KR'); return (s.trim() || '0') + '원'; }
+function pd(s) { var p = (s || '').split('-'); return p.length === 3 ? [+p[0], +p[1], +p[2]] : null; }
+function dn(s) { var p = pd(s); return p ? jdn(p[0], p[1], p[2]) : null; }
+function ds(n) { var d = jdToDate(n); return d[0] + '년 ' + d[1] + '월 ' + d[2] + '일 (' + '일월화수목금토'[((n + 1) % 7 + 7) % 7] + ')'; }
+function todayStr() { var t = new Date(); return t.getFullYear() + '-' + ('0' + (t.getMonth() + 1)).slice(-2) + '-' + ('0' + t.getDate()).slice(-2); }
+// 소득세 (종합소득 기본세율)
+function incomeTax(base) {
+  var B = [[14e6, .06, 0], [50e6, .15, 1.26e6], [88e6, .24, 5.76e6], [150e6, .35, 15.44e6], [300e6, .38, 19.94e6], [500e6, .40, 25.94e6], [1e9, .42, 35.94e6], [Infinity, .45, 65.94e6]];
+  if (base <= 0) return 0;
+  for (var i = 0; i < B.length; i++) if (base <= B[i][0]) return base * B[i][1] - B[i][2];
+}
+function earnDeduct(g) {
+  if (g <= 5e6) return g * .7; if (g <= 15e6) return 3.5e6 + (g - 5e6) * .4; if (g <= 45e6) return 7.5e6 + (g - 15e6) * .15;
+  if (g <= 1e8) return 12e6 + (g - 45e6) * .05; return Math.min(2e7, 14.75e6 + (g - 1e8) * .02);
+}
+function earnCredit(tax, g) {
+  var c = tax <= 1.3e6 ? tax * .55 : 715000 + (tax - 1.3e6) * .3, lim;
+  if (g <= 33e6) lim = 740000; else if (g <= 70e6) lim = Math.max(660000, 740000 - (g - 33e6) * .008); else lim = Math.max(500000, 660000 - (g - 70e6) * .5);
+  return Math.min(c, lim);
+}
+var CALC = {
+  salary: { f: [['연봉', 'num', 40000000, '원'], ['월 비과세액 (식대 등)', 'num', 200000, '원'], ['부양가족 수 (본인 포함)', 'num', 1, '명']],
+    run: function (v) {
+      var annual = v[0], nt = Math.min(v[1], annual / 12), fam = Math.max(1, v[2]);
+      var m = annual / 12, taxable = m - nt;
+      var npBase = Math.min(R26.npMax, Math.max(R26.npMin, Math.floor(taxable / 1000) * 1000));
+      var np = npBase * R26.np, hi = taxable * R26.hi, ltc = hi * R26.ltc, ei = taxable * R26.ei;
+      var g = taxable * 12, ed = earnDeduct(g);
+      var base = g - ed - 1.5e6 * fam - np * 12 - (hi + ltc + ei) * 12;
+      var t = incomeTax(base); t = Math.max(0, t - earnCredit(t, g) - 130000);
+      var it = t / 12, lt = it * 0.1;
+      var ded = np + hi + ltc + ei + it + lt;
+      return { main: ['월 실수령액', won(m - ded)], rows: [['월 급여(세전)', won(m)], ['국민연금 (4.75%)', won(np)], ['건강보험 (3.595%)', won(hi)], ['장기요양 (건보료의 13.14%)', won(ltc)], ['고용보험 (0.9%)', won(ei)], ['소득세 (추정)', won(it)], ['지방소득세', won(lt)], ['공제 합계', won(ded)], ['연 실수령액', won((m - ded) * 12)]],
+        note: '2026년 4대보험 요율(국민연금 상한 659만원)을 적용했어요. 소득세는 국세청 간이세액표 대신 연간 세액을 공식으로 근사한 값이라 실제와 수천 원 차이가 날 수 있어요.' };
+    } },
+  hourly: { f: [['시급', 'num', R26.minWage, '원'], ['주 근무시간', 'num', 40, '시간']],
+    run: function (v) {
+      var w = v[1], weekly = w >= 15 ? Math.min(w, 40) / 40 * 8 : 0, monthH = w >= 40 ? 209 + (w - 40) * 365 / 7 / 12 : Math.round((w + weekly) * 365 / 7 / 12 * 10) / 10;
+      return { main: ['월급 (주휴수당 포함)', won(v[0] * monthH)], rows: [['월 환산 시간', nf(monthH, 1) + '시간'], ['주휴시간', nf(weekly, 1) + '시간/주'], ['연봉 환산', won(v[0] * monthH * 12)], ['2026년 최저임금 대비', v[0] >= R26.minWage ? '최저임금 이상' : '최저임금(10,320원) 미만이에요']],
+        note: '주 15시간 이상 일하면 주휴수당이 붙어요. 주 40시간이면 월 209시간으로 계산해요.' };
+    } },
+  severance: { f: [['입사일', 'date', '2020-03-02'], ['퇴사일', 'date', todayStr()], ['최근 3개월 월평균 급여', 'num', 3500000, '원'], ['연간 상여금', 'num', 0, '원'], ['연차수당 (연간)', 'num', 0, '원']],
+    run: function (v) {
+      var a = dn(v[0]), b = dn(v[1]); if (!a || !b || b <= a) return { err: '입사일과 퇴사일을 확인해 주세요.' };
+      var days = b - a, q = v[2] * 3 + v[3] * 3 / 12 + v[4] * 3 / 12, avg = q / 91;
+      if (days < 365) return { main: ['퇴직금', '대상 아님'], rows: [['재직일수', n0(days) + '일']], note: '퇴직금은 1년 이상 근무(주 15시간 이상)해야 받을 수 있어요.' };
+      return { main: ['예상 퇴직금 (세전)', won(avg * 30 * days / 365)], rows: [['재직일수', n0(days) + '일 (약 ' + nf(days / 365, 1) + '년)'], ['1일 평균임금', won(avg)]], note: '1일 평균임금 × 30일 × 재직일수 ÷ 365로 계산했어요. 최근 3개월 일수는 91일로 단순화했고, 퇴직소득세는 반영하지 않았어요.' };
+    } },
+  vat: { f: [['금액', 'num', 110000, '원'], ['입력한 금액', 'sel', 0, ['부가세 포함 합계', '공급가액(부가세 별도)']]],
+    run: function (v) {
+      var sup, vat;
+      if (v[1] === 0) { sup = Math.round(v[0] / 1.1); vat = Math.round(v[0]) - sup; } else { sup = Math.round(v[0]); vat = Math.floor(sup * 0.1); }
+      return { main: ['합계', won(sup + vat)], rows: [['공급가액', won(sup)], ['부가세 (10%)', won(vat)]], note: v[1] === 0 ? '합계에서 공급가액(합계 ÷ 1.1, 원 단위)을 빼서 부가세를 구해 합계와 정확히 맞춰요.' : '부가세는 공급가액의 10%이고 원 미만은 버려요.' };
+    } },
+  percent: { f: [['원래 값', 'num', 50000, ''], ['바뀐 값 또는 비율(%)', 'num', 35000, ''], ['계산', 'sel', 0, ['할인율 (원가→판매가)', '몇 % 할인하면?', '증감률', 'A는 B의 몇 %?']]],
+    run: function (v) {
+      var a = v[0], b = v[1];
+      if (v[2] === 0) return { main: ['할인율', nf((1 - b / a) * 100) + '%'], rows: [['할인 금액', won(a - b)]] };
+      if (v[2] === 1) return { main: ['할인가', won(a * (1 - b / 100))], rows: [['할인 금액', won(a * b / 100)]] };
+      if (v[2] === 2) return { main: ['증감률', (b >= a ? '+' : '') + nf((b - a) / a * 100) + '%'], rows: [['차이', nf(b - a)]] };
+      return { main: ['비율', nf(a / b * 100) + '%'], rows: [] };
+    } },
+  dutch: { f: [['총 금액', 'num', 87000, '원'], ['인원', 'num', 4, '명'], ['반올림 단위', 'sel', 2, ['1원', '10원', '100원', '1,000원']]],
+    run: function (v) {
+      var u = [1, 10, 100, 1000][v[2]], per = Math.ceil(v[0] / Math.max(1, v[1]) / u) * u;
+      return { main: ['1인당', won(per)], rows: [['모은 금액', won(per * v[1])], ['남는 금액', won(per * v[1] - v[0])]] };
+    } },
+  loan: { f: [['대출 금액', 'num', 300000000, '원'], ['연 이자율', 'num', 4.5, '%'], ['기간', 'num', 30, '년'], ['상환 방식', 'sel', 0, ['원리금균등', '원금균등', '만기일시']]],
+    run: function (v) {
+      var P = v[0], r = v[1] / 100 / 12, n = Math.round(v[2] * 12), total = 0, first, last;
+      if (v[3] === 0) { first = last = r ? P * r / (1 - Math.pow(1 + r, -n)) : P / n; total = first * n; }
+      else if (v[3] === 1) { first = P / n + P * r; last = P / n + (P / n) * r; total = P + P * r * (n + 1) / 2; }
+      else { first = last = P * r; total = P + P * r * n; }
+      return { main: [v[3] === 0 ? '월 상환액' : '첫 달 상환액', won(first)], rows: [['마지막 달 상환액', won(last + (v[3] === 2 ? P : 0))], ['총 이자', won(total - P)], ['총 상환액', won(total)]] };
+    } },
+  saving: { f: [['종류', 'sel', 1, ['예금 (목돈 예치)', '적금 (매달 납입)']], ['금액 (예금: 원금 / 적금: 월 납입액)', 'num', 500000, '원'], ['연 이자율', 'num', 3.5, '%'], ['기간', 'num', 12, '개월'], ['이자 과세', 'sel', 0, ['일반과세 15.4%', '세금우대 9.5%', '비과세']]],
+    run: function (v) {
+      var r = v[2] / 100, m = v[3], tax = [0.154, 0.095, 0][v[4]], interest, principal;
+      if (v[0] === 0) { principal = v[1]; interest = v[1] * r * m / 12; } else { principal = v[1] * m; interest = v[1] * r / 12 * m * (m + 1) / 2; }
+      var t = interest * tax;
+      return { main: ['세후 수령액', won(principal + interest - t)], rows: [['원금', won(principal)], ['세전 이자', won(interest)], ['이자 과세', won(t)], ['세후 이자', won(interest - t)]], note: '단리 기준이에요. 적금은 매달 같은 금액을 넣는 정액적립식으로 계산했어요.' };
+    } },
+  compound: { f: [['초기 금액', 'num', 10000000, '원'], ['매달 추가 투자', 'num', 500000, '원'], ['연 수익률', 'num', 6, '%'], ['기간', 'num', 10, '년']],
+    run: function (v) {
+      var r = v[2] / 100 / 12, n = v[3] * 12, fv = v[0] * Math.pow(1 + r, n) + (r ? v[1] * (Math.pow(1 + r, n) - 1) / r : v[1] * n), inv = v[0] + v[1] * n;
+      return { main: ['최종 금액', manwon(fv)], rows: [['투자 원금', manwon(inv)], ['수익', manwon(fv - inv)], ['수익률', nf((fv / inv - 1) * 100) + '%']], note: '월복리, 세금·수수료 제외 기준이에요.' };
+    } },
+  pyeong: { f: [['값', 'num', 84, ''], ['입력 단위', 'sel', 0, ['㎡ → 평', '평 → ㎡']]],
+    run: function (v) { return v[1] === 0 ? { main: ['평', nf(v[0] / 3.305785) + '평'], rows: [] } : { main: ['㎡', nf(v[0] * 3.305785) + '㎡'], rows: [] }; } },
+  acqtax: { f: [['주택 취득가', 'num', 700000000, '원'], ['전용면적 85㎡ 초과', 'sel', 0, ['아니요', '예']]],
+    run: function (v) {
+      var p = v[0], rate = p <= 6e8 ? 1 : p <= 9e8 ? (p * 2 / 3e8 - 3) : 3;
+      rate = Math.round(rate * 10000) / 10000;
+      var acq = p * rate / 100, edu = acq * 0.1, farm = v[1] ? p * 0.002 : 0;
+      return { main: ['총 납부세액', won(acq + edu + farm)], rows: [['취득세율', nf(rate, 4) + '%'], ['취득세', won(acq)], ['지방교육세', won(edu)], ['농어촌특별세', won(farm)]], note: '1주택(무주택자가 1채 구입) 일반세율 기준이에요. 다주택·법인 중과, 생애최초 감면은 반영하지 않았어요.' };
+    } },
+  brokerage: { f: [['거래 금액 (월세는 환산가)', 'num', 500000000, '원'], ['거래 종류', 'sel', 0, ['주택 매매·교환', '주택 전세·월세']]],
+    run: function (v) {
+      var p = v[0], T = v[1] === 0 ? [[5e7, .6, 250000], [2e8, .5, 800000], [9e8, .4, 0], [12e8, .5, 0], [15e8, .6, 0], [Infinity, .7, 0]] : [[5e7, .5, 200000], [1e8, .4, 300000], [6e8, .3, 0], [12e8, .4, 0], [15e8, .5, 0], [Infinity, .6, 0]];
+      var t = T.filter(function (x) { return p < x[0]; })[0], fee = p * t[1] / 100; if (t[2]) fee = Math.min(fee, t[2]);
+      return { main: ['최대 중개보수', won(fee)], rows: [['상한 요율', t[1] + '%'], ['한도액', t[2] ? won(t[2]) : '없음'], ['부가세 포함 (일반과세 중개사)', won(fee * 1.1)]], note: '월세 환산가 = 보증금 + 월세 × 100 (5천만 원 미만이면 × 70). 요율은 상한이라 협의할 수 있어요.' };
+    } },
+  conv: { f: [['계산', 'sel', 0, ['전세 → 월세', '월세 → 전세']], ['전세금 (또는 현재 보증금)', 'num', 300000000, '원'], ['바꿀 보증금 (전세→월세) / 월세액 (월세→전세)', 'num', 100000000, '원'], ['전환율', 'num', R26.baseRate + 2, '%']],
+    run: function (v) {
+      var r = v[3] / 100;
+      if (v[0] === 0) return { main: ['월세', won((v[1] - v[2]) * r / 12)], rows: [['보증금', won(v[2])]], note: '법정 전환율 상한은 기준금리(현재 3.00%) + 2%p = 5%예요.' };
+      return { main: ['환산 전세금', won(v[1] + v[2] * 12 / r)], rows: [], note: '전세금 = 보증금 + 월세 × 12 ÷ 전환율' };
+    } },
+  bmi: { f: [['키', 'num', 170, 'cm'], ['몸무게', 'num', 65, 'kg']],
+    run: function (v) {
+      var b = v[1] / Math.pow(v[0] / 100, 2), c = b < 18.5 ? '저체중' : b < 23 ? '정상' : b < 25 ? '비만 전 단계(과체중)' : b < 30 ? '1단계 비만' : b < 35 ? '2단계 비만' : '3단계 비만';
+      return { main: ['BMI', nf(b, 1) + ' · ' + c], rows: [['정상 체중 범위', nf(18.5 * Math.pow(v[0] / 100, 2), 1) + ' ~ ' + nf(22.9 * Math.pow(v[0] / 100, 2), 1) + 'kg']], note: '대한비만학회 기준이에요. BMI는 근육량을 반영하지 못하니 참고용으로 봐 주세요.' };
+    } },
+  bmr: { f: [['성별', 'sel', 0, ['남성', '여성']], ['나이', 'num', 30, '세'], ['키', 'num', 170, 'cm'], ['몸무게', 'num', 65, 'kg'], ['활동량', 'sel', 1, ['거의 없음', '가벼운 활동 (주 1~3일)', '보통 (주 3~5일)', '많음 (주 6~7일)', '매우 많음']]],
+    run: function (v) {
+      var b = 10 * v[3] + 6.25 * v[2] - 5 * v[1] + (v[0] === 0 ? 5 : -161), f = [1.2, 1.375, 1.55, 1.725, 1.9][v[4]];
+      return { main: ['하루 권장 칼로리', n0(b * f) + 'kcal'], rows: [['기초대사량', n0(b) + 'kcal'], ['체중 감량 목표 (-500)', n0(b * f - 500) + 'kcal']], note: 'Mifflin-St Jeor 공식과 활동계수로 계산했어요.' };
+    } },
+  stdweight: { f: [['성별', 'sel', 0, ['남성', '여성']], ['키', 'num', 170, 'cm']],
+    run: function (v) { var h = v[1] / 100, w = h * h * (v[0] === 0 ? 22 : 21); return { main: ['표준 체중', nf(w, 1) + 'kg'], rows: [['정상 범위 (±10%)', nf(w * .9, 1) + ' ~ ' + nf(w * 1.1, 1) + 'kg']], note: '키(m)² × 22(남성)·21(여성) 방식이에요.' }; } },
+  water: { f: [['몸무게', 'num', 65, 'kg'], ['운동 시간', 'num', 30, '분/일']],
+    run: function (v) { var ml = v[0] * 30 + v[1] / 30 * 350; return { main: ['하루 물 섭취 권장량', nf(ml / 1000, 1) + 'L'], rows: [['종이컵 (약 200ml)', nf(ml / 200, 0) + '컵']], note: '체중 1kg당 30ml + 운동 30분당 350ml로 계산했어요. 음식으로 섭취하는 수분도 포함된 양이에요.' }; } },
+  sleep: { f: [['계산', 'sel', 0, ['일어날 시간 → 잘 시간', '잘 시간 → 일어날 시간']], ['시각', 'time', '07:00']],
+    run: function (v) {
+      var p = v[1].split(':'), t = +p[0] * 60 + +p[1], out = [];
+      for (var c = 6; c >= 3; c--) { var x = v[0] === 0 ? t - c * 90 - 15 : t + c * 90 + 15; x = ((x % 1440) + 1440) % 1440; out.push([c + '주기 (' + nf(c * 1.5, 1) + '시간)', ('0' + Math.floor(x / 60)).slice(-2) + ':' + ('0' + x % 60).slice(-2)]); }
+      return { main: [v[0] === 0 ? '추천 취침 시각' : '추천 기상 시각', out[0][1] + ' 또는 ' + out[1][1]], rows: out, note: '수면 주기 90분, 잠드는 데 15분을 가정했어요.' };
+    } },
+  due: { f: [['마지막 생리 시작일', 'date', todayStr()]],
+    run: function (v) {
+      var a = dn(v[0]); if (!a) return { err: '날짜를 입력해 주세요.' };
+      var t = dn(todayStr()), w = t - a;
+      return { main: ['출산 예정일', ds(a + 280)], rows: [['현재 임신 주수', w >= 0 ? Math.floor(w / 7) + '주 ' + (w % 7) + '일' : '-'], ['출산까지', (a + 280 - t) + '일']], note: '네겔레 법칙(마지막 생리 시작일 + 280일) 기준이에요. 정확한 예정일은 초음파 검사로 확인해요.' };
+    } },
+  dday: { f: [['기준일', 'date', todayStr()], ['목표일', 'date', (new Date().getFullYear() + 1) + '-01-01']],
+    run: function (v) {
+      var a = dn(v[0]), b = dn(v[1]); if (!a || !b) return { err: '날짜를 입력해 주세요.' };
+      var d = b - a;
+      return { main: [d >= 0 ? 'D-day' : '지난 날', d > 0 ? 'D-' + d : d === 0 ? 'D-Day' : 'D+' + (-d)], rows: [['목표일', ds(b)], ['기준일 포함 일수', (Math.abs(d) + 1) + '일째'], ['주 단위', Math.floor(Math.abs(d) / 7) + '주 ' + Math.abs(d) % 7 + '일']] };
+    } },
+  age: { f: [['생년월일', 'date', '1990-05-15'], ['기준일', 'date', todayStr()]],
+    run: function (v) {
+      var a = pd(v[0]), b = pd(v[1]); if (!a || !b) return { err: '날짜를 입력해 주세요.' };
+      var man = b[0] - a[0] - ((b[1] < a[1] || (b[1] === a[1] && b[2] < a[2])) ? 1 : 0);
+      var animals = ['쥐', '소', '호랑이', '토끼', '용', '뱀', '말', '양', '원숭이', '닭', '개', '돼지'];
+      var nb = jdn(b[0], a[1], a[2]); if (nb < jdn(b[0], b[1], b[2])) nb = jdn(b[0] + 1, a[1], a[2]);
+      return { main: ['만 나이', man + '세'], rows: [['세는 나이 (한국식)', (b[0] - a[0] + 1) + '세'], ['띠 (양력 연도 기준)', animals[((a[0] - 4) % 12 + 12) % 12] + '띠'], ['다음 생일까지', (nb - jdn(b[0], b[1], b[2])) + '일'], ['태어난 지', n0(jdn(b[0], b[1], b[2]) - jdn(a[0], a[1], a[2])) + '일']], note: '만 나이는 생일이 지날 때마다 한 살씩 늘고, 2023년 6월부터 법적·사회적 기준 나이예요. 세는 나이는 태어나자마자 1살, 1월 1일마다 한 살씩 늘어나는 한국식 나이예요. 1~2월생은 설날 기준으로 띠가 다를 수 있어요.' };
+    } },
+  dateadd: { f: [['시작일', 'date', todayStr()], ['더할 일수 (빼려면 음수)', 'num', 100, '일']],
+    run: function (v) { var a = dn(v[0]); if (!a) return { err: '날짜를 입력해 주세요.' }; return { main: ['결과', ds(a + v[1])], rows: [['시작일 포함 계산 시', ds(a + v[1] - 1)]], note: '기념일(100일 등)은 보통 시작일을 1일로 세어 \'시작일 포함\' 날짜를 써요.' }; } },
+  datediff: { f: [['시작일', 'date', (new Date().getFullYear()) + '-01-01'], ['종료일', 'date', todayStr()]],
+    run: function (v) {
+      var a = dn(v[0]), b = dn(v[1]); if (!a || !b) return { err: '날짜를 입력해 주세요.' };
+      var d = Math.abs(b - a), wk = 0; for (var i = Math.min(a, b); i <= Math.max(a, b); i++) { var w = ((i + 1) % 7 + 7) % 7; if (w !== 0 && w !== 6) wk++; }
+      return { main: ['차이', n0(d) + '일'], rows: [['시작일 포함', n0(d + 1) + '일'], ['평일 수 (시작일·종료일 포함, 공휴일 미반영)', n0(wk) + '일'], ['개월 (대략)', nf(d / 30.4375, 1) + '개월']] };
+    } },
+  lunar: { f: [['변환', 'sel', 0, ['양력 → 음력', '음력 → 양력']], ['날짜 (음력→양력은 음력 날짜 입력)', 'date', todayStr()], ['윤달', 'sel', 0, ['평달', '윤달']]],
+    run: function (v) {
+      var p = pd(v[1]); if (!p) return { err: '날짜를 입력해 주세요.' };
+      if (p[0] < 1901 || p[0] > 2099) return { err: '1901~2099년 사이로 입력해 주세요.' };
+      if (v[0] === 0) { var r = solarToLunar(p[0], p[1], p[2]); return { main: ['음력', r.y + '년 ' + (r.leap ? '윤' : '') + r.m + '월 ' + r.d + '일'], rows: [['그 달의 날수', r.len + '일 (' + (r.len === 30 ? '큰달' : '작은달') + ')'], ['음력 ' + r.y + '년 윤달', leapMonthOf(r.y) ? '윤' + leapMonthOf(r.y) + '월' : '없음']] }; }
+      var s = lunarToSolar(p[0], p[1], p[2], v[2] === 1); if (s.err) return { err: s.err };
+      return { main: ['양력', ds(jdn(s.date[0], s.date[1], s.date[2]))], rows: [['음력 ' + p[0] + '년 윤달', leapMonthOf(p[0]) ? '윤' + leapMonthOf(p[0]) + '월' : '없음']] };
+    } },
+  len: { f: [['값', 'num', 1, ''], ['단위', 'sel', 0, ['m', 'cm', 'mm', 'km', 'inch', 'feet', 'yard', 'mile', '자(尺)']]],
+    run: function (v) { var U = [1, .01, .001, 1000, .0254, .3048, .9144, 1609.344, 0.30303], N = ['m', 'cm', 'mm', 'km', 'inch', 'feet', 'yard', 'mile', '자'], m = v[0] * U[v[1]]; return { main: ['미터', nf(m, 4) + ' m'], rows: N.map(function (n, i) { return [n, nf(m / U[i], 4)]; }) }; } },
+  weight: { f: [['값', 'num', 1, ''], ['단위', 'sel', 0, ['kg', 'g', 'lb (파운드)', 'oz (온스)', '근 (고기 600g)', '돈 (3.75g)', '냥 (37.5g)']]],
+    run: function (v) { var U = [1, .001, .45359237, .028349523, .6, .00375, .0375], N = ['kg', 'g', 'lb', 'oz', '근 (고기 600g)', '돈', '냥'], k = v[0] * U[v[1]]; return { main: ['킬로그램', nf(k, 4) + ' kg'], rows: N.map(function (n, i) { return [n, nf(k / U[i], 4)]; }).concat([['근 (채소·과일 375g)', nf(k / .375, 4)]]), note: '고기는 1근 600g, 채소·과일은 1근 375g으로 계산해요.' }; } },
+  area: { f: [['값', 'num', 100, ''], ['단위', 'sel', 0, ['㎡', '평', '에이커', '헥타르', '㎢', 'ft²']]],
+    run: function (v) { var U = [1, 3.305785, 4046.8564, 10000, 1e6, .09290304], N = ['㎡', '평', '에이커', '헥타르', '㎢', 'ft²'], a = v[0] * U[v[1]]; return { main: ['제곱미터', nf(a, 3) + ' ㎡'], rows: N.map(function (n, i) { return [n, nf(a / U[i], 4)]; }) }; } },
+  volume: { f: [['값', 'num', 1, ''], ['단위', 'sel', 0, ['L', 'mL', '갤런 (US)', '쿼트 (US)', '컵 (200ml)', '되 (1.8L)', '말 (18L)']]],
+    run: function (v) { var U = [1, .001, 3.785411784, .946352946, .2, 1.8, 18], N = ['L', 'mL', '갤런', '쿼트', '컵', '되', '말'], l = v[0] * U[v[1]]; return { main: ['리터', nf(l, 4) + ' L'], rows: N.map(function (n, i) { return [n, nf(l / U[i], 4)]; }) }; } },
+  temp: { f: [['값', 'num', 36.5, ''], ['단위', 'sel', 0, ['섭씨 ℃', '화씨 ℉', '켈빈 K']]],
+    run: function (v) { var c = v[1] === 0 ? v[0] : v[1] === 1 ? (v[0] - 32) * 5 / 9 : v[0] - 273.15; return { main: ['섭씨', nf(c, 2) + ' ℃'], rows: [['화씨', nf(c * 9 / 5 + 32, 2) + ' ℉'], ['켈빈', nf(c + 273.15, 2) + ' K']] }; } },
+  cook: { f: [['양', 'num', 1, ''], ['단위', 'sel', 0, ['컵 (200ml)', '미국 컵 (240ml)', '큰술 (15ml)', '작은술 (5ml)', 'ml']], ['재료', 'sel', 0, ['물·우유', '설탕', '밀가루', '소금', '쌀', '식용유', '버터', '꿀·물엿']]],
+    run: function (v) { var ml = v[0] * [200, 240, 15, 5, 1][v[1]], d = [1, .85, .55, 1.2, .85, .92, .95, 1.4][v[2]]; return { main: ['무게', nf(ml * d, 1) + 'g'], rows: [['부피', nf(ml, 1) + 'ml'], ['큰술로', nf(ml / 15, 1) + '큰술'], ['작은술로', nf(ml / 5, 1) + '작은술']], note: '재료별 평균 밀도로 계산한 대략값이에요. 체에 친 밀가루, 굵은 소금 등은 차이가 날 수 있어요.' }; } },
+  shoe: { f: [['발 길이 또는 사이즈', 'num', 260, 'mm'], ['구분', 'sel', 0, ['남성', '여성']]],
+    run: function (v) {
+      var mm = v[0], h = function (x) { return Math.round(x * 2) / 2; };
+      var us = v[1] === 0 ? (mm - 250) / 10 + 7 : (mm - 220) / 10 + 5, uk = v[1] === 0 ? us - 1 : us - 2, eu = v[1] === 0 ? 40 + (us - 7) * 1.33 : 36.5 + (us - 6) * 1.25;
+      return { main: ['한국 사이즈', n0(Math.round(mm / 5) * 5) + 'mm'], rows: [['US', nf(h(us), 1)], ['UK', nf(h(uk), 1)], ['EU', nf(h(eu), 1)]], note: '남성 260mm = US 8, 여성 240mm = US 7 기준의 일반적인 환산표예요. 브랜드마다 반 치수 정도 차이가 날 수 있어요.' };
+    } },
+  elec: { f: [['월 사용량', 'num', 350, 'kWh'], ['사용한 달', 'sel', new Date().getMonth(), ['1월', '2월', '3월', '4월', '5월', '6월', '7월 (하계)', '8월 (하계)', '9월', '10월', '11월', '12월']]],
+    run: function (v) {
+      v = [v[0], 0, v[1]];
+      var u = v[0], s = v[2] === 6 || v[2] === 7, b1 = s ? 300 : 200, b2 = s ? 450 : 400;
+      var base = u <= b1 ? 910 : u <= b2 ? 1600 : 7300;
+      var e = Math.min(u, b1) * 120 + Math.max(0, Math.min(u, b2) - b1) * 214.6 + Math.max(0, u - b2) * 307.3;
+      var m = v[2] + 1; if ((m === 7 || m === 8 || m === 12 || m === 1 || m === 2) && u > 1000) e += (u - 1000) * (736.2 - 307.3);
+      var clim = u * 9, fuel = u * 5, sub = Math.floor(base + e + clim + fuel), tax = Math.round(sub * 0.1), fund = Math.floor(sub * 0.027 / 10) * 10;
+      return { main: ['예상 청구액', won(Math.floor((sub + tax + fund) / 10) * 10)], rows: [['기본요금', won(base)], ['전력량요금', won(e)], ['기후환경요금 (9원/kWh)', won(clim)], ['연료비조정 (+5원/kWh)', won(fuel)], ['부가세 (10%)', won(tax)], ['전력산업기반기금 (2.7%)', won(fund)]], note: '주택용 저압, 2026년 4분기 기준이에요. 7·8월은 하계 누진 구간(300·450kWh)을, 나머지 달은 200·400kWh 구간을 적용해요. 복지·대가족 할인은 반영하지 않았어요.' };
+    } },
+  fuel: { f: [['주행 거리', 'num', 300, 'km'], ['연비', 'num', 12, 'km/L'], ['유가', 'num', 1855, '원/L']],
+    run: function (v) { var l = v[0] / v[1]; return { main: ['유류비', won(l * v[2])], rows: [['필요한 연료', nf(l, 1) + 'L'], ['1km당', won(v[2] / v[1])]], note: '기본 유가는 세상의 모든 시세의 휘발유 평균가(11월 12일)를 넣어 두었어요.' }; } },
+  raise: { f: [['현재 연봉', 'num', 40000000, '원'], ['인상률', 'num', 5, '%']],
+    run: function (v) { var nw = v[0] * (1 + v[1] / 100); return { main: ['인상 후 연봉', won(nw)], rows: [['연 인상액', won(nw - v[0])], ['월 급여 차이 (세전)', won((nw - v[0]) / 12)]], note: '실수령액 차이는 연봉 실수령액 계산기에서 확인해 보세요.' }; } },
+  gpa: { f: [['내 학점', 'num', 3.8, ''], ['변환', 'sel', 0, ['4.5 만점 → 4.3 만점', '4.3 만점 → 4.5 만점', '4.5 만점 → 100점', '4.3 만점 → 100점']]],
+    run: function (v) {
+      var x = v[0], r;
+      if (v[1] === 0) r = ['4.3 만점', nf(x / 4.5 * 4.3, 2)]; else if (v[1] === 1) r = ['4.5 만점', nf(x / 4.3 * 4.5, 2)];
+      else if (v[1] === 2) r = ['100점 환산', nf(x / 4.5 * 100, 1) + '점']; else r = ['100점 환산', nf(x / 4.3 * 100, 1) + '점'];
+      return { main: r, rows: [], note: '단순 비례 환산이에요. 학교·기업마다 환산표가 다를 수 있어요.' };
+    } }
+};
+
+
+// ═══ 추가 계산기 14종 ═══
+function addMonths(dayNum, months) { var d = jdToDate(dayNum); var y = d[0], m = d[1] + months, dd = d[2]; y += Math.floor((m - 1) / 12); m = ((m - 1) % 12 + 12) % 12 + 1; var last = jdn(m === 12 ? y + 1 : y, m === 12 ? 1 : m + 1, 1) - jdn(y, m, 1); return jdn(y, m, Math.min(dd, last)); }
+var FX = { rates: null, at: null, loading: false, fallback: { USD: 1332.4, JPY: 8.61, EUR: 1540, CNY: 186.5, GBP: 1755, HKD: 171.2, THB: 41.6, VND: 0.0525, TWD: 41.6, AUD: 865, CAD: 950, SGD: 1020, PHP: 22.7 } };
+function loadFX() {
+  if (FX.loading || FX.rates) return; FX.loading = true;
+  fetch('https://open.er-api.com/v6/latest/KRW').then(function (r) { return r.json(); }).then(function (d) {
+    if (d && d.rates) { var o = {}; Object.keys(FX.fallback).forEach(function (k) { if (d.rates[k]) o[k] = 1 / d.rates[k]; }); FX.rates = o; FX.at = d.time_last_update_utc || ''; if (window._recalc) window._recalc(); }
+  }).catch(function () {}).then(function () { FX.loading = false; });
+}
+var CUR = [['USD', '미국 달러', 1], ['JPY', '일본 엔 (100엔)', 100], ['EUR', '유로', 1], ['CNY', '중국 위안', 1], ['GBP', '영국 파운드', 1], ['HKD', '홍콩 달러', 1], ['THB', '태국 바트', 1], ['VND', '베트남 동 (1만 동)', 10000], ['TWD', '대만 달러', 1], ['AUD', '호주 달러', 1], ['CAD', '캐나다 달러', 1], ['SGD', '싱가포르 달러', 1], ['PHP', '필리핀 페소', 1]];
+var CALC2 = {
+  annual: { f: [['입사일', 'date', '2022-03-02'], ['기준일', 'date', todayStr()]],
+    run: function (v) {
+      var a = dn(v[0]), b = dn(v[1]); if (!a || !b || b < a) return { err: '입사일과 기준일을 확인해 주세요.' };
+      var pa = pd(v[0]), pb = pd(v[1]), months = (pb[0] - pa[0]) * 12 + (pb[1] - pa[1]) - (pb[2] < pa[2] ? 1 : 0), years = Math.floor(months / 12);
+      var now = years < 1 ? Math.min(11, months) : Math.min(25, 15 + Math.floor((years - 1) / 2));
+      var rows = [['근속 기간', years + '년 ' + (months % 12) + '개월']];
+      [1, 3, 5, 10, 21].forEach(function (y) { rows.push([y + '년차 이상', Math.min(25, 15 + Math.floor((y - 1) / 2)) + '일']); });
+      return { main: [years < 1 ? '지금까지 발생한 연차' : '올해 연차', now + '일'], rows: rows, note: '입사 1년 미만은 한 달 개근마다 1일(최대 11일), 1년 이상 80% 출근 시 15일, 3년차부터 2년마다 1일씩 늘어 최대 25일이에요. 회사가 회계연도 기준으로 운영하면 달라질 수 있어요.' };
+    } },
+  ub: { f: [['퇴직 전 3개월 월평균 급여 (세전)', 'num', 3000000, '원'], ['만 나이', 'num', 35, '세'], ['고용보험 가입 기간', 'num', 4, '년'], ['1일 소정근로시간', 'num', 8, '시간']],
+    run: function (v) {
+      var avg = v[0] * 3 / 91, raw = avg * 0.6, low = R26.minWage * 0.8 * Math.min(8, v[3]), up = 68100, day = Math.min(up, Math.max(low, raw));
+      var y = v[2], idx = y < 1 ? 0 : y < 3 ? 1 : y < 5 ? 2 : y < 10 ? 3 : 4, days = (v[1] >= 50 ? [120, 180, 210, 240, 270] : [120, 150, 180, 210, 240])[idx];
+      return { main: ['예상 총 수급액', manwon(day * days)], rows: [['1일 구직급여', won(day) + (day === up ? ' (상한)' : day === low ? ' (하한)' : '')], ['받는 기간 (소정급여일수)', days + '일'], ['월 환산 (30일)', won(day * 30)], ['1일 평균임금', won(avg)]], note: '2026년 1월 이후 이직자 기준(상한 68,100원, 하한 66,048원)이에요. 비자발적 퇴사, 이직 전 18개월 중 180일 이상 근무 등 수급 요건을 갖춰야 해요.' };
+    } },
+  parental: { f: [['월 통상임금', 'num', 3500000, '원'], ['휴직 개월 수', 'num', 12, '개월'], ['6+6 부모육아휴직제 (자녀 생후 18개월 내 부모 모두 휴직)', 'sel', 0, ['적용 안 함', '적용']]],
+    run: function (v) {
+      var w = v[0], n = Math.min(18, Math.max(1, Math.round(v[1]))), six = v[2] === 1, total = 0, rows = [];
+      for (var m = 1; m <= n; m++) {
+        var cap, pay;
+        if (m <= 6) { cap = six ? [250, 250, 300, 350, 400, 450][m - 1] * 1e4 : (m <= 3 ? 250e4 : 200e4); pay = Math.min(w, cap); }
+        else { pay = Math.min(w * 0.8, 160e4); }
+        pay = Math.max(70e4, pay); total += pay;
+        if (m <= 7 || m === n) rows.push([m + '개월째', won(pay)]);
+      }
+      return { main: ['총 육아휴직 급여', manwon(total)], rows: rows, note: '1~6개월 통상임금 100%(상한 250·200만원), 7개월째부터 80%(상한 160만원), 하한 70만원이에요. 6+6 적용 시 첫 6개월 상한이 250·250·300·350·400·450만원으로 올라가요. 사후지급금은 폐지돼 매달 전액 받아요.' };
+    } },
+  free33: { f: [['금액', 'num', 1000000, '원'], ['입력한 금액', 'sel', 0, ['세전 금액 (계약 금액)', '세후 금액 (실제 받을 금액)']]],
+    run: function (v) {
+      var gross = v[1] === 0 ? v[0] : v[0] / 0.967, it = Math.floor(gross * 0.03 / 10) * 10, lt = Math.floor(it * 0.1 / 10) * 10;
+      return { main: ['실수령액', won(gross - it - lt)], rows: [['세전 금액', won(gross)], ['소득세 (3%)', won(it)], ['지방소득세 (0.3%)', won(lt)]], note: '사업소득 원천징수 3.3% 기준이에요. 5월 종합소득세 신고 때 정산돼 환급되거나 추가 납부할 수 있어요.' };
+    } },
+  juhu: { f: [['시급', 'num', R26.minWage, '원'], ['주 소정근로시간', 'num', 20, '시간']],
+    run: function (v) {
+      if (v[1] < 15) return { main: ['주휴수당', '대상 아님'], rows: [], note: '주 15시간 미만 근무는 주휴수당이 없어요.' };
+      var h = Math.min(40, v[1]) / 40 * 8, wk = h * v[0];
+      return { main: ['주휴수당 (1주)', won(wk)], rows: [['주휴시간', nf(h, 1) + '시간'], ['월 환산 (약 4.345주)', won(wk * 365 / 7 / 12)]], note: '1주 소정근로일을 개근하고, 주 15시간 이상 일하면 받을 수 있어요.' };
+    } },
+  stock: { f: [['보유 수량', 'num', 10, '주'], ['현재 평단가', 'num', 80000, '원'], ['추가 매수 수량', 'num', 10, '주'], ['추가 매수 가격', 'num', 60000, '원'], ['현재 주가 (선택)', 'num', 65000, '원']],
+    run: function (v) {
+      var q = v[0] + v[2]; if (q <= 0) return { err: '수량을 입력해 주세요.' };
+      var cost = v[0] * v[1] + v[2] * v[3], avg = cost / q, rows = [['총 수량', n0(q) + '주'], ['총 매수 금액', won(cost)]];
+      if (v[4] > 0) { rows.push(['평가 금액', won(v[4] * q)]); rows.push(['수익률', (v[4] >= avg ? '+' : '') + nf((v[4] / avg - 1) * 100) + '%']); rows.push(['평가 손익', won((v[4] - avg) * q)]); }
+      return { main: ['새 평균 단가', won(avg)], rows: rows, note: '매매 수수료와 세금은 반영하지 않았어요.' };
+    } },
+  fx: { f: [['금액', 'num', 100, ''], ['통화', 'sel', 0, CUR.map(function (c) { return c[0] + ' ' + c[1]; })], ['변환', 'sel', 0, ['외화 → 원화', '원화 → 외화']]],
+    run: function (v) {
+      loadFX();
+      var c = CUR[v[1]], src = FX.rates || FX.fallback, rate = src[c[0]] * c[2];
+      var main = v[2] === 0 ? ['원화', won(v[0] * src[c[0]])] : ['외화', nf(v[0] / src[c[0]], 2) + ' ' + c[0]];
+      return { main: main, rows: [['적용 환율', nf(rate, 2) + '원 / ' + (c[2] === 1 ? '1' : n0(c[2])) + ' ' + c[0]]], note: FX.rates ? '실시간 공개 환율 데이터 기준이에요(은행 매매기준율과 소폭 다를 수 있어요). 환전할 때는 수수료가 붙어요.' : '실시간 환율을 불러오는 중이거나 연결이 막혀 있어 기준 환율로 계산했어요. 인터넷에 연결되면 자동으로 바뀌어요.' };
+    } },
+  gift: { f: [['증여받는 금액', 'num', 100000000, '원'], ['증여하는 사람과의 관계', 'sel', 1, ['배우자', '부모 → 성인 자녀', '부모 → 미성년 자녀', '자녀 → 부모', '기타 친족 (형제자매 등)', '타인']], ['최근 10년간 같은 관계에서 받은 금액', 'num', 0, '원'], ['혼인·출산 공제 (부모→자녀, 1억)', 'sel', 0, ['적용 안 함', '적용']]],
+    run: function (v) {
+      var ded = [6e8, 5e7, 2e7, 5e7, 1e7, 0][v[1]] + (v[3] === 1 && (v[1] === 1 || v[1] === 2) ? 1e8 : 0);
+      var base = Math.max(0, v[0] + v[2] - ded), T = [[1e8, .1, 0], [5e8, .2, 1e7], [1e9, .3, 6e7], [3e9, .4, 1.6e8], [Infinity, .5, 4.6e8]];
+      var t = T.filter(function (x) { return base <= x[0]; })[0], tax = base * t[1] - t[2];
+      var prev = Math.max(0, v[2] - ded), prevTax = 0; if (v[2] > 0) { var t2 = T.filter(function (x) { return prev <= x[0]; })[0]; prevTax = prev * t2[1] - t2[2]; }
+      tax = Math.max(0, tax - prevTax);
+      return { main: ['예상 증여세', won(tax * 0.97)], rows: [['증여재산 공제', won(ded)], ['과세표준', won(base)], ['산출세액', won(tax)], ['신고세액공제 (3%)', '-' + won(tax * 0.03)]], note: '기한 내 신고 시 3% 공제를 반영했어요. 10년 합산은 단순화했고, 부담부증여·할증과세(세대 생략) 등은 반영하지 않았어요. 실제 신고 전에는 세무 전문가와 확인하세요.' };
+    } },
+  apply: { f: [['무주택 기간 (만 30세 또는 혼인 이후)', 'num', 7, '년'], ['부양가족 수 (본인 제외)', 'num', 2, '명'], ['청약통장 가입 기간', 'num', 8, '년']],
+    run: function (v) {
+      var a = Math.min(32, 2 * (Math.floor(Math.max(0, v[0])) + 1)), b = Math.min(35, 5 + 5 * Math.max(0, Math.floor(v[1]))), y = v[2], c = y < 0.5 ? 1 : y < 1 ? 2 : Math.min(17, 2 + Math.floor(y));
+      return { main: ['청약 가점', (a + b + c) + '점 / 84점'], rows: [['무주택 기간', a + '점 / 32점'], ['부양가족', b + '점 / 35점'], ['청약통장 가입 기간', c + '점 / 17점']], note: '주택 소유 시 무주택 기간은 0점이에요. 무주택 기간은 만 30세(그 전 혼인 시 혼인신고일)부터 계산해요. 배우자 통장 기간 합산(최대 3점) 등 세부 기준은 청약홈에서 확인하세요.' };
+    } },
+  cartax: { f: [['차량', 'sel', 0, ['내연기관·하이브리드 승용', '전기차 승용']], ['배기량', 'num', 1998, 'cc'], ['차령 (최초 등록 후 몇 년째)', 'num', 1, '년째']],
+    run: function (v) {
+      var base, rows = [];
+      if (v[0] === 1) base = 100000; else { var cc = v[1], r = cc <= 1000 ? 80 : cc <= 1600 ? 140 : 200; base = cc * r; rows.push(['cc당 세액', r + '원']); }
+      var age = Math.max(1, Math.round(v[2])), cut = v[0] === 1 ? 0 : Math.min(0.5, Math.max(0, (age - 2) * 0.05));
+      var tax = base * (1 - cut), edu = tax * 0.3, total = tax + edu;
+      rows.push(['차령 경감', Math.round(cut * 100) + '%'], ['자동차세', won(tax)], ['지방교육세 (30%)', won(edu)], ['6월·12월 각', won(total / 2)], ['1월 연납 시 (약 4.58% 공제)', won(total * (1 - 0.05 * 11 / 12))]);
+      return { main: ['연 자동차세', won(total)], rows: rows, note: '비영업용 승용차 기준이에요. 3년차부터 매년 5%씩, 최대 50% 경감돼요. 연납은 1·3·6·9월에 신청할 수 있고 1월이 가장 유리해요.' };
+    } },
+  alcohol: { f: [['성별', 'sel', 0, ['남성', '여성']], ['몸무게', 'num', 70, 'kg'], ['술 종류', 'sel', 0, ['소주 (16.5%, 1잔 50ml)', '맥주 (5%, 1캔 355ml)', '맥주 (5%, 500ml 1잔)', '와인 (13%, 1잔 150ml)', '막걸리 (6%, 1잔 200ml)', '위스키 (40%, 1잔 30ml)']], ['마신 양', 'num', 7, '잔'], ['마시기 시작한 뒤 지난 시간', 'num', 2, '시간']],
+    run: function (v) {
+      var D = [[16.5, 50], [5, 355], [5, 500], [13, 150], [6, 200], [40, 30]][v[2]], g = D[1] * v[3] * D[0] / 100 * 0.7894;
+      var r = v[0] === 0 ? 0.7 : 0.6, peak = g * 0.7 / (v[1] * r * 10), now = Math.max(0, peak - 0.015 * v[4]);
+      var lv = now >= 0.08 ? '면허 취소 수준 (0.08% 이상)' : now >= 0.03 ? '면허 정지 수준 (0.03% 이상)' : now > 0 ? '단속 기준 미만이지만 알코올이 남아 있어요' : '계산상 분해 완료';
+      return { main: ['현재 추정 혈중알코올농도', nf(now, 3) + '%'], rows: [['상태', lv], ['섭취한 알코올', nf(g, 0) + 'g'], ['완전 분해까지 (추정)', now > 0 ? nf(now / 0.015, 1) + '시간 더' : '-']], note: '위드마크 공식으로 계산한 추정치예요. 체질·음식·컨디션에 따라 크게 달라져요. 이 결과로 운전 가능 여부를 판단하지 말고, 술을 마셨다면 운전하지 마세요.' };
+    } },
+  discharge: { f: [['입대일', 'date', '2026-03-09'], ['복무 형태', 'sel', 0, ['육군·해병대 (18개월)', '해군 (20개월)', '공군 (21개월)', '사회복무요원 (21개월)']]],
+    run: function (v) {
+      var a = dn(v[0]); if (!a) return { err: '입대일을 입력해 주세요.' };
+      var m = [18, 20, 21, 21][v[1]], end = addMonths(a, m) - 1, t = dn(todayStr()), done = Math.min(1, Math.max(0, (t - a) / (end - a)));
+      return { main: ['전역 예정일', ds(end)], rows: [['남은 날', t <= end ? 'D-' + (end - t) : '전역 완료'], ['복무율', nf(done * 100, 1) + '%'], ['전체 복무일', n0(end - a + 1) + '일']], note: '입대일로부터 복무 기간이 끝나는 날의 전날을 전역일로 계산해요. 휴가·조기 전역 등은 반영하지 않았어요.' };
+    } },
+  ovul: { f: [['마지막 생리 시작일', 'date', todayStr()], ['평균 생리 주기', 'num', 28, '일']],
+    run: function (v) {
+      var a = dn(v[0]); if (!a) return { err: '날짜를 입력해 주세요.' };
+      var c = Math.max(21, Math.min(45, Math.round(v[1]))), rows = [];
+      for (var i = 1; i <= 3; i++) { var nx = a + c * i, ov = nx - 14; rows.push([i + '번째 다음 생리 예정일', ds(nx)]); rows.push(['  배란 예정일 / 가임기', ds(ov).replace(/ \(.\)/, '') + ' / ' + jdToDate(ov - 5)[1] + '.' + jdToDate(ov - 5)[2] + '~' + jdToDate(ov + 1)[1] + '.' + jdToDate(ov + 1)[2]]); }
+      var nxt = a + c;
+      return { main: ['다음 생리 예정일', ds(nxt)], rows: rows, note: '배란일은 다음 생리 예정일 14일 전, 가임기는 배란일 5일 전부터 1일 후까지로 추정해요. 주기가 불규칙하면 정확도가 떨어지고, 피임 목적으로 사용하면 안 돼요.' };
+    } },
+  bodyfat: { f: [['성별', 'sel', 0, ['남성', '여성']], ['키', 'num', 175, 'cm'], ['허리 둘레 (배꼽 높이)', 'num', 85, 'cm'], ['목 둘레', 'num', 38, 'cm'], ['엉덩이 둘레 (여성만)', 'num', 95, 'cm']],
+    run: function (v) {
+      var bf = v[0] === 0 ? 495 / (1.0324 - 0.19077 * Math.log10(v[2] - v[3]) + 0.15456 * Math.log10(v[1])) - 450 : 495 / (1.29579 - 0.35004 * Math.log10(v[2] + v[4] - v[3]) + 0.22100 * Math.log10(v[1])) - 450;
+      if (!isFinite(bf) || bf < 0) return { err: '둘레 값을 확인해 주세요.' };
+      var L = v[0] === 0 ? [[6, '필수 지방'], [14, '운동선수'], [18, '건강 (피트니스)'], [25, '평균'], [99, '비만']] : [[14, '필수 지방'], [21, '운동선수'], [25, '건강 (피트니스)'], [32, '평균'], [99, '비만']];
+      var lv = L.filter(function (x) { return bf < x[0]; })[0][1];
+      return { main: ['추정 체지방률', nf(bf, 1) + '% · ' + lv], rows: [], note: '미 해군(US Navy) 둘레 공식으로 추정한 값이에요. 인바디 같은 측정과는 차이가 날 수 있어요.' };
+    } }
+};
+Object.keys(CALC2).forEach(function (k) { CALC[k] = CALC2[k]; });
+// ═══ 수학 ═══
+function rnd(x) { return Math.abs(x) < 1e-12 ? 0 : parseFloat(x.toPrecision(12)); }
+function gcd(a, b) { a = Math.abs(a); b = Math.abs(b); while (b) { var t = b; b = a % b; a = t; } return a; }
+function parseExpr(src, deg, vars) {
+  var s = src.replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/π/g, 'pi').replace(/√/g, 'sqrt'), i = 0;
+  function peek() { while (s[i] === ' ') i++; return s[i]; }
+  function eat(c) { if (peek() === c) { i++; return true; } return false; }
+  function startsPrimary() { var c = peek(); return c !== undefined && (/[0-9.(a-z]/.test(c)); }
+  function pctTerm(v) { var st = i, t = term(), txt = s.slice(st, i).trim(); return (/%$/.test(txt) && !/[*/(]/.test(txt.replace(/%$/, ''))) ? v * t : t; }
+  function expr() { var v = term(); for (;;) { if (eat('+')) v += pctTerm(v); else if (eat('-')) v -= pctTerm(v); else return v; } }
+  function term() { var v = unary(); for (;;) { if (eat('*')) v *= unary(); else if (eat('/')) { var d = unary(); if (d === 0) throw '0으로 나눌 수 없어요'; v /= d; } else if (startsPrimary()) v *= unary(); else return v; } }
+  function unary() { if (eat('-')) return -unary(); if (eat('+')) return unary(); return power(); }
+  function power() { var b = postfix(); if (eat('^')) return Math.pow(b, unary()); return b; }
+  function fact(n) { if (n < 0 || n !== Math.floor(n) || n > 170) throw '팩토리얼은 0~170 정수만 돼요'; var r = 1; for (var k = 2; k <= n; k++) r *= k; return r; }
+  function postfix() { var v = primary(); for (;;) { if (eat('!')) v = fact(v); else if (eat('%')) v = v / 100; else return v; } }
+  function primary() {
+    var c = peek();
+    if (c === '(') { i++; var v = expr(); eat(')'); return v; }
+    var m = /^[0-9]*\.?[0-9]+(e[+-]?[0-9]+)?/.exec(s.slice(i)); if (m && m[0] !== '') { i += m[0].length; return parseFloat(m[0]); }
+    var w = /^(sin|cos|tan|sqrt|log|ln|pi|exp|e)(?![a-z])|^(sin|cos|tan|sqrt|log|ln|exp)(?=\()|^[a-z]/.exec(s.slice(i));
+    if (w) {
+      var name = w[0]; i += name.length;
+      if (vars && Object.prototype.hasOwnProperty.call(vars, name)) return vars[name];
+      if (name === 'pi') return Math.PI; if (name === 'e') return Math.E; if (name === 'exp') { var ea; if (eat('(')) { ea = expr(); eat(')'); } else ea = power(); return Math.exp(ea); }
+      var a; if (eat('(')) { a = expr(); eat(')'); } else a = power();
+      var r = deg ? Math.PI / 180 : 1;
+      switch (name) {
+        case 'sin': return Math.sin(a * r); case 'cos': return Math.cos(a * r); case 'tan': return Math.tan(a * r);
+        case 'sqrt': if (a < 0) throw '음수의 제곱근은 계산할 수 없어요'; return Math.sqrt(a);
+        case 'log': return Math.log10(a); case 'ln': return Math.log(a);
+      }
+      throw '알 수 없는 함수: ' + name;
+    }
+    throw '수식을 확인해 주세요';
+  }
+  var v = expr(); if (peek() !== undefined) throw '수식을 확인해 주세요';
+  if (!isFinite(v)) throw '계산할 수 없는 값이에요';
+  return rnd(v);
+}
+function fmtNum(x) { if (Math.abs(x) >= 1e15 || (Math.abs(x) < 1e-6 && x !== 0)) return x.toExponential(8).replace(/\.?0+e/, 'e'); return x.toLocaleString('ko-KR', { maximumFractionDigits: 10 }); }
+function sciUI(box) {
+  var expr = '', deg = true, sci = false, hist = [];
+  var disp = el('div', 'sc-disp'), eLine = el('div', 'sc-expr', ''), rLine = el('div', 'sc-res', '0');
+  disp.append(eLine, rLine);
+  var bar = el('div', 'sc-bar');
+  var modeB = el('button', 'tab', '공학 모드'); modeB.type = 'button'; modeB.setAttribute('aria-pressed', 'false');
+  var degB = el('button', 'tab', 'DEG'); degB.type = 'button'; degB.hidden = true; degB.title = '각도 단위';
+  bar.append(modeB, degB);
+  var sciPad = el('div', 'sc-pad sci'); sciPad.hidden = true;
+  var pad = el('div', 'sc-pad');
+  var histBox = el('div', 'sc-hist');
+  box.append(bar, disp, sciPad, pad, histBox);
+  function preview() {
+    eLine.textContent = expr || ' ';
+    if (!expr) { rLine.textContent = '0'; rLine.classList.remove('err'); return; }
+    try { var v = parseExpr(expr + ')'.repeat(Math.max(0, (expr.match(/\(/g) || []).length - (expr.match(/\)/g) || []).length)), deg); rLine.textContent = '= ' + fmtNum(v); rLine.classList.remove('err'); }
+    catch (e) { rLine.textContent = ''; }
+  }
+  function commit() {
+    if (!expr) return;
+    var full = expr + ')'.repeat(Math.max(0, (expr.match(/\(/g) || []).length - (expr.match(/\)/g) || []).length));
+    try { var v = parseExpr(full, deg); hist.unshift([full, fmtNum(v)]); hist = hist.slice(0, 5); expr = String(v); eLine.textContent = full + ' ='; rLine.textContent = fmtNum(v); rLine.classList.remove('err'); drawHist(); }
+    catch (e) { rLine.textContent = typeof e === 'string' ? e : '수식을 확인해 주세요'; rLine.classList.add('err'); }
+  }
+  function drawHist() {
+    histBox.innerHTML = '';
+    if (!hist.length) return;
+    histBox.appendChild(el('p', 'sc-hl', '최근 계산 (누르면 결과를 이어서 써요)'));
+    hist.forEach(function (h) { var b = el('button', 'sc-hi'); b.type = 'button'; b.append(el('span', null, h[0] + ' ='), el('b', null, h[1])); b.addEventListener('click', function () { expr = h[1].replace(/,/g, ''); preview(); }); histBox.appendChild(b); });
+  }
+  function press(k) {
+    if (k === 'C') expr = '';
+    else if (k === '⌫') expr = expr.replace(/(sin\(|cos\(|tan\(|log\(|ln\(|√\(|π)$/, function () { return ''; }) === expr ? expr.slice(0, -1) : expr.replace(/(sin\(|cos\(|tan\(|log\(|ln\(|√\(|π)$/, '');
+    else if (k === '=') { commit(); return; }
+    else if (k === '±') { var m = /(-?)([0-9.]+)$/.exec(expr); if (m) expr = expr.slice(0, m.index) + (m[1] ? '' : (m.index > 0 && /[0-9)]/.test(expr[m.index - 1]) ? '' : '-')) + m[2]; else expr += '-'; }
+    else if (k === 'x²') expr += '^2';
+    else if (k === 'xʸ') expr += '^';
+    else if (k === '1/x') expr = '1/(' + (expr || '1') + ')';
+    else if (k === 'n!') expr += '!';
+    else if (['sin', 'cos', 'tan', 'log', 'ln', '√'].indexOf(k) >= 0) expr += k + '(';
+    else expr += k;
+    preview();
+  }
+  function keys(list, parent) { list.forEach(function (k) { var b = el('button', 'sc-k' + (/^[0-9.]$/.test(k) ? ' num' : k === '=' ? ' eq' : k === 'C' ? ' clr' : ' op'), k); b.type = 'button'; b.addEventListener('click', function () { press(k); }); parent.appendChild(b); }); }
+  keys(['C', '⌫', '%', '÷', '7', '8', '9', '×', '4', '5', '6', '−', '1', '2', '3', '+', '±', '0', '.', '='], pad);
+  keys(['(', ')', 'x²', 'xʸ', '√', 'sin', 'cos', 'tan', 'log', 'ln', 'π', 'e', 'n!', '1/x', '^', '!'], sciPad);
+  sciPad.removeChild(sciPad.lastChild); sciPad.removeChild(sciPad.lastChild);
+  modeB.addEventListener('click', function () { sci = !sci; modeB.setAttribute('aria-pressed', sci ? 'true' : 'false'); sciPad.hidden = !sci; degB.hidden = !sci; });
+  degB.addEventListener('click', function () { deg = !deg; degB.textContent = deg ? 'DEG' : 'RAD'; preview(); });
+  function onKey(e) {
+    if (!document.getElementById('layer').open || !box.isConnected) { document.removeEventListener('keydown', onKey); return; }
+    var k = e.key, map = { '*': '×', '/': '÷', '-': '−', 'Enter': '=', 'Backspace': '⌫', 'Delete': 'C' };
+    if (/^[0-9.+()%^!]$/.test(k) || map[k]) { e.preventDefault(); press(map[k] || k); }
+  }
+  document.addEventListener('keydown', onKey);
+  preview();
+}
+var CALC3 = {
+  frac: { f: [['첫 번째 분수 (분자/분모)', 'txt', '1/2'], ['연산', 'sel', 0, ['+ 더하기', '− 빼기', '× 곱하기', '÷ 나누기']], ['두 번째 분수 (분자/분모)', 'txt', '1/3']],
+    run: function (v) {
+      function pf(t) { var p = String(t).trim().split('/'); var n = parseFloat(p[0]), d = p.length > 1 ? parseFloat(p[1]) : 1; if (!isFinite(n) || !isFinite(d) || d === 0 || n !== Math.floor(n) || d !== Math.floor(d)) throw 0; return [n, d]; }
+      var a, b; try { a = pf(v[0]); b = pf(v[2]); } catch (e) { return { err: '분수는 3/4처럼 정수/정수로 입력해 주세요.' }; }
+      var n, d; if (v[1] === 0) { n = a[0] * b[1] + b[0] * a[1]; d = a[1] * b[1]; } else if (v[1] === 1) { n = a[0] * b[1] - b[0] * a[1]; d = a[1] * b[1]; } else if (v[1] === 2) { n = a[0] * b[0]; d = a[1] * b[1]; } else { if (b[0] === 0) return { err: '0으로 나눌 수 없어요.' }; n = a[0] * b[1]; d = a[1] * b[0]; }
+      if (d < 0) { n = -n; d = -d; } var g = gcd(n, d) || 1; n /= g; d /= g;
+      var mixed = Math.abs(n) >= d && d !== 1 ? (n < 0 ? '-' : '') + Math.floor(Math.abs(n) / d) + ' ' + (Math.abs(n) % d) + '/' + d : '-';
+      return { main: ['결과 (기약분수)', d === 1 ? String(n) : n + '/' + d], rows: [['대분수', mixed], ['소수', fmtNum(rnd(n / d))]] };
+    } },
+  ratio: { f: [['a', 'num', 3, ''], ['b', 'num', 4, ''], ['c', 'num', 6, '']],
+    run: function (v) { if (!v[0]) return { err: 'a는 0이 아니어야 해요.' }; return { main: [n0 ? 'x' : 'x', fmtNum(rnd(v[1] * v[2] / v[0]))], rows: [['식', nf(v[0]) + ' : ' + nf(v[1]) + ' = ' + nf(v[2]) + ' : x'], ['풀이', 'x = ' + nf(v[1]) + ' × ' + nf(v[2]) + ' ÷ ' + nf(v[0])]], note: '비례식에서 내항의 곱과 외항의 곱은 같아요(a × x = b × c).' }; } },
+  stats: { f: [['숫자 목록 (쉼표나 띄어쓰기로 구분)', 'txt', '72, 85, 90, 64, 85, 78']],
+    run: function (v) {
+      var a = String(v[0]).split(/[\s,]+/).filter(Boolean).map(parseFloat).filter(isFinite); if (!a.length) return { err: '숫자를 입력해 주세요.' };
+      var n = a.length, sum = a.reduce(function (s, x) { return s + x; }, 0), mean = sum / n, srt = a.slice().sort(function (x, y) { return x - y; });
+      var med = n % 2 ? srt[(n - 1) / 2] : (srt[n / 2 - 1] + srt[n / 2]) / 2, cnt = {}, mo = [], mx = 0;
+      a.forEach(function (x) { cnt[x] = (cnt[x] || 0) + 1; if (cnt[x] > mx) mx = cnt[x]; }); Object.keys(cnt).forEach(function (k) { if (cnt[k] === mx && mx > 1) mo.push(k); });
+      var vp = a.reduce(function (s, x) { return s + (x - mean) * (x - mean); }, 0) / n, vs = n > 1 ? vp * n / (n - 1) : 0;
+      return { main: ['평균', fmtNum(rnd(mean))], rows: [['개수', n + '개'], ['합계', fmtNum(rnd(sum))], ['중앙값', fmtNum(rnd(med))], ['최빈값', mo.length ? mo.join(', ') : '없음'], ['최솟값 / 최댓값', fmtNum(srt[0]) + ' / ' + fmtNum(srt[n - 1])], ['표준편차 (모집단)', fmtNum(rnd(Math.sqrt(vp)))], ['표준편차 (표본)', fmtNum(rnd(Math.sqrt(vs)))]] };
+    } },
+  base: { f: [['숫자', 'txt', '255'], ['입력한 숫자의 진법', 'sel', 2, ['2진수', '8진수', '10진수', '16진수']]],
+    run: function (v) {
+      var b = [2, 8, 10, 16][v[1]], t = String(v[0]).trim().toLowerCase().replace(/^0x|^0b|^0o/, '');
+      var re = { 2: /^-?[01]+$/, 8: /^-?[0-7]+$/, 10: /^-?[0-9]+$/, 16: /^-?[0-9a-f]+$/ }[b]; if (!re.test(t)) return { err: b + '진수로 쓸 수 없는 숫자예요.' };
+      var n = parseInt(t, b); if (!isFinite(n) || Math.abs(n) > Number.MAX_SAFE_INTEGER) return { err: '너무 큰 숫자예요.' };
+      return { main: ['10진수', n.toLocaleString('ko-KR')], rows: [['2진수', n.toString(2)], ['8진수', n.toString(8)], ['16진수', n.toString(16).toUpperCase()]] };
+    } },
+  powroot: { f: [['수 (x)', 'num', 2, ''], ['지수·차수 (n)', 'num', 10, ''], ['계산', 'sel', 0, ['거듭제곱 xⁿ', 'n제곱근 ⁿ√x']]],
+    run: function (v) {
+      var x = v[0], n = v[1], r;
+      if (v[2] === 0) r = Math.pow(x, n); else { if (n === 0) return { err: 'n은 0이 아니어야 해요.' }; if (x < 0 && n % 2 === 0) return { err: '음수의 짝수 제곱근은 실수가 아니에요.' }; r = x < 0 ? -Math.pow(-x, 1 / n) : Math.pow(x, 1 / n); }
+      if (!isFinite(r)) return { err: '너무 큰 값이에요.' };
+      return { main: [v[2] === 0 ? nf(x) + '의 ' + nf(n) + '제곱' : nf(x) + '의 ' + nf(n) + '제곱근', fmtNum(rnd(r))], rows: [['√' + nf(x) + ' (제곱근)', x >= 0 ? fmtNum(rnd(Math.sqrt(x))) : '-'], [nf(x) + '² / ' + nf(x) + '³', fmtNum(rnd(x * x)) + ' / ' + fmtNum(rnd(x * x * x))]] };
+    } },
+  prime: { f: [['첫 번째 수', 'num', 84, ''], ['두 번째 수 (최대공약수·최소공배수용)', 'num', 36, '']],
+    run: function (v) {
+      var a = Math.round(v[0]), b = Math.round(v[1]); if (a < 2 || a > 1e12) return { err: '2 이상 1조 이하의 정수를 입력해 주세요.' };
+      var f = [], x = a; for (var p = 2; p * p <= x; p++) while (x % p === 0) { f.push(p); x /= p; } if (x > 1) f.push(x);
+      var c = {}; f.forEach(function (p) { c[p] = (c[p] || 0) + 1; });
+      var txt = Object.keys(c).map(function (p) { return c[p] > 1 ? p + '^' + c[p] : p; }).join(' × ');
+      var rows = [['소수 여부', f.length === 1 ? '소수예요' : '합성수예요']];
+      if (b >= 1) { var g = gcd(a, b); rows.push(['최대공약수 (' + n0(a) + ', ' + n0(b) + ')', n0(g)]); rows.push(['최소공배수', n0(a / g * b)]); }
+      return { main: ['소인수분해', txt], rows: rows };
+    } }
+};
+Object.keys(CALC3).forEach(function (k) { CALC[k] = CALC3[k]; });
+// ═══ 추가 계산기 18종 ═══
+var CALC4 = {
+  margin: { f: [['계산', 'sel', 0, ['원가·판매가 → 마진율', '원가·목표 마진율 → 판매가']], ['원가', 'num', 7000, '원'], ['판매가 또는 목표 마진율(%)', 'num', 10000, '']],
+    run: function (v) {
+      var c = v[1];
+      if (v[0] === 0) { var p = v[2]; if (p <= 0) return { err: '판매가를 입력해 주세요.' }; return { main: ['마진율 (판매가 대비)', nf((p - c) / p * 100) + '%'], rows: [['이익', won(p - c)], ['원가 대비 이익률 (마크업)', nf((p - c) / c * 100) + '%']], note: '마진율 = (판매가 − 원가) ÷ 판매가, 마크업 = (판매가 − 원가) ÷ 원가예요. 부가세·수수료는 빼고 넣어 주세요.' }; }
+      var m = v[2] / 100; if (m >= 1) return { err: '마진율은 100% 미만이어야 해요.' };
+      var price = c / (1 - m);
+      return { main: ['필요한 판매가', won(price)], rows: [['이익', won(price - c)], ['부가세 포함 판매가', won(price * 1.1)]], note: '판매가 = 원가 ÷ (1 − 목표 마진율)이에요. 원가에 마진율을 단순히 곱해서 더하면 목표보다 마진이 낮아져요.' };
+    } },
+  payroll: { f: [['직원 월급 (세전)', 'num', 3000000, '원'], ['월 비과세액 (식대 등)', 'num', 200000, '원'], ['상시 근로자 수', 'sel', 0, ['150인 미만', '150인 이상 (우선지원대상기업)', '150~1,000인 미만', '1,000인 이상·국가기관']], ['산재보험료율 (업종별)', 'num', 1.47, '%']],
+    run: function (v) {
+      var t = v[0] - Math.min(v[1], v[0]), npB = Math.min(R26.npMax, Math.max(R26.npMin, Math.floor(t / 1000) * 1000));
+      var np = npB * R26.np, hi = t * R26.hi, ltc = hi * R26.ltc, ei = t * (0.009 + [0.0025, 0.0045, 0.0065, 0.0085][v[2]]), ia = t * v[3] / 100, sev = v[0] / 12;
+      var ins = np + hi + ltc + ei + ia;
+      return { main: ['월 총 인건비 (퇴직금 적립 포함)', won(v[0] + ins + sev)], rows: [['월급', won(v[0])], ['국민연금 (4.75%)', won(np)], ['건강보험 (3.595%)', won(hi)], ['장기요양', won(ltc)], ['고용보험 (실업급여 0.9% + 고용안정 등)', won(ei)], ['산재보험', won(ia)], ['사업주 4대보험 합계', won(ins)], ['퇴직금 적립분 (월급 ÷ 12)', won(sev)], ['연 총 인건비', won((v[0] + ins + sev) * 12)]], note: '산재보험료율은 업종마다 달라요(전체 평균 약 1.47%). 근로복지공단에서 우리 업종 요율을 확인해 바꿔 넣으세요. 두루누리 지원 등은 반영하지 않았어요.' };
+    } },
+  card: { f: [['결제 금액', 'num', 1200000, '원'], ['할부 개월', 'num', 6, '개월'], ['할부 수수료율 (연)', 'num', 15, '%']],
+    run: function (v) {
+      var P = v[0], n = Math.max(1, Math.round(v[1])), r = v[2] / 100 / 12, fee = 0, rows = [], prin = P / n;
+      for (var k = 0; k < n; k++) { var f = (P - prin * k) * r; fee += f; if (k < 3 || k === n - 1) rows.push([(k + 1) + '회차', won(prin + f) + ' (수수료 ' + won(f) + ')']); }
+      return { main: ['총 할부 수수료', won(fee)], rows: [['총 납부액', won(P + fee)]].concat(rows), note: '할부 잔액에 연 수수료율 ÷ 12를 곱하는 일반적인 카드사 방식이에요. 무이자 할부·부분 무이자면 수수료가 달라져요.' };
+    } },
+  prepay: { f: [['중도상환 금액', 'num', 100000000, '원'], ['중도상환수수료율', 'num', 0.6, '%'], ['대출 후 경과 기간', 'num', 12, '개월'], ['수수료 부과 기간', 'num', 36, '개월']],
+    run: function (v) {
+      var left = Math.max(0, v[3] - v[2]), fee = left > 0 ? v[0] * v[1] / 100 * left / v[3] : 0;
+      return { main: ['중도상환수수료', won(fee)], rows: [['남은 부과 기간', left + '개월'], ['계산식', '상환액 × 요율 × 남은 기간 ÷ 부과 기간']], note: '보통 대출 후 3년까지만 부과되고 시간이 지날수록 줄어들어요. 2025년부터 수수료율이 실비 수준으로 낮아졌으니 내 대출의 요율을 확인해 넣으세요.' };
+    } },
+  proptax: { f: [['주택 공시가격', 'num', 500000000, '원'], ['1세대 1주택', 'sel', 0, ['예', '아니요']]],
+    run: function (v) {
+      var P = v[0], one = v[1] === 0, ratio = one ? (P <= 3e8 ? 0.43 : P <= 6e8 ? 0.44 : 0.45) : 0.6, base = P * ratio;
+      var T = one && P <= 9e8 ? [[6e7, .0005, 0], [1.5e8, .001, 30000], [3e8, .002, 120000], [Infinity, .0035, 420000]] : [[6e7, .001, 0], [1.5e8, .0015, 60000], [3e8, .0025, 195000], [Infinity, .004, 570000]];
+      var t, lo = 0; for (var i = 0; i < T.length; i++) { if (base <= T[i][0]) { t = T[i][2] + (base - lo) * T[i][1]; break; } lo = T[i][0]; }
+      var edu = t * 0.2, city = base * 0.0014, tot = t + edu + city;
+      return { main: ['연 재산세 합계 (추정)', won(tot)], rows: [['과세표준', won(base) + ' (공정시장가액비율 ' + Math.round(ratio * 100) + '%)'], ['재산세', won(t)], ['지방교육세 (20%)', won(edu)], ['도시지역분 (0.14%)', won(city)], ['7월 / 9월 각', won(tot / 2)]], note: '2026년 기준 주택분 재산세 추정이에요. 1세대 1주택은 공시가격 9억 원 이하에 특례세율을 적용했어요. 세부담 상한, 지역자원시설세는 반영하지 않았어요.' };
+    } },
+  sal2hour: { f: [['연봉', 'num', 40000000, '원'], ['주 근무시간', 'num', 40, '시간']],
+    run: function (v) { var mh = v[1] >= 40 ? 209 : Math.round((v[1] + Math.min(v[1], 40) / 40 * 8) * 365 / 7 / 12 * 10) / 10; var h = v[0] / 12 / mh; return { main: ['시급 환산', won(h)], rows: [['월급', won(v[0] / 12)], ['월 유급 시간', nf(mh, 1) + '시간 (주휴 포함)'], ['2026년 최저시급 대비', nf(h / R26.minWage * 100, 0) + '%']] }; } },
+  pension: { f: [['내 월평균 소득 (가입 기간 평균)', 'num', 3000000, '원'], ['가입 기간', 'num', 30, '년']],
+    run: function (v) {
+      var A = 3193511, B = Math.min(R26.npMax, Math.max(R26.npMin, v[0])), m = Math.round(v[1] * 12);
+      if (m < 120) return { main: ['노령연금', '대상 아님'], rows: [['가입 기간', v[1] + '년']], note: '노령연금은 최소 10년(120개월) 가입해야 받을 수 있어요. 10년 미만이면 반환일시금으로 받아요.' };
+      var factor = m >= 240 ? 1 + 0.05 * (m - 240) / 12 : m / 240, mon = 1.29 * (A + B) * factor / 12;
+      return { main: ['예상 월 연금 (현재 가치)', won(mon)], rows: [['A값 (2026년 전체 가입자 평균소득)', won(A)], ['내 소득 (B값)', won(B)], ['소득 대비', nf(mon / B * 100, 1) + '%']], note: '2026년 소득대체율 43%(비례상수 1.29)를 전 기간에 적용한 단순 추정이에요. 2025년 이전 가입 기간은 더 낮은 비율이 적용돼 실제는 이보다 적을 수 있어요. 정확한 금액은 국민연금공단(1355)에서 확인하세요.' };
+    } },
+  quad: { f: [['a (x²의 계수)', 'num', 1, ''], ['b (x의 계수)', 'num', -3, ''], ['c (상수항)', 'num', 2, '']],
+    run: function (v) {
+      var a = v[0], b = v[1], c = v[2]; if (!a) return b ? { main: ['일차방정식의 해', 'x = ' + fmtNum(rnd(-c / b))], rows: [] } : { err: 'a와 b가 모두 0이에요.' };
+      var D = b * b - 4 * a * c, rows = [['판별식 D = b² − 4ac', fmtNum(rnd(D))], ['꼭짓점', '(' + fmtNum(rnd(-b / (2 * a))) + ', ' + fmtNum(rnd(c - b * b / (4 * a))) + ')']];
+      if (D > 0) { var r1 = (-b + Math.sqrt(D)) / (2 * a), r2 = (-b - Math.sqrt(D)) / (2 * a); return { main: ['서로 다른 두 실근', 'x = ' + fmtNum(rnd(r1)) + ', ' + fmtNum(rnd(r2))], rows: rows }; }
+      if (D === 0) return { main: ['중근', 'x = ' + fmtNum(rnd(-b / (2 * a)))], rows: rows };
+      var re = rnd(-b / (2 * a)), im = rnd(Math.sqrt(-D) / (2 * Math.abs(a)));
+      return { main: ['서로 다른 두 허근', 'x = ' + fmtNum(re) + ' ± ' + fmtNum(im) + 'i'], rows: rows };
+    } },
+  exercise: { f: [['운동', 'sel', 2, ['걷기 (보통)', '빠르게 걷기', '달리기 (8km/h)', '달리기 (10km/h)', '자전거 (보통)', '수영 (자유형 보통)', '등산', '계단 오르기', '줄넘기', '웨이트 트레이닝', '요가', '필라테스', '배드민턴', '축구', '골프 (걸으며)']], ['운동 시간', 'num', 30, '분'], ['몸무게', 'num', 65, 'kg']],
+    run: function (v) {
+      var MET = [3.5, 4.3, 8.3, 9.8, 6.8, 8.3, 6.0, 8.8, 12.3, 5.0, 2.5, 3.0, 5.5, 7.0, 4.8][v[0]], k = MET * 3.5 * v[2] / 200 * v[1];
+      return { main: ['소모 칼로리', n0(k) + 'kcal'], rows: [['운동 강도 (MET)', nf(MET, 1)], ['밥 한 공기 (약 300kcal) 기준', nf(k / 300, 1) + '공기']], note: 'MET × 3.5 × 체중(kg) ÷ 200 × 시간(분) 공식이에요. 개인 체력과 강도에 따라 차이가 있어요.' };
+    } },
+  pace: { f: [['거리', 'num', 10, 'km'], ['기록 (시:분:초)', 'txt', '0:55:00']],
+    run: function (v) {
+      var p = String(v[1]).split(':').map(Number); while (p.length < 3) p.unshift(0); var sec = p[0] * 3600 + p[1] * 60 + p[2];
+      if (!(sec > 0) || !(v[0] > 0)) return { err: '거리와 기록을 확인해 주세요. 예: 0:55:00' };
+      function hms(s) { s = Math.round(s); var h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), ss = s % 60; return (h ? h + ':' + ('0' + m).slice(-2) : m) + ':' + ('0' + ss).slice(-2); }
+      var pace = sec / v[0], pr = function (d) { return hms(sec * Math.pow(d / v[0], 1.06)); };
+      return { main: ['페이스', hms(pace) + ' /km'], rows: [['평균 속도', nf(v[0] / sec * 3600, 2) + ' km/h'], ['5km 예상', pr(5)], ['10km 예상', pr(10)], ['하프 (21.0975km) 예상', pr(21.0975)], ['풀코스 (42.195km) 예상', pr(42.195)]], note: '예상 기록은 리겔(Riegel) 공식으로 추정한 값이에요.' };
+    } },
+  petage: { f: [['동물', 'sel', 0, ['강아지 (소형견, 10kg 미만)', '강아지 (중형견, 10~25kg)', '강아지 (대형견, 25kg 이상)', '고양이']], ['나이', 'num', 5, '살']],
+    run: function (v) {
+      var y = v[1], add = [4, 5, 6, 4][v[0]], h = y <= 1 ? y * 15 : y <= 2 ? 15 + (y - 1) * 9 : 24 + (y - 2) * add;
+      var stage = h < 18 ? '어린이·청소년기' : h < 40 ? '청년기' : h < 60 ? '중년기' : '노년기';
+      return { main: ['사람 나이로', '약 ' + n0(h) + '세'], rows: [['생애 단계', stage]], note: '첫 1년은 15세, 2년째까지 24세, 이후 크기별로 1년에 4~6세씩 더하는 미국수의사회(AVMA) 방식의 대략적인 환산이에요.' };
+    } },
+  kidheight: { f: [['아빠 키', 'num', 175, 'cm'], ['엄마 키', 'num', 162, 'cm'], ['자녀 성별', 'sel', 0, ['아들', '딸']]],
+    run: function (v) { var m = v[2] === 0 ? (v[0] + v[1] + 13) / 2 : (v[0] + v[1] - 13) / 2; return { main: ['예상 최종 키', nf(m, 1) + 'cm'], rows: [['예상 범위 (±5cm)', nf(m - 5, 1) + ' ~ ' + nf(m + 5, 1) + 'cm']], note: '부모 키 평균에 성별 차이(13cm)를 반영하는 중간 부모 키(MPH) 방식이에요. 영양·수면·운동 등 환경에 따라 달라질 수 있어요.' }; } },
+  timecalc: { f: [['시작 시각', 'time', '09:00'], ['종료 시각', 'time', '18:00'], ['휴게 시간', 'num', 60, '분']],
+    run: function (v) {
+      var t = function (s) { var p = String(s).split(':'); return +p[0] * 60 + +p[1]; }, d = t(v[1]) - t(v[0]); if (d < 0) d += 1440;
+      var w = Math.max(0, d - v[2]), night = 0;
+      for (var m = t(v[0]); m < t(v[0]) + d; m++) { var mm = m % 1440; if (mm >= 1320 || mm < 360) night++; }
+      return { main: ['실 근무시간', Math.floor(w / 60) + '시간 ' + (w % 60) + '분'], rows: [['전체 시간 (휴게 포함)', Math.floor(d / 60) + '시간 ' + (d % 60) + '분'], ['소수 시간', nf(w / 60, 2) + '시간'], ['야간 시간 (22시~06시)', Math.floor(night / 60) + '시간 ' + (night % 60) + '분']], note: '종료 시각이 시작보다 이르면 다음 날로 계산해요. 4시간마다 30분 이상 휴게가 법정 기준이에요.' };
+    } },
+  worldtime: { f: [['도시', 'sel', 0, ['뉴욕', '로스앤젤레스', '런던', '파리', '베를린', '두바이', '방콕', '하노이', '싱가포르', '베이징', '홍콩', '타이베이', '도쿄', '시드니', '오클랜드', '호놀룰루', '밴쿠버', '토론토']]],
+    run: function (v) {
+      var Z = ['America/New_York', 'America/Los_Angeles', 'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Asia/Dubai', 'Asia/Bangkok', 'Asia/Ho_Chi_Minh', 'Asia/Singapore', 'Asia/Shanghai', 'Asia/Hong_Kong', 'Asia/Taipei', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland', 'Pacific/Honolulu', 'America/Vancouver', 'America/Toronto'];
+      var now = new Date(), f = function (tz) { return new Intl.DateTimeFormat('ko-KR', { timeZone: tz, month: 'long', day: 'numeric', weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false }).format(now); };
+      var off = function (tz) { var p = new Intl.DateTimeFormat('en-US', { timeZone: tz, hourCycle: 'h23', year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric' }).formatToParts(now), o = {}; p.forEach(function (x) { o[x.type] = +x.value; }); return (Date.UTC(o.year, o.month - 1, o.day, o.hour, o.minute) - Math.floor(now.getTime() / 60000) * 60000) / 3600000; };
+      var diff = off(Z[v[0]]) - off('Asia/Seoul');
+      return { main: ['현지 시각', f(Z[v[0]])], rows: [['서울 시각', f('Asia/Seoul')], ['서울과 시차', (diff > 0 ? '+' : '') + nf(diff, 1) + '시간']], note: '서머타임(일광절약시간)을 자동으로 반영해요. 페이지를 연 순간의 시각이에요.' };
+    } },
+  screen: { f: [['화면 크기 (대각선)', 'num', 65, '인치'], ['화면 비율', 'sel', 0, ['16:9 (TV·모니터)', '21:9 (울트라와이드)', '16:10 (노트북)', '4:3']]],
+    run: function (v) {
+      var R = [[16, 9], [21, 9], [16, 10], [4, 3]][v[1]], d = v[0] * 2.54, k = d / Math.hypot(R[0], R[1]);
+      return { main: ['가로 × 세로', nf(R[0] * k, 1) + ' × ' + nf(R[1] * k, 1) + ' cm'], rows: [['대각선', nf(d, 1) + ' cm'], ['화면 넓이', nf(R[0] * k * R[1] * k / 10000, 2) + ' ㎡']], note: '화면 표시 영역 기준이에요. 테두리(베젤)와 받침대는 제외돼요.' };
+    } },
+  gold: { f: [['무게', 'num', 1, ''], ['단위', 'sel', 0, ['돈 (3.75g)', 'g', '냥 (37.5g)']], ['순도', 'sel', 0, ['24K 순금 (99.9%)', '18K (75%)', '14K (58.5%)']], ['순금 1g 시세', 'num', 174890, '원']],
+    run: function (v) {
+      var g = v[0] * [3.75, 1, 37.5][v[1]], pur = [1, .75, .585][v[2]], val = g * pur * v[3];
+      return { main: ['금 가치 (시세 기준)', won(val)], rows: [['무게', nf(g, 2) + 'g'], ['순금 환산 무게', nf(g * pur, 2) + 'g'], ['순금 1돈 시세', won(v[3] * 3.75)]], note: '기본 시세는 세상의 모든 시세의 국내 금(KRX, 11월 11일) 값이에요. 실제로 팔 때는 매입가(시세보다 낮음)와 공임 차감이 적용돼요.' };
+    } }
+};
+Object.keys(CALC4).forEach(function (k) { CALC[k] = CALC4[k]; });
+function gpaUI(box) {
+  var G = [['A+', 4.5], ['A0', 4.0], ['B+', 3.5], ['B0', 3.0], ['C+', 2.5], ['C0', 2.0], ['D+', 1.5], ['D0', 1.0], ['F', 0], ['P (이수)', -1]];
+  var form = el('div', 'calc-form'), list = el('div', 'plist'), out = el('div', 'calc-out');
+  form.appendChild(el('p', 'res-note', '과목마다 학점과 성적을 넣어 주세요. P(이수)는 평점에서 제외돼요. 4.5 만점 기준이에요.'));
+  form.appendChild(list);
+  function addRow(name, cr, gi) {
+    var row = el('div', 'prow'), n = el('input'); n.type = 'text'; n.value = name; n.className = 'pname'; n.setAttribute('aria-label', '과목명');
+    var c = el('input'); c.type = 'text'; c.inputMode = 'decimal'; c.value = cr; c.setAttribute('aria-label', '학점'); c.style.maxWidth = '5em';
+    var g = el('select'); G.forEach(function (x, i) { var o = el('option', null, x[0]); o.value = i; if (i === gi) o.selected = true; g.appendChild(o); });
+    g.className = 'gsel';
+    var rm = el('button', 'rm', '✕'); rm.type = 'button'; rm.addEventListener('click', function () { if (list.children.length > 1) { row.remove(); calc(); } });
+    [n, c].forEach(function (x) { x.addEventListener('input', calc); }); g.addEventListener('change', calc);
+    row.append(n, c, el('span', 'unit', '학점'), g, rm); list.appendChild(row);
+  }
+  addRow('전공 1', 3, 0); addRow('전공 2', 3, 2); addRow('교양 1', 2, 1); addRow('교양 2', 2, 3);
+  var add = el('button', 'addp', '+ 과목 추가'); add.type = 'button'; add.addEventListener('click', function () { addRow('과목 ' + (list.children.length + 1), 3, 0); calc(); });
+  form.appendChild(add);
+  box.append(form, out);
+  function calc() {
+    var tot = 0, pts = 0, all = 0;
+    Array.prototype.forEach.call(list.children, function (r) { var ins = r.querySelectorAll('input'), cr = parseFloat(ins[1].value) || 0, gi = +r.querySelector('select').value; all += cr; if (G[gi][1] >= 0) { tot += cr; pts += cr * G[gi][1]; } });
+    out.innerHTML = '';
+    if (!tot) { out.appendChild(el('p', 'res-err', '평점에 들어가는 과목이 없어요.')); return; }
+    var gpa = pts / tot;
+    var m = el('div', 'res-main'); m.append(el('span', null, '평균 평점 (4.5 만점)'), el('b', null, nf(Math.floor(gpa * 100) / 100, 2))); out.appendChild(m);
+    var rs = el('div', 'res-rows');
+    [['총 이수 학점', nf(all) + '학점'], ['평점 반영 학점', nf(tot) + '학점'], ['4.3 만점 환산', nf(gpa / 4.5 * 4.3, 2)], ['100점 환산', nf(gpa / 4.5 * 100, 1) + '점']].forEach(function (x) { var r2 = el('div', 'res-row'); r2.append(el('span', null, x[0]), el('b', null, x[1])); rs.appendChild(r2); });
+    out.appendChild(rs);
+    out.appendChild(el('p', 'res-note', '※ 평점은 소수 셋째 자리에서 버림했어요. 환산은 단순 비례 방식이에요.'));
+  }
+  calc();
+}
+function shapeUI(box) {
+  var S = [['정사각형', ['한 변'], function (a) { return [['넓이', a * a], ['둘레', 4 * a], ['대각선', a * Math.SQRT2]]; }],
+    ['직사각형', ['가로', '세로'], function (a, b) { return [['넓이', a * b], ['둘레', 2 * (a + b)], ['대각선', Math.hypot(a, b)]]; }],
+    ['삼각형 (밑변·높이)', ['밑변', '높이'], function (a, b) { return [['넓이', a * b / 2]]; }],
+    ['삼각형 (세 변)', ['변 a', '변 b', '변 c'], function (a, b, c) { var s = (a + b + c) / 2, q = s * (s - a) * (s - b) * (s - c); if (q <= 0) throw '삼각형을 만들 수 없는 길이예요'; return [['넓이 (헤론 공식)', Math.sqrt(q)], ['둘레', a + b + c]]; }],
+    ['원', ['반지름'], function (r) { return [['넓이', Math.PI * r * r], ['둘레', 2 * Math.PI * r], ['지름', 2 * r]]; }],
+    ['사다리꼴', ['윗변', '아랫변', '높이'], function (a, b, h) { return [['넓이', (a + b) * h / 2]]; }],
+    ['평행사변형', ['밑변', '높이'], function (a, h) { return [['넓이', a * h]]; }],
+    ['정육면체', ['한 변'], function (a) { return [['부피', a * a * a], ['겉넓이', 6 * a * a]]; }],
+    ['직육면체', ['가로', '세로', '높이'], function (a, b, c) { return [['부피', a * b * c], ['겉넓이', 2 * (a * b + b * c + a * c)]]; }],
+    ['원기둥', ['반지름', '높이'], function (r, h) { return [['부피', Math.PI * r * r * h], ['겉넓이', 2 * Math.PI * r * (r + h)]]; }],
+    ['원뿔', ['반지름', '높이'], function (r, h) { var l = Math.hypot(r, h); return [['부피', Math.PI * r * r * h / 3], ['겉넓이', Math.PI * r * (r + l)], ['모선의 길이', l]]; }],
+    ['구', ['반지름'], function (r) { return [['부피', 4 / 3 * Math.PI * r * r * r], ['겉넓이', 4 * Math.PI * r * r]]; }]];
+  var form = el('div', 'calc-form'), out = el('div', 'calc-out');
+  var w = el('label', 'fld'); w.appendChild(el('span', null, '도형')); var sel = el('select'); S.forEach(function (x, i) { var o = el('option', null, x[0]); o.value = i; sel.appendChild(o); }); var rw = el('div', 'in'); rw.appendChild(sel); w.appendChild(rw);
+  var fields = el('div', 'calc-form inner'); form.append(w, fields); box.append(form, out);
+  var ins = [];
+  function build() {
+    fields.innerHTML = ''; ins = [];
+    S[+sel.value][1].forEach(function (lab, i) { var f = el('label', 'fld'); f.appendChild(el('span', null, lab)); var r = el('div', 'in'), inp = el('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.value = [5, 3, 4][i]; inp.addEventListener('input', calc); r.appendChild(inp); f.appendChild(r); fields.appendChild(f); ins.push(inp); });
+    calc();
+  }
+  function calc() {
+    out.innerHTML = '';
+    var vals = ins.map(function (x) { return parseFloat(x.value.replace(/,/g, '')); });
+    if (vals.some(function (x) { return !(x > 0); })) { out.appendChild(el('p', 'res-err', '0보다 큰 값을 넣어 주세요.')); return; }
+    var r; try { r = S[+sel.value][2].apply(null, vals); } catch (e) { out.appendChild(el('p', 'res-err', String(e))); return; }
+    var m = el('div', 'res-main'); m.append(el('span', null, r[0][0]), el('b', null, fmtNum(rnd(r[0][1])))); out.appendChild(m);
+    if (r.length > 1) { var rs = el('div', 'res-rows'); r.slice(1).forEach(function (x) { var r2 = el('div', 'res-row'); r2.append(el('span', null, x[0]), el('b', null, fmtNum(rnd(x[1])))); rs.appendChild(r2); }); out.appendChild(rs); }
+    out.appendChild(el('p', 'res-note', '※ 단위는 입력한 길이 단위를 따라요 (넓이는 제곱, 부피는 세제곱). 원주율은 π ≈ 3.14159로 계산해요.'));
+  }
+  sel.addEventListener('change', build);
+  build();
+}
+// ═══ 옵션 강화 (덮어쓰기) ═══
+var HOLI = ['2026-01-01','2026-02-16','2026-02-17','2026-02-18','2026-03-02','2026-05-01','2026-05-05','2026-05-25','2026-06-03','2026-07-17','2026-08-17','2026-09-24','2026-09-25','2026-10-05','2026-10-09','2026-12-25',
+  '2027-01-01','2027-02-08','2027-02-09','2027-03-01','2027-05-03','2027-05-05','2027-05-13','2027-07-19','2027-08-16','2027-09-14','2027-09-15','2027-09-16','2027-10-04','2027-10-11','2027-12-27'].map(dn);
+function childCredit(n) { return n <= 0 ? 0 : n === 1 ? 20830 : n === 2 ? 45830 : 45830 + (n - 2) * 33330; }
+var CALC5 = {
+  salary: { f: [['연봉', 'num', 40000000, '원'], ['연봉 계약 형태', 'sel', 0, ['퇴직금 별도 (12개월로 나눔)', '퇴직금 포함 (13개월로 나눔)']], ['월 비과세액 (식대 등)', 'num', 200000, '원'], ['부양가족 수 (본인 포함)', 'num', 1, '명'], ['그중 8~20세 자녀 수', 'num', 0, '명']],
+    run: function (v) {
+      var annual = v[0], m = v[1] === 1 ? annual / 13 : annual / 12, nt = Math.min(v[2], m), fam = Math.max(1, v[3]), kids = Math.max(0, Math.round(v[4]));
+      var taxable = m - nt, npBase = Math.min(R26.npMax, Math.max(R26.npMin, Math.floor(taxable / 1000) * 1000));
+      var np = npBase * R26.np, hi = taxable * R26.hi, ltc = hi * R26.ltc, ei = taxable * R26.ei;
+      var g = taxable * 12, ed = earnDeduct(g), base = g - ed - 1.5e6 * fam - np * 12 - (hi + ltc + ei) * 12;
+      var t = incomeTax(base); t = Math.max(0, t - earnCredit(t, g) - 130000);
+      var it = Math.max(0, t / 12 - childCredit(kids)), lt = it * 0.1, ded = np + hi + ltc + ei + it + lt;
+      var rows = [['월 급여(세전)', won(m)], ['국민연금 (4.75%)', won(np)], ['건강보험 (3.595%)', won(hi)], ['장기요양 (건보료의 13.14%)', won(ltc)], ['고용보험 (0.9%)', won(ei)], ['소득세 (추정)', won(it)], ['지방소득세', won(lt)], ['공제 합계', won(ded)], ['연 실수령액 (월급 × 12)', won((m - ded) * 12)]];
+      if (v[1] === 1) rows.push(['퇴직금 몫 (연 1회분)', won(m)]);
+      return { main: ['월 실수령액', won(m - ded)], rows: rows, note: '2026년 4대보험 요율을 적용했어요. 소득세는 간이세액표를 공식으로 근사했고, 8~20세 자녀 수에 따른 월 세액 공제(1명 20,830원, 2명 45,830원…)를 반영했어요. 실제와 수천 원 차이가 날 수 있어요.' };
+    } },
+  hourly: { f: [['시급', 'num', R26.minWage, '원'], ['주 소정근로시간', 'num', 40, '시간'], ['주 연장근로 (소정시간 초과)', 'num', 0, '시간'], ['주 야간근로 (22시~06시)', 'num', 0, '시간'], ['주 휴일근로', 'num', 0, '시간'], ['사업장 규모', 'sel', 0, ['5인 이상 (가산수당 적용)', '5인 미만 (가산수당 없음)']]],
+    run: function (v) {
+      var h = v[0], w = v[1], weekly = w >= 15 ? Math.min(w, 40) / 40 * 8 : 0, mh = w >= 40 ? 209 : Math.round((w + weekly) * 365 / 7 / 12 * 10) / 10, wk = 365 / 7 / 12;
+      var big = v[5] === 0, ot = v[2] * h * (big ? 1.5 : 1), night = big ? v[3] * h * 0.5 : 0;
+      var hol = v[4] <= 8 ? v[4] * h * (big ? 1.5 : 1) : (8 * 1.5 + (v[4] - 8) * 2) * h * (big ? 1 : 0) + (big ? 0 : v[4] * h);
+      var base = h * mh, extra = (ot + night + hol) * wk;
+      return { main: ['월급 (수당 포함)', won(base + extra)], rows: [['기본급 (주휴 포함)', won(base) + ' (' + nf(mh, 1) + '시간)'], ['연장근로수당 (월)', won(ot * wk)], ['야간근로 가산 (월)', won(night * wk)], ['휴일근로수당 (월)', won(hol * wk)], ['연봉 환산', won((base + extra) * 12)]], note: '5인 이상 사업장은 연장·휴일근로에 50%(휴일 8시간 초과분은 100%), 야간근로에 50%를 더 줘요. 야간 시간은 정규 근무 중 야간에 해당하는 시간만 넣으면 돼요.' };
+    } },
+  annual: { f: [['입사일', 'date', '2022-03-02'], ['기준일', 'date', todayStr()], ['연차 계산 기준', 'sel', 0, ['입사일 기준', '회계연도 기준 (1월 1일)']]],
+    run: function (v) {
+      var a = dn(v[0]), b = dn(v[1]); if (!a || !b || b < a) return { err: '입사일과 기준일을 확인해 주세요.' };
+      var pa = pd(v[0]), pb = pd(v[1]), months = (pb[0] - pa[0]) * 12 + (pb[1] - pa[1]) - (pb[2] < pa[2] ? 1 : 0), years = Math.floor(months / 12);
+      var byJoin = years < 1 ? Math.min(11, months) : Math.min(25, 15 + Math.floor((years - 1) / 2));
+      if (v[2] === 0) return { main: [years < 1 ? '지금까지 발생한 연차' : '올해 연차', byJoin + '일'], rows: [['근속 기간', years + '년 ' + (months % 12) + '개월']], note: '입사 1년 미만은 한 달 개근마다 1일(최대 11일), 1년 이상 80% 출근 시 15일, 3년차부터 2년마다 1일씩 늘어 최대 25일이에요.' };
+      var k = pb[0] - pa[0], fy;
+      if (k === 0) fy = ['올해 발생 연차 (월 단위)', Math.min(11, months) + '일'];
+      else if (k === 1) { var d0 = jdn(pa[0] + 1, 1, 1) - a; fy = ['올해 연차 (비례)', nf(15 * d0 / 365, 1) + '일 + 1년 미만 월 단위 연차']; }
+      else fy = ['올해 연차', Math.min(25, 15 + Math.floor((k - 2) / 2)) + '일'];
+      return { main: fy, rows: [['입사일 기준이라면', byJoin + '일'], ['입사 후 맞이한 1월 1일', Math.max(0, k) + '번']], note: '회계연도 기준은 입사 다음 해 1월 1일에 근무 일수만큼 비례 연차(15일 × 재직일수 ÷ 365)를 주고, 그 뒤부터 매년 1월 1일에 15일(가산 포함)을 줘요. 퇴사할 때 입사일 기준보다 적으면 그 차이를 정산해야 해요.' };
+    } },
+  severance: { f: [['입사일', 'date', '2020-03-02'], ['퇴사일 (마지막 근무 다음 날)', 'date', todayStr()], ['최근 3개월 월평균 급여', 'num', 3500000, '원'], ['연간 상여금', 'num', 0, '원'], ['연차수당 (연간)', 'num', 0, '원']],
+    run: function (v) {
+      var a = dn(v[0]), b = dn(v[1]); if (!a || !b || b <= a) return { err: '입사일과 퇴사일을 확인해 주세요.' };
+      var days = b - a, d3 = b - addMonths(b, -3), q = v[2] * 3 + v[3] * 3 / 12 + v[4] * 3 / 12, avg = q / d3;
+      if (days < 365) return { main: ['퇴직금', '대상 아님'], rows: [['재직일수', n0(days) + '일']], note: '퇴직금은 1년 이상 근무(주 15시간 이상)해야 받을 수 있어요.' };
+      return { main: ['예상 퇴직금 (세전)', won(avg * 30 * days / 365)], rows: [['재직일수', n0(days) + '일 (약 ' + nf(days / 365, 1) + '년)'], ['최근 3개월 일수', d3 + '일'], ['1일 평균임금', won(avg)]], note: '1일 평균임금(퇴사 전 3개월 임금 ÷ 그 기간의 실제 일수) × 30일 × 재직일수 ÷ 365예요. 퇴직소득세는 반영하지 않았어요.' };
+    } },
+  loan: { f: [['대출 금액', 'num', 300000000, '원'], ['연 이자율', 'num', 4.5, '%'], ['대출 기간 (거치 포함)', 'num', 30, '년'], ['거치 기간 (이자만 내는 기간)', 'num', 0, '개월'], ['상환 방식', 'sel', 0, ['원리금균등', '원금균등', '만기일시']]],
+    run: function (v) {
+      var P = v[0], r = v[1] / 100 / 12, n = Math.round(v[2] * 12), g = Math.min(n - 1, Math.max(0, Math.round(v[3]))), m = n - g, rows = [], bal = P, total = 0, first = null, pay;
+      var annuity = r ? P * r / (1 - Math.pow(1 + r, -m)) : P / m;
+      for (var k = 1; k <= n; k++) {
+        var it = bal * r, pr;
+        if (k <= g) pr = 0; else if (v[4] === 0) pr = annuity - it; else if (v[4] === 1) pr = P / m; else pr = k === n ? bal : 0;
+        pay = pr + it; bal -= pr; total += pay; if (k === g + 1 || (g === 0 && k === 1)) first = pay;
+        rows.push([k + '회차', won(pay), won(pr), won(it), won(Math.max(0, bal))]);
+      }
+      var sum = [['거치 기간 월 납입 (이자만)', g ? won(P * r) : '없음'], ['총 이자', won(total - P)], ['총 상환액', won(total)]];
+      return { main: [v[4] === 2 ? '월 이자' : (g ? '거치 후 첫 달 상환액' : '월 상환액 (첫 달)'), won(v[4] === 2 ? P * r : first)], rows: sum, table: { title: '월별 상환 스케줄 (' + n + '회차)', head: ['회차', '납입액', '원금', '이자', '잔액'], rows: rows } };
+    } },
+  stock: { f: [['보유 수량', 'num', 10, '주'], ['현재 평단가', 'num', 80000, '원'], ['추가 매수 가격', 'num', 60000, '원'], ['추가 매수 수량', 'num', 10, '주'], ['목표 평단가 (선택: 몇 주 더 사야 하나)', 'num', 70000, '원'], ['현재 주가 (선택)', 'num', 65000, '원']],
+    run: function (v) {
+      var q0 = v[0], a0 = v[1], p = v[2], q = q0 + v[3]; if (q <= 0) return { err: '수량을 입력해 주세요.' };
+      var avg = (q0 * a0 + v[3] * p) / q, rows = [['총 수량', n0(q) + '주'], ['총 매수 금액', won(q0 * a0 + v[3] * p)]];
+      if (v[4] > 0) { var t = v[4]; if ((p < t && t < a0) || (p > t && t > a0)) { var need = Math.ceil(q0 * (a0 - t) / (t - p)); rows.push(['목표 평단 ' + won(t) + '까지 필요한 추가 수량', n0(need) + '주 (' + won(need * p) + ')']); } else rows.push(['목표 평단', '추가 매수가로는 도달할 수 없어요']); }
+      if (v[5] > 0) { rows.push(['수익률 (추가 매수 후)', (v[5] >= avg ? '+' : '') + nf((v[5] / avg - 1) * 100) + '%']); rows.push(['평가 손익', won((v[5] - avg) * q)]); }
+      return { main: ['새 평균 단가', won(avg)], rows: rows, note: '매매 수수료와 세금은 반영하지 않았어요.' };
+    } },
+  fx: { f: [['금액', 'num', 100, ''], ['통화', 'sel', 0, CUR.map(function (c) { return c[0] + ' ' + c[1]; })], ['변환', 'sel', 0, ['외화 → 원화', '원화 → 외화']], ['환전 방식', 'sel', 0, ['매매기준율 (수수료 없음)', '현찰 살 때 (원화 → 외화 현금)', '현찰 팔 때 (외화 현금 → 원화)', '송금 보낼 때', '송금 받을 때']], ['환율 우대율', 'num', 0, '%']],
+    run: function (v) {
+      loadFX();
+      var c = CUR[v[1]], src = FX.rates || FX.fallback, base = src[c[0]];
+      var cash = { USD: 1.75, JPY: 1.75, EUR: 1.99, CNY: 5, GBP: 1.97 }[c[0]] || 4, wire = { USD: 1, JPY: 1, EUR: 1, GBP: 1 }[c[0]] || 2;
+      var sp = [0, cash, cash, wire, wire][v[3]] / 100 * (1 - Math.min(100, Math.max(0, v[4])) / 100), sign = [0, 1, -1, 1, -1][v[3]], rate = base * (1 + sign * sp);
+      var main = v[2] === 0 ? ['원화', won(v[0] * rate)] : ['외화', nf(v[0] / rate, 2) + ' ' + c[0]];
+      return { main: main, rows: [['적용 환율', nf(rate * c[2], 2) + '원 / ' + (c[2] === 1 ? '1' : n0(c[2])) + ' ' + c[0]], ['매매기준율', nf(base * c[2], 2) + '원'], ['적용 스프레드', nf(sp * 100, 3) + '%']], note: (FX.rates ? '실시간 공개 환율 기준이에요. ' : '실시간 환율을 불러오지 못해 기준 환율로 계산했어요. ') + '현찰·송금 수수료율은 시중은행의 일반적인 수준(달러 현찰 1.75%, 송금 1% 등)이고 은행마다 달라요. 우대율은 수수료(스프레드)를 깎아 주는 비율이에요.' };
+    } },
+  compound: { f: [['계산', 'sel', 0, ['최종 금액 계산', '목표 금액 → 매달 얼마 투자?']], ['초기 금액', 'num', 10000000, '원'], ['매달 투자 금액 (목표 계산 시 무시)', 'num', 500000, '원'], ['목표 금액 (목표 계산 시)', 'num', 100000000, '원'], ['연 수익률', 'num', 6, '%'], ['기간', 'num', 10, '년'], ['연 물가상승률 (실질 가치)', 'num', 2, '%']],
+    run: function (v) {
+      var r = v[4] / 100 / 12, n = Math.round(v[5] * 12), gr = Math.pow(1 + r, n), infl = Math.pow(1 + v[6] / 100, v[5]);
+      if (v[0] === 1) { var need = r ? (v[3] - v[1] * gr) * r / (gr - 1) : (v[3] - v[1]) / n; if (need <= 0) return { main: ['필요한 월 투자액', '0원 (초기 금액만으로 달성)'], rows: [] }; return { main: ['필요한 월 투자액', won(need)], rows: [['총 투자 원금', manwon(v[1] + need * n)], ['목표 금액의 실질 가치 (현재 돈으로)', manwon(v[3] / infl)]], note: '월복리, 세금·수수료 제외 기준이에요.' }; }
+      var fv = v[1] * gr + (r ? v[2] * (gr - 1) / r : v[2] * n), inv = v[1] + v[2] * n;
+      return { main: ['최종 금액', manwon(fv)], rows: [['투자 원금', manwon(inv)], ['수익', manwon(fv - inv)], ['수익률', nf((fv / inv - 1) * 100) + '%'], ['실질 가치 (현재 돈 기준, 물가 ' + v[6] + '%)', manwon(fv / infl)]], note: '월복리, 세금·수수료 제외 기준이에요. 실질 가치는 물가상승을 감안해 지금 돈으로 환산한 금액이에요.' };
+    } },
+  acqtax: { f: [['주택 취득가', 'num', 700000000, '원'], ['취득 후 보유 주택 수', 'sel', 0, ['1주택', '2주택', '3주택', '4주택 이상']], ['조정대상지역', 'sel', 1, ['아니요', '예 (예: 서울 전역)']], ['일시적 2주택 (종전 주택 처분 예정)', 'sel', 0, ['해당 없음', '해당']], ['생애최초 주택 구입', 'sel', 0, ['아니요', '예 (12억 이하)', '예 (인구감소지역)']], ['전용면적 85㎡ 초과', 'sel', 0, ['아니요', '예']]],
+    run: function (v) {
+      var p = v[0], h = v[1] + 1, adj = v[2] === 1, tmp = v[3] === 1 && h === 2, big = v[5] === 1, gen = p <= 6e8 ? 1 : p <= 9e8 ? Math.round((p * 2 / 3e8 - 3) * 10000) / 10000 : 3, rate, heavy = false;
+      if (h === 1 || (h === 2 && (!adj || tmp))) rate = gen; else if ((h === 2 && adj) || (h === 3 && !adj)) { rate = 8; heavy = true; } else { rate = 12; heavy = true; }
+      var acq = p * rate / 100, edu = heavy ? p * 0.004 : acq * 0.1, farm = big ? (heavy ? p * (rate === 8 ? 0.006 : 0.01) : p * 0.002) : 0, cut = 0;
+      if (v[4] > 0 && h === 1 && p <= 12e8) cut = Math.min(acq, v[4] === 2 ? 3e6 : 2e6);
+      var tot = acq - cut + edu + farm;
+      return { main: ['총 납부세액', won(tot)], rows: [['취득세율', nf(rate, 4) + '%' + (heavy ? ' (중과)' : '')], ['취득세', won(acq)], ['생애최초 감면', cut ? '-' + won(cut) : '없음'], ['지방교육세', won(edu)], ['농어촌특별세', won(farm)]], note: '2026년 기준: 조정대상지역 2주택 8%·3주택 이상 12%, 비조정지역 3주택 8%·4주택 이상 12%. 생애최초는 12억 이하 주택 취득세 200만원(인구감소지역 300만원) 한도 감면이에요. 법인·증여·상속·분양권은 반영하지 않았어요.' };
+    } },
+  brokerage: { f: [['거래 종류', 'sel', 0, ['매매·교환', '전세', '월세']], ['매매가 또는 보증금', 'num', 500000000, '원'], ['월세 (월세 계약일 때)', 'num', 0, '원']],
+    run: function (v) {
+      var sale = v[0] === 0, p = v[1];
+      if (v[0] === 2) { p = v[1] + v[2] * 100; if (p < 5e7) p = v[1] + v[2] * 70; }
+      var T = sale ? [[5e7, .6, 250000], [2e8, .5, 800000], [9e8, .4, 0], [12e8, .5, 0], [15e8, .6, 0], [Infinity, .7, 0]] : [[5e7, .5, 200000], [1e8, .4, 300000], [6e8, .3, 0], [12e8, .4, 0], [15e8, .5, 0], [Infinity, .6, 0]];
+      var t = T.filter(function (x) { return p < x[0]; })[0], fee = p * t[1] / 100; if (t[2]) fee = Math.min(fee, t[2]);
+      var rows = [['상한 요율', t[1] + '%'], ['한도액', t[2] ? won(t[2]) : '없음'], ['부가세 포함 (일반과세 중개사)', won(fee * 1.1)]];
+      if (v[0] === 2) rows.unshift(['거래금액 (월세 환산)', won(p)]);
+      return { main: ['최대 중개보수', won(fee)], rows: rows, note: '월세는 보증금 + 월세 × 100으로 환산하고, 그 값이 5천만 원 미만이면 보증금 + 월세 × 70으로 계산해요. 요율은 상한이라 협의할 수 있어요.' };
+    } },
+  apply: { f: [['생년월일', 'date', '1988-04-10'], ['혼인신고일 (없으면 비워 두기)', 'date', '2019-10-05'], ['주택 처분일 (집을 가진 적 있으면)', 'date', ''], ['청약통장 가입일', 'date', '2015-06-01'], ['부양가족 수 (본인 제외)', 'num', 2, '명'], ['기준일 (모집공고일)', 'date', todayStr()]],
+    run: function (v) {
+      var bd = pd(v[0]), ref = dn(v[5]); if (!bd || !ref) return { err: '생년월일과 기준일을 입력해 주세요.' };
+      var age30 = jdn(bd[0] + 30, bd[1], bd[2]), mar = dn(v[1]), sold = dn(v[2]), start = Math.min(age30, mar || Infinity); if (sold) start = Math.max(start, sold);
+      var hy = Math.max(0, (ref - start) / 365.25), a = start > ref ? 0 : Math.min(32, 2 * (Math.floor(hy) + 1));
+      var b = Math.min(35, 5 + 5 * Math.max(0, Math.floor(v[4]))), acc = dn(v[3]), ay = acc ? (ref - acc) / 365.25 : 0, c = !acc ? 0 : ay < 0.5 ? 1 : ay < 1 ? 2 : Math.min(17, 2 + Math.floor(ay));
+      return { main: ['청약 가점', (a + b + c) + '점 / 84점'], rows: [['무주택 기간', nf(hy, 1) + '년 → ' + a + '점 / 32점'], ['  (기산일)', ds(start)], ['부양가족', b + '점 / 35점'], ['청약통장 가입 기간', nf(ay, 1) + '년 → ' + c + '점 / 17점']], note: '무주택 기간은 만 30세 생일과 혼인신고일 중 빠른 날(그 뒤에 주택을 처분했다면 처분일)부터 계산해요. 배우자 통장 합산 등 세부 기준은 청약홈에서 확인하세요.' };
+    } },
+  dday: { f: [['계산', 'sel', 0, ['D-day (목표일까지)', '기념일 목록 (사귄 날·결혼일 등)']], ['기준일 (기념일 모드: 시작한 날)', 'date', todayStr()], ['목표일 (D-day 모드)', 'date', (new Date().getFullYear() + 1) + '-01-01']],
+    run: function (v) {
+      var a = dn(v[1]), t = dn(todayStr()); if (!a) return { err: '날짜를 입력해 주세요.' };
+      if (v[0] === 1) {
+        var rows = [], next = null, pa = pd(v[1]);
+        var list = [100, 200, 300, 365, 500, 700, 730, 1000, 1095, 1500, 2000, 3000].map(function (n) { var isY = n % 365 === 0; return [isY ? (n / 365) + '주년' : n + '일', isY ? jdn(pa[0] + n / 365, pa[1], pa[2]) : a + n - 1]; });
+        for (var y = 4; y <= 10; y++) list.push([y + '주년', jdn(pa[0] + y, pa[1], pa[2])]);
+        list.sort(function (x, z) { return x[1] - z[1]; });
+        list.forEach(function (x) { var d = x[1] - t; if (d >= 0 && next === null) next = x; rows.push([x[0], ds(x[1]) + (d === 0 ? ' · 오늘!' : d > 0 ? ' · D-' + d : ' · 지남')]); });
+        return { main: ['오늘은 ' + (t - a + 1) + '일째', next ? '다음: ' + next[0] + ' (D-' + (next[1] - t) + ')' : '-'], rows: rows, note: '100일·1000일 같은 기념일은 시작한 날을 1일로 세는 방식이에요. 주년은 같은 날짜로 계산해요.' };
+      }
+      var b = dn(v[2]); if (!b) return { err: '목표일을 입력해 주세요.' };
+      var d = b - a;
+      return { main: [d >= 0 ? 'D-day' : '지난 날', d > 0 ? 'D-' + d : d === 0 ? 'D-Day' : 'D+' + (-d)], rows: [['목표일', ds(b)], ['기준일 포함 일수', (Math.abs(d) + 1) + '일째'], ['주 단위', Math.floor(Math.abs(d) / 7) + '주 ' + Math.abs(d) % 7 + '일']] };
+    } },
+  datediff: { f: [['시작일', 'date', (new Date().getFullYear()) + '-01-01'], ['종료일', 'date', todayStr()]],
+    run: function (v) {
+      var a = dn(v[0]), b = dn(v[1]); if (!a || !b) return { err: '날짜를 입력해 주세요.' };
+      var lo = Math.min(a, b), hi = Math.max(a, b), d = hi - lo, wk = 0, biz = 0, hol = 0;
+      for (var i = lo; i <= hi; i++) { var w = ((i + 1) % 7 + 7) % 7; if (w !== 0 && w !== 6) { wk++; if (HOLI.indexOf(i) >= 0) hol++; else biz++; } }
+      var cover = jdToDate(lo)[0] >= 2026 && jdToDate(hi)[0] <= 2027;
+      return { main: ['차이', n0(d) + '일'], rows: [['시작일 포함', n0(d + 1) + '일'], ['평일 수 (주말 제외)', n0(wk) + '일'], ['영업일 수 (주말·공휴일 제외)', cover ? n0(biz) + '일 (평일 공휴일 ' + hol + '일 제외)' : '2026~2027년 범위만 계산돼요'], ['개월 (대략)', nf(d / 30.4375, 1) + '개월']], note: '시작일과 종료일을 모두 포함해 세요. 공휴일은 2026~2027년 월력요항(대체공휴일, 2026년 6월 3일 지방선거일 포함)을 반영했어요.' };
+    } },
+  bmr: { f: [['성별', 'sel', 0, ['남성', '여성']], ['나이', 'num', 30, '세'], ['키', 'num', 170, 'cm'], ['몸무게', 'num', 65, 'kg'], ['활동량', 'sel', 1, ['거의 없음', '가벼운 활동 (주 1~3일)', '보통 (주 3~5일)', '많음 (주 6~7일)', '매우 많음']], ['목표', 'sel', 1, ['체중 감량 (-500kcal)', '체중 유지', '근육 증량 (+300kcal)']], ['영양소 비율', 'sel', 0, ['균형 (탄 50 : 단 25 : 지 25)', '고단백 (탄 40 : 단 35 : 지 25)', '저탄수 (탄 25 : 단 35 : 지 40)']]],
+    run: function (v) {
+      var b = 10 * v[3] + 6.25 * v[2] - 5 * v[1] + (v[0] === 0 ? 5 : -161), tdee = b * [1.2, 1.375, 1.55, 1.725, 1.9][v[4]], goal = tdee + [-500, 0, 300][v[5]];
+      var R = [[.5, .25, .25], [.4, .35, .25], [.25, .35, .4]][v[6]];
+      return { main: ['하루 목표 칼로리', n0(goal) + 'kcal'], rows: [['기초대사량', n0(b) + 'kcal'], ['활동 포함 유지 칼로리', n0(tdee) + 'kcal'], ['탄수화물', n0(goal * R[0] / 4) + 'g'], ['단백질', n0(goal * R[1] / 4) + 'g (체중 1kg당 ' + nf(goal * R[1] / 4 / v[3], 1) + 'g)'], ['지방', n0(goal * R[2] / 9) + 'g']], note: 'Mifflin-St Jeor 공식과 활동계수로 계산했어요. 탄수화물·단백질은 1g에 4kcal, 지방은 9kcal로 나눴어요.' + (goal < (v[0] === 0 ? 1500 : 1200) ? ' 목표 칼로리가 너무 낮으면 건강을 해칠 수 있어요.' : '') };
+    } }
+};
+Object.keys(CALC5).forEach(function (k) { CALC[k] = CALC5[k]; });
+// ═══ 수학 교과 보강 ═══
+function fx(src, x, deg) { return parseExpr(src, deg == null ? false : deg, { x: x }); }
+function evalV(src, vars) { return parseExpr(src, false, vars); }
+function modeUI(box, MODES, intro) {
+  var form = el('div', 'calc-form'), out = el('div', 'calc-out');
+  if (intro) form.appendChild(el('p', 'res-note', intro));
+  var w = el('label', 'fld'); w.appendChild(el('span', null, '계산 종류'));
+  var sel = el('select'); MODES.forEach(function (m, i) { var o = el('option', null, m[0]); o.value = i; sel.appendChild(o); });
+  var rw = el('div', 'in'); rw.appendChild(sel); w.appendChild(rw);
+  var fields = el('div', 'calc-form inner'); form.append(w, fields); box.append(form, out);
+  var ins = [];
+  function build() {
+    fields.innerHTML = ''; ins = [];
+    MODES[+sel.value][1].forEach(function (f) {
+      var lab = el('label', 'fld'); lab.appendChild(el('span', null, f[0]));
+      var r = el('div', 'in'), inp; if (f[2] === 'area') { inp = el('textarea'); inp.rows = 3; } else { inp = el('input'); inp.type = 'text'; if (f[2] !== 'txt') inp.inputMode = 'decimal'; }
+      inp.value = f[1]; inp.addEventListener('input', calc); r.appendChild(inp); lab.appendChild(r); fields.appendChild(lab); ins.push([inp, f[2]]);
+    });
+    calc();
+  }
+  function calc() {
+    out.innerHTML = '';
+    var vals = ins.map(function (x) { return x[1] === 'txt' || x[1] === 'area' ? x[0].value : parseFloat(String(x[0].value).replace(/,/g, '')); });
+    var r; try { r = MODES[+sel.value][2](vals); } catch (e) { r = { err: typeof e === 'string' ? e : '입력값을 확인해 주세요.' }; }
+    if (!r || r.err) { out.appendChild(el('p', 'res-err', (r && r.err) || '입력값을 확인해 주세요.')); return; }
+    var m = el('div', 'res-main'); m.append(el('span', null, r.main[0]), el('b', null, r.main[1])); out.appendChild(m);
+    if (r.rows && r.rows.length) { var rs = el('div', 'res-rows'); r.rows.forEach(function (x) { var row = el('div', 'res-row'); row.append(el('span', null, x[0]), el('b', null, x[1])); rs.appendChild(row); }); out.appendChild(rs); }
+    if (r.note) out.appendChild(el('p', 'res-note', '※ ' + r.note));
+  }
+  sel.addEventListener('change', build);
+  build();
+}
+var F = function (x) { return fmtNum(rnd(x)); };
+  function lineEq(m, b) { var t = 'y = ' + (Math.abs(m - 1) < 1e-12 ? '' : Math.abs(m + 1) < 1e-12 ? '−' : F(m)) + 'x'; if (Math.abs(m) < 1e-12) t = 'y = ' + F(b); else if (Math.abs(b) > 1e-12) t += (b > 0 ? ' + ' : ' − ') + F(Math.abs(b)); return t; }
+function linCoef(expr, names) {
+  var parts = String(expr).replace(/＝/g, '=').split('='); if (parts.length !== 2) throw '각 식에 = 를 하나씩 넣어 주세요 (예: 2x+3y=8)';
+  var f = function (vs) { var o = {}; names.forEach(function (n, i) { o[n] = vs[i]; }); return evalV(parts[0], o) - evalV(parts[1], o); };
+  var z = names.map(function () { return 0; }), c0 = f(z);
+  var co = names.map(function (n, i) { var v = z.slice(); v[i] = 1; return f(v) - c0; });
+  var v2 = names.map(function () { return 2; }); if (Math.abs(f(v2) - (c0 + co.reduce(function (s, c) { return s + 2 * c; }, 0))) > 1e-9) throw '일차식(1차 방정식)만 풀 수 있어요';
+  return co.concat([-c0]);
+}
+function gauss(M) {
+  var n = M.length, A = M.map(function (r) { return r.slice(); });
+  for (var c = 0; c < n; c++) {
+    var p = c; for (var r = c + 1; r < n; r++) if (Math.abs(A[r][c]) > Math.abs(A[p][c])) p = r;
+    if (Math.abs(A[p][c]) < 1e-12) return null;
+    var t = A[c]; A[c] = A[p]; A[p] = t;
+    for (r = 0; r < n; r++) if (r !== c) { var k = A[r][c] / A[c][c]; for (var j = c; j <= n; j++) A[r][j] -= k * A[c][j]; }
+  }
+  return A.map(function (r, i) { return r[n] / r[i]; });
+}
+function parseMat(t) { var rows = String(t).trim().split(/[;\n]+/).map(function (r) { return r.trim().split(/[\s,]+/).filter(Boolean).map(Number); }).filter(function (r) { return r.length; }); if (!rows.length || rows.some(function (r) { return r.length !== rows[0].length || r.some(function (x) { return !isFinite(x); }); })) throw '행렬은 1 2; 3 4 처럼 행을 ; 로 나눠 입력해 주세요'; return rows; }
+function matStr(M) { return M.map(function (r) { return '[ ' + r.map(F).join('  ') + ' ]'; }).join('  '); }
+function det(M) { var n = M.length; if (n === 1) return M[0][0]; if (n === 2) return M[0][0] * M[1][1] - M[0][1] * M[1][0]; var s = 0; for (var j = 0; j < n; j++) s += Math.pow(-1, j) * M[0][j] * det(M.slice(1).map(function (r) { return r.filter(function (_, k) { return k !== j; }); })); return s; }
+function inv(M) { var n = M.length, d = det(M); if (Math.abs(d) < 1e-12) throw '행렬식이 0이라 역행렬이 없어요'; return M.map(function (r, i) { return r.map(function (_, j) { var minor = M.filter(function (_, a) { return a !== j; }).map(function (rr) { return rr.filter(function (_, b) { return b !== i; }); }); return Math.pow(-1, i + j) * (n === 1 ? 1 : det(minor)) / d; }); }); }
+function parseVec(t) { var v = String(t).split(/[\s,()]+/).filter(Boolean).map(Number); if (v.length < 2 || v.length > 3 || v.some(function (x) { return !isFinite(x); })) throw '벡터는 1,2 또는 1,2,3 처럼 입력해 주세요'; return v; }
+function erf(x) { var s = x < 0 ? -1 : 1; x = Math.abs(x); var t = 1 / (1 + 0.3275911 * x), y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x); return s * y; }
+function phi(z) { return 0.5 * (1 + erf(z / Math.SQRT2)); }
+function lnC(n, k) { var s = 0; for (var i = 1; i <= k; i++) s += Math.log(n - k + i) - Math.log(i); return s; }
+function fact(n) { var r = 1; for (var i = 2; i <= n; i++) r *= i; return r; }
+function nCr(n, r) { if (r < 0 || r > n) return 0; return Math.round(Math.exp(lnC(n, Math.min(r, n - r)))); }
+function nPr(n, r) { if (r < 0 || r > n) return 0; var p = 1; for (var i = 0; i < r; i++) p *= n - i; return p; }
+function deg2(x) { return x * Math.PI / 180; } function rad2(x) { return x * 180 / Math.PI; }
+function triOut(a, b, c, note) {
+  if (!(a > 0 && b > 0 && c > 0) || a + b <= c || a + c <= b || b + c <= a) throw '삼각형을 만들 수 없는 값이에요';
+  var A = rad2(Math.acos((b * b + c * c - a * a) / (2 * b * c))), B = rad2(Math.acos((a * a + c * c - b * b) / (2 * a * c))), C = 180 - A - B, s = (a + b + c) / 2, S = Math.sqrt(s * (s - a) * (s - b) * (s - c));
+  return { main: ['넓이', F(S)], rows: [['세 변 a, b, c', F(a) + ', ' + F(b) + ', ' + F(c)], ['세 각 A, B, C', F(A) + '°, ' + F(B) + '°, ' + F(C) + '°'], ['둘레', F(a + b + c)], ['외접원 반지름 R', F(a / (2 * Math.sin(deg2(A))))], ['내접원 반지름 r', F(S / s)]], note: note || '각 A는 변 a의 맞은편 각이에요.' };
+}
+var MATH_MODES = {
+  linsys: [
+    ['연립방정식 (미지수 2개)', [['식 1', '2x+3y=8', 'txt'], ['식 2', 'x-y=-1', 'txt']], function (v) { var M = [linCoef(v[0], ['x', 'y']), linCoef(v[1], ['x', 'y'])], s = gauss(M); if (!s) { var D = M[0][0] * M[1][1] - M[0][1] * M[1][0]; return { main: ['해', '해가 없거나 무수히 많아요'], rows: [['계수 행렬식', F(D)]], note: '두 식이 평행(해 없음)하거나 같은 직선(해 무수히 많음)이에요.' }; } return { main: ['해', 'x = ' + F(s[0]) + ', y = ' + F(s[1])], rows: [['검산 (식 1 좌변 − 우변)', F(M[0][0] * s[0] + M[0][1] * s[1] - M[0][2])]] }; }],
+    ['연립방정식 (미지수 3개)', [['식 1', 'x+y+z=6', 'txt'], ['식 2', '2x-y+z=3', 'txt'], ['식 3', 'x+2y-z=2', 'txt']], function (v) { var M = [0, 1, 2].map(function (i) { return linCoef(v[i], ['x', 'y', 'z']); }), s = gauss(M); if (!s) return { main: ['해', '해가 없거나 무수히 많아요'], rows: [] }; return { main: ['해', 'x = ' + F(s[0]) + ', y = ' + F(s[1]) + ', z = ' + F(s[2])], rows: [] }; }],
+    ['일차방정식·일차부등식', [['식 (=, <, >, ≤, ≥ 사용)', '3x-5<2x+1', 'txt']], function (v) {
+      var t = String(v[0]).replace(/≤/g, '<=').replace(/≥/g, '>='), m = /(<=|>=|<|>|=)/.exec(t); if (!m) throw '부호(=, <, > 등)를 넣어 주세요';
+      var L = t.slice(0, m.index), Rr = t.slice(m.index + m[0].length), f = function (x) { return fx(L, x) - fx(Rr, x); }, b = f(0), a = f(1) - b;
+      if (Math.abs(f(2) - (b + 2 * a)) > 1e-9) throw '일차식만 풀 수 있어요';
+      if (Math.abs(a) < 1e-12) return { main: ['해', (m[0] === '=' ? (Math.abs(b) < 1e-12 ? '모든 수 (항등식)' : '해 없음') : '부등식이 상수 비교가 돼요')], rows: [] };
+      var x0 = -b / a, op = m[0]; if (op !== '=' && a < 0) op = { '<': '>', '>': '<', '<=': '>=', '>=': '<=' }[op];
+      return { main: ['해', 'x ' + ({ '=': '=', '<': '<', '>': '>', '<=': '≤', '>=': '≥' }[op]) + ' ' + F(x0)], rows: [], note: a < 0 && m[0] !== '=' ? '음수로 나누면서 부등호 방향이 바뀌었어요.' : null };
+    }]
+  ],
+  line: [
+    ['두 점을 지나는 직선', [['점 A의 x', 1], ['점 A의 y', 2], ['점 B의 x', 3], ['점 B의 y', 6]], function (v) {
+      var dx = v[2] - v[0], dy = v[3] - v[1], rows = [['두 점 사이 거리', F(Math.hypot(dx, dy))], ['중점', '(' + F((v[0] + v[2]) / 2) + ', ' + F((v[1] + v[3]) / 2) + ')']];
+      if (Math.abs(dx) < 1e-12) return { main: ['직선의 방정식', 'x = ' + F(v[0])], rows: rows };
+      var m = dy / dx, b = v[1] - m * v[0]; rows.unshift(['기울기', F(m)], ['y절편', F(b)], ['x절편', Math.abs(m) > 1e-12 ? F(-b / m) : '없음']);
+      return { main: ['직선의 방정식', lineEq(m, b)], rows: rows };
+    }],
+    ['기울기와 한 점', [['기울기', 2], ['점의 x', 1], ['점의 y', 3]], function (v) { var b = v[2] - v[0] * v[1]; return { main: ['직선의 방정식', lineEq(v[0], b)], rows: [['y절편', F(b)], ['수직인 직선의 기울기', v[0] ? F(-1 / v[0]) : '없음 (x = 상수)']] }; }],
+    ['점과 직선 사이 거리 (ax+by+c=0)', [['a', 3], ['b', 4], ['c', -5], ['점의 x', 1], ['점의 y', 2]], function (v) { return { main: ['거리', F(Math.abs(v[0] * v[3] + v[1] * v[4] + v[2]) / Math.hypot(v[0], v[1]))], rows: [], note: '|ax₀ + by₀ + c| ÷ √(a² + b²)' }; }]
+  ],
+  triangle: [
+    ['직각삼각형: 두 직각변 → 빗변·각', [['직각변 a', 3], ['직각변 b', 4]], function (v) { var c = Math.hypot(v[0], v[1]), A = rad2(Math.atan2(v[0], v[1])); return { main: ['빗변 c (피타고라스)', F(c)], rows: [['각 A (a의 맞은편)', F(A) + '°'], ['각 B', F(90 - A) + '°'], ['sin A / cos A / tan A', F(v[0] / c) + ' / ' + F(v[1] / c) + ' / ' + F(v[0] / v[1])], ['넓이', F(v[0] * v[1] / 2)]] }; }],
+    ['직각삼각형: 빗변과 한 변', [['빗변 c', 5], ['한 변 a', 3]], function (v) { if (v[1] >= v[0]) throw '빗변이 가장 길어야 해요'; var b = Math.sqrt(v[0] * v[0] - v[1] * v[1]), A = rad2(Math.asin(v[1] / v[0])); return { main: ['나머지 변 b', F(b)], rows: [['각 A', F(A) + '°'], ['각 B', F(90 - A) + '°'], ['넓이', F(v[1] * b / 2)]] }; }],
+    ['삼각비 값 (각도 → sin·cos·tan)', [['각도 (°)', 30]], function (v) { var r = deg2(v[0]); return { main: ['sin ' + F(v[0]) + '°', F(Math.sin(r))], rows: [['cos', F(Math.cos(r))], ['tan', Math.abs(Math.cos(r)) < 1e-12 ? '정의되지 않음' : F(Math.tan(r))], ['라디안', F(r)]] }; }],
+    ['세 변 (SSS)', [['a', 7], ['b', 8], ['c', 9]], function (v) { return triOut(v[0], v[1], v[2]); }],
+    ['두 변과 끼인각 (SAS)', [['변 b', 5], ['변 c', 7], ['끼인각 A (°)', 60]], function (v) { var a = Math.sqrt(v[0] * v[0] + v[1] * v[1] - 2 * v[0] * v[1] * Math.cos(deg2(v[2]))); return triOut(a, v[0], v[1], '코사인 법칙: a² = b² + c² − 2bc·cos A'); }],
+    ['두 각과 한 변 (ASA)', [['각 A (°)', 50], ['각 B (°)', 60], ['변 c (두 각 사이)', 10]], function (v) { var C = 180 - v[0] - v[1]; if (C <= 0) throw '두 각의 합이 180°보다 작아야 해요'; var k = v[2] / Math.sin(deg2(C)); return triOut(k * Math.sin(deg2(v[0])), k * Math.sin(deg2(v[1])), v[2], '사인 법칙: a/sin A = b/sin B = c/sin C'); }]
+  ],
+  perm: [
+    ['순열 nPr', [['n', 5], ['r', 3]], function (v) { return { main: [v[0] + 'P' + v[1], n0(nPr(v[0], v[1]))], rows: [['식', 'n! ÷ (n−r)!']] }; }],
+    ['조합 nCr', [['n', 5], ['r', 3]], function (v) { return { main: [v[0] + 'C' + v[1], n0(nCr(v[0], v[1]))], rows: [['식', 'n! ÷ (r!(n−r)!)']] }; }],
+    ['중복순열 nΠr', [['n', 3], ['r', 4]], function (v) { return { main: [v[0] + 'Π' + v[1], n0(Math.pow(v[0], v[1]))], rows: [['식', 'n^r']] }; }],
+    ['중복조합 nHr', [['n', 3], ['r', 4]], function (v) { return { main: [v[0] + 'H' + v[1], n0(nCr(v[0] + v[1] - 1, v[1]))], rows: [['식', '(n+r−1)C r']] }; }],
+    ['팩토리얼 n!', [['n', 10]], function (v) { if (v[0] > 170 || v[0] < 0 || v[0] % 1) throw '0~170 정수만 돼요'; return { main: [v[0] + '!', fmtNum(fact(v[0]))], rows: [] }; }],
+    ['원순열 (n−1)!', [['n', 5]], function (v) { return { main: ['원순열', n0(fact(v[0] - 1))], rows: [] }; }],
+    ['확률 (경우의 수)', [['원하는 경우의 수', 3], ['전체 경우의 수', 36]], function (v) { var g = gcd(v[0], v[1]); return { main: ['확률', (v[0] / g) + '/' + (v[1] / g)], rows: [['소수', F(v[0] / v[1])], ['백분율', F(v[0] / v[1] * 100) + '%'], ['여사건 확률', F(1 - v[0] / v[1])]] }; }]
+  ],
+  seq: [
+    ['등차수열', [['첫째항 a', 3], ['공차 d', 4], ['n번째', 10]], function (v) { var an = v[0] + (v[2] - 1) * v[1]; return { main: ['제' + v[2] + '항', F(an)], rows: [['일반항', 'aₙ = ' + F(v[0]) + ' + (n−1)×' + F(v[1])], ['첫째항~제' + v[2] + '항의 합', F(v[2] * (v[0] + an) / 2)]] }; }],
+    ['등비수열', [['첫째항 a', 2], ['공비 r', 3], ['n번째', 6]], function (v) { var an = v[0] * Math.pow(v[1], v[2] - 1), S = v[1] === 1 ? v[0] * v[2] : v[0] * (Math.pow(v[1], v[2]) - 1) / (v[1] - 1); return { main: ['제' + v[2] + '항', F(an)], rows: [['일반항', 'aₙ = ' + F(v[0]) + ' × ' + F(v[1]) + '^(n−1)'], ['첫째항~제' + v[2] + '항의 합', F(S)], ['무한등비급수', Math.abs(v[1]) < 1 ? F(v[0] / (1 - v[1])) : '수렴하지 않음 (|r| ≥ 1)']] }; }],
+    ['시그마 Σ (일반항 식)', [['일반항 (n 사용)', 'n^2', 'txt'], ['시작 n', 1], ['끝 n', 10]], function (v) { if (v[2] - v[1] > 1e6) throw '항이 너무 많아요'; var s = 0; for (var n = v[1]; n <= v[2]; n++) s += evalV(v[0], { n: n }); return { main: ['합', F(s)], rows: [['항의 개수', (v[2] - v[1] + 1) + '개']] }; }]
+  ],
+  logexp: [
+    ['로그 logₐb', [['밑 a', 2], ['진수 b', 32]], function (v) { if (v[0] <= 0 || v[0] === 1 || v[1] <= 0) throw '밑은 1이 아닌 양수, 진수는 양수여야 해요'; return { main: ['log' + v[0] + ' ' + v[1], F(Math.log(v[1]) / Math.log(v[0]))], rows: [['상용로그 log₁₀b', F(Math.log10(v[1]))], ['자연로그 ln b', F(Math.log(v[1]))]] }; }],
+    ['거듭제곱 aˣ', [['밑 a', 2], ['지수 x', 10]], function (v) { return { main: [v[0] + '^' + v[1], F(Math.pow(v[0], v[1]))], rows: [] }; }],
+    ['지수방정식 aˣ = b', [['밑 a', 3], ['b', 81]], function (v) { if (v[0] <= 0 || v[0] === 1 || v[1] <= 0) throw '밑은 1이 아닌 양수, b는 양수여야 해요'; return { main: ['x', F(Math.log(v[1]) / Math.log(v[0]))], rows: [['풀이', 'x = log' + v[0] + ' ' + v[1]]] }; }]
+  ],
+  dist: [
+    ['이항분포 B(n, p)', [['시행 횟수 n', 10], ['성공 확률 p', 0.5], ['성공 횟수 k', 3]], function (v) { var n = Math.round(v[0]), p = v[1], k = Math.round(v[2]); if (p < 0 || p > 1 || n < 0 || n > 10000) throw 'p는 0~1, n은 0~10000이에요'; var pk = function (j) { return j < 0 || j > n ? 0 : Math.exp(lnC(n, j) + j * Math.log(p || 1e-300) + (n - j) * Math.log((1 - p) || 1e-300)); }; var cum = 0; for (var j = 0; j <= k; j++) cum += pk(j); return { main: ['P(X = ' + k + ')', F(pk(k))], rows: [['P(X ≤ ' + k + ')', F(cum)], ['P(X ≥ ' + k + ')', F(1 - cum + pk(k))], ['평균 E(X) = np', F(n * p)], ['분산 V(X) = np(1−p)', F(n * p * (1 - p))], ['표준편차', F(Math.sqrt(n * p * (1 - p)))]] }; }],
+    ['정규분포 N(m, σ²)', [['평균 m', 70], ['표준편차 σ', 10], ['구간 시작 a', 60], ['구간 끝 b', 85]], function (v) { if (v[1] <= 0) throw '표준편차는 0보다 커야 해요'; var za = (v[2] - v[0]) / v[1], zb = (v[3] - v[0]) / v[1]; return { main: ['P(a ≤ X ≤ b)', F(phi(zb) - phi(za))], rows: [['표준화 z (a, b)', F(za) + ', ' + F(zb)], ['P(X ≤ a)', F(phi(za))], ['P(X ≥ b)', F(1 - phi(zb))]], note: '표준정규분포표 대신 근사식(오차 약 0.0000002)으로 계산해요.' }; }],
+    ['표준정규분포 P(0 ≤ Z ≤ z)', [['z', 1.96]], function (v) { return { main: ['P(0 ≤ Z ≤ ' + v[0] + ')', F(phi(v[0]) - 0.5).replace(/(\.\d{4})\d+/, '$1')], rows: [['P(Z ≤ z)', F(phi(v[0]))], ['P(|Z| ≤ z)', F(2 * phi(Math.abs(v[0])) - 1)]], note: '교과서 표준정규분포표와 같은 값(소수 넷째 자리)이에요.' }; }]
+  ],
+  matrix: [
+    ['한 행렬: 행렬식·역행렬·전치', [['행렬 A (행을 ; 로 구분)', '2 1; 5 3', 'txt']], function (v) { var A = parseMat(v[0]); if (A.length !== A[0].length) return { main: ['전치행렬', matStr(A[0].map(function (_, j) { return A.map(function (r) { return r[j]; }); }))], rows: [['크기', A.length + '×' + A[0].length]], note: '정사각행렬이 아니라 행렬식·역행렬은 없어요.' }; var d = det(A), rows = [['전치행렬', matStr(A[0].map(function (_, j) { return A.map(function (r) { return r[j]; }); }))]]; rows.push(['역행렬', Math.abs(d) < 1e-12 ? '없음 (행렬식 0)' : matStr(inv(A))]); return { main: ['행렬식 det A', F(d)], rows: rows }; }],
+    ['두 행렬: 덧셈·뺄셈·곱셈', [['행렬 A', '1 2; 3 4', 'txt'], ['행렬 B', '0 1; 1 0', 'txt']], function (v) { var A = parseMat(v[0]), B = parseMat(v[1]), rows = []; if (A.length === B.length && A[0].length === B[0].length) { rows.push(['A + B', matStr(A.map(function (r, i) { return r.map(function (x, j) { return x + B[i][j]; }); }))]); rows.push(['A − B', matStr(A.map(function (r, i) { return r.map(function (x, j) { return x - B[i][j]; }); }))]); } if (A[0].length !== B.length) return { main: ['AB', '곱할 수 없어요 (A의 열 수 ≠ B의 행 수)'], rows: rows }; var P = A.map(function (r) { return B[0].map(function (_, j) { return r.reduce(function (s, x, k) { return s + x * B[k][j]; }, 0); }); }); return { main: ['AB', matStr(P)], rows: rows }; }]
+  ],
+  vector: [
+    ['벡터 연산', [['벡터 a', '3, 4', 'txt'], ['벡터 b', '1, 2', 'txt']], function (v) { var a = parseVec(v[0]), b = parseVec(v[1]); if (a.length !== b.length) throw '두 벡터의 차원이 같아야 해요'; var dot = a.reduce(function (s, x, i) { return s + x * b[i]; }, 0), na = Math.hypot.apply(null, a), nb = Math.hypot.apply(null, b), S = function (u) { return '(' + u.map(F).join(', ') + ')'; }; var rows = [['|a| , |b|', F(na) + ' , ' + F(nb)], ['a + b', S(a.map(function (x, i) { return x + b[i]; }))], ['a − b', S(a.map(function (x, i) { return x - b[i]; }))], ['사잇각', na && nb ? F(rad2(Math.acos(Math.max(-1, Math.min(1, dot / na / nb))))) + '°' : '-'], ['a의 단위벡터', na ? S(a.map(function (x) { return x / na; })) : '-']]; if (a.length === 3) rows.push(['외적 a × b', S([a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]])]); return { main: ['내적 a · b', F(dot)], rows: rows }; }]
+  ],
+  calcnum: [
+    ['정적분 ∫ₐᵇ f(x) dx', [['f(x)', 'x^2', 'txt'], ['아래끝 a', 0], ['위끝 b', 3]], function (v) { var a = v[1], b = v[2], n = 2000, h = (b - a) / n, s = fx(v[0], a) + fx(v[0], b); for (var i = 1; i < n; i++) s += (i % 2 ? 4 : 2) * fx(v[0], a + i * h); var I = s * h / 3, ab = 0; for (i = 0; i < n; i++) ab += Math.abs(fx(v[0], a + (i + 0.5) * h)) * h; return { main: ['정적분 값', F(I)], rows: [['색칠한 넓이 (|f| 적분)', F(ab)]], note: '심프슨 공식(2,000등분)으로 계산한 수치값이에요. 식으로 된 적분은 \'식 계산\' 도구를 쓰세요.' }; }],
+    ['미분계수 f\'(a)', [['f(x)', 'x^3-2x', 'txt'], ['x = a', 2]], function (v) { var a = v[1], h = 1e-4, d1 = (fx(v[0], a + h) - fx(v[0], a - h)) / (2 * h), d2 = (fx(v[0], a + h) - 2 * fx(v[0], a) + fx(v[0], a - h)) / (h * h), y = fx(v[0], a); return { main: ['f\'(' + F(a) + ')', F(Math.round(d1 * 1e6) / 1e6)], rows: [['f(' + F(a) + ')', F(y)], ['f\'\'(' + F(a) + ')', F(Math.round(d2 * 1e3) / 1e3)], ['접선의 방정식', 'y = ' + F(Math.round(d1 * 1e6) / 1e6) + '(x − ' + F(a) + ') + ' + F(y)]], note: '중앙차분으로 계산한 수치값이에요.' }; }],
+    ['함숫값 표', [['f(x)', 'x^2-3x+2', 'txt'], ['시작 x', -2], ['끝 x', 4], ['간격', 1]], function (v) { if (!(v[3] > 0) || (v[2] - v[1]) / v[3] > 200) throw '간격을 확인해 주세요 (최대 200개)'; var rows = []; for (var x = v[1]; x <= v[2] + 1e-9; x += v[3]) { var y; try { y = F(fx(v[0], rnd(x))); } catch (e) { y = '정의 안 됨'; } rows.push(['x = ' + F(rnd(x)), y]); } return { main: ['f(x) = ' + v[0], rows.length + '개 값'], rows: rows }; }],
+    ['극한 lim (x → a)', [['f(x)', '(x^2-1)/(x-1)', 'txt'], ['a', 1]], function (v) { var a = v[1], L = [], R2 = []; [1e-3, 1e-5, 1e-7].forEach(function (h) { L.push(fx(v[0], a - h)); R2.push(fx(v[0], a + h)); }); var l = L[2], r = R2[2], ok = Math.abs(l - r) < 1e-4 * Math.max(1, Math.abs(l)); return { main: ['극한값 (추정)', ok ? F(Math.round((l + r) / 2 * 1e5) / 1e5) : '좌·우극한이 달라요'], rows: [['좌극한 (x → a−)', F(Math.round(l * 1e5) / 1e5)], ['우극한 (x → a+)', F(Math.round(r * 1e5) / 1e5)]], note: 'a에 아주 가까운 값을 넣어 추정해요. 발산하면 큰 값이 나와요.' }; }]
+  ]
+};
+var MATH_INTRO = { linsys: '식에 x, y, z를 그대로 써요. 예: 2x+3y=8', calcnum: 'f(x)는 x^2, sin(x), sqrt(x), log(x), ln(x), e^x(=e^(x)), pi 처럼 입력해요. 각도는 라디안이에요.', dist: null, matrix: '예: 2×2 행렬은 1 2; 3 4, 3×3은 1 2 3; 4 5 6; 7 8 10', vector: '2차원은 3, 4 / 3차원은 1, 2, 3 처럼 입력해요.' };
+// ── 함수 그래프 ──
+function graphUI(box) {
+  var form = el('div', 'calc-form'), cols = ['#5eead4', '#f9a8d4', '#fcd34d'], ins = [];
+  form.appendChild(el('p', 'res-note', 'y = 식을 최대 3개 넣으면 그래프와 x절편·극값·교점을 보여 줘요. 예: x^2-3x+2, sin(x), 2^x, sqrt(x), 1/x'));
+  ['x^2-3x+2', '2x-1', ''].forEach(function (d, i) {
+    var w = el('label', 'fld'); var sp = el('span', null, 'y' + (i + 1) + ' ='); sp.style.color = cols[i]; w.appendChild(sp);
+    var r = el('div', 'in'), inp = el('input'); inp.type = 'text'; inp.value = d; inp.placeholder = i ? '(선택)' : ''; inp.addEventListener('input', draw); r.appendChild(inp); w.appendChild(r); form.appendChild(w); ins.push(inp);
+  });
+  var bar = el('div', 'gbar'), view = { cx: 0, cy: 0, s: 40 };
+  [['＋ 확대', function () { view.s *= 1.4; }], ['－ 축소', function () { view.s /= 1.4; }], ['← ', function () { view.cx -= 80 / view.s; }], [' →', function () { view.cx += 80 / view.s; }], ['↑', function () { view.cy += 80 / view.s; }], ['↓', function () { view.cy -= 80 / view.s; }], ['원래대로', function () { view = { cx: 0, cy: 0, s: 40 }; }]].forEach(function (b) { var x = el('button', 'tab', b[0]); x.type = 'button'; x.addEventListener('click', function () { b[1](); draw(); }); bar.appendChild(x); });
+  var cv = el('canvas', 'gcanvas'), info = el('div', 'res-rows');
+  box.append(form, bar, cv, info);
+  var drag = null;
+  cv.addEventListener('pointerdown', function (e) { drag = [e.clientX, e.clientY]; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', function (e) { if (!drag) return; view.cx -= (e.clientX - drag[0]) / view.s; view.cy += (e.clientY - drag[1]) / view.s; drag = [e.clientX, e.clientY]; draw(true); });
+  cv.addEventListener('pointerup', function () { drag = null; draw(); });
+  cv.addEventListener('wheel', function (e) { e.preventDefault(); view.s *= e.deltaY < 0 ? 1.15 : 1 / 1.15; draw(); }, { passive: false });
+  function fns() { return ins.map(function (inp, i) { var t = inp.value.trim(); if (!t) return null; try { fx(t, 1.2345); return { t: t, f: function (x) { try { return fx(t, x); } catch (e) { return NaN; } }, c: cols[i], i: i }; } catch (e) { return { err: true, t: t, i: i }; } }); }
+  function draw(fast) {
+    var W = cv.clientWidth || 600, H = Math.round(W * 0.7), dpr = window.devicePixelRatio || 1; cv.width = W * dpr; cv.height = H * dpr; cv.style.height = H + 'px';
+    var c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.fillStyle = '#041114'; c.fillRect(0, 0, W, H);
+    var X = function (x) { return W / 2 + (x - view.cx) * view.s; }, Y = function (y) { return H / 2 - (y - view.cy) * view.s; }, x0 = view.cx - W / 2 / view.s, x1 = view.cx + W / 2 / view.s;
+    var step = Math.pow(10, Math.floor(Math.log10(80 / view.s))); if (80 / view.s / step > 5) step *= 5; else if (80 / view.s / step > 2) step *= 2;
+    c.lineWidth = 1; c.font = '11px sans-serif'; c.fillStyle = '#6f9a95';
+    for (var gx = Math.ceil(x0 / step) * step; gx <= x1; gx += step) { c.strokeStyle = Math.abs(gx) < step / 2 ? '#3d7c80' : '#0f2c31'; c.beginPath(); c.moveTo(X(gx), 0); c.lineTo(X(gx), H); c.stroke(); if (Math.abs(gx) > step / 2) c.fillText(F(gx), X(gx) + 2, Math.min(H - 4, Math.max(12, Y(0) + 12))); }
+    var y0 = view.cy - H / 2 / view.s, y1 = view.cy + H / 2 / view.s;
+    for (var gy = Math.ceil(y0 / step) * step; gy <= y1; gy += step) { c.strokeStyle = Math.abs(gy) < step / 2 ? '#3d7c80' : '#0f2c31'; c.beginPath(); c.moveTo(0, Y(gy)); c.lineTo(W, Y(gy)); c.stroke(); if (Math.abs(gy) > step / 2) c.fillText(F(gy), Math.min(W - 30, Math.max(2, X(0) + 4)), Y(gy) - 2); }
+    var list = fns(), pts = [];
+    list.forEach(function (g) {
+      if (!g || g.err) return;
+      c.strokeStyle = g.c; c.lineWidth = 2.2; c.beginPath(); var pen = false, prev = null, N = W * 2;
+      for (var k = 0; k <= N; k++) { var x = x0 + (x1 - x0) * k / N, y = g.f(x); if (!isFinite(y) || (prev !== null && Math.abs(y - prev) > (y1 - y0) * 2)) { pen = false; prev = isFinite(y) ? y : null; continue; } if (pen) c.lineTo(X(x), Y(y)); else { c.moveTo(X(x), Y(y)); pen = true; } prev = y; }
+      c.stroke();
+    });
+    if (fast) return;
+    info.innerHTML = '';
+    function scan(h, kind, g, g2) { var N = 1600, px = x0, ph = h(px), out = []; for (var k = 1; k <= N && out.length < 8; k++) { var x = x0 + (x1 - x0) * k / N, v = h(x); if (isFinite(ph) && isFinite(v) && ph * v <= 0 && Math.abs(ph - v) < (y1 - y0)) { var a = px, b = x; for (var t = 0; t < 50; t++) { var m = (a + b) / 2; if (h(a) * h(m) <= 0) b = m; else a = m; } out.push(Math.round((a + b) / 2 * 1e7) / 1e7); } px = x; ph = v; } return out; }
+    list.forEach(function (g) {
+      if (!g) return;
+      if (g.err) { addRow('y' + (g.i + 1), '식을 확인해 주세요'); return; }
+      var roots = scan(g.f), d = function (x) { return (g.f(x + 1e-5) - g.f(x - 1e-5)) / 2e-5; }, ext = scan(d);
+      roots.forEach(function (r) { pts.push([r, 0, g.c]); });
+      addRow('y' + (g.i + 1) + ' x절편', roots.length ? roots.map(F).join(', ') : '화면 안에 없음');
+      var y0v = g.f(0); if (isFinite(y0v)) addRow('y' + (g.i + 1) + ' y절편', F(y0v));
+      if (ext.length) addRow('y' + (g.i + 1) + ' 극값', ext.map(function (x) { var y = g.f(x); pts.push([x, y, g.c]); return '(' + F(x) + ', ' + F(Math.round(y * 1e7) / 1e7) + ')'; }).join(', '));
+    });
+    for (var a = 0; a < 3; a++) for (var b = a + 1; b < 3; b++) { var A = list[a], B = list[b]; if (!A || !B || A.err || B.err) continue; var xs = scan(function (x) { return A.f(x) - B.f(x); }); if (xs.length) addRow('y' + (a + 1) + '와 y' + (b + 1) + ' 교점', xs.map(function (x) { var y = A.f(x); pts.push([x, y, '#fff']); return '(' + F(x) + ', ' + F(rnd(y)) + ')'; }).join(', ')); }
+    pts.forEach(function (p) { c.fillStyle = p[2]; c.beginPath(); c.arc(X(p[0]), Y(p[1]), 4, 0, 7); c.fill(); });
+    function addRow(k, v) { var r = el('div', 'res-row'); r.append(el('span', null, k), el('b', null, v)); info.appendChild(r); }
+    if (!info.childNodes.length) addRow('안내', '식을 입력해 주세요');
+  }
+  setTimeout(draw, 30);
+  window.addEventListener('resize', function () { if (box.isConnected) draw(); });
+}
+// ── 식 계산 (기호 연산, Algebrite) ──
+var CAS = { lib: null, loading: null };
+function loadCAS() {
+  if (window.Algebrite) return Promise.resolve(window.Algebrite);
+  if (CAS.loading) return CAS.loading;
+  CAS.loading = new Promise(function (res, rej) { var s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/algebrite@1.4.0/dist/algebrite.bundle-for-browser.js'; s.onload = function () { window.Algebrite ? res(window.Algebrite) : rej(); }; s.onerror = function () { CAS.loading = null; rej(); }; document.head.appendChild(s); });
+  return CAS.loading;
+}
+function casIn(t) {
+  t = String(t).replace(/×/g, '*').replace(/÷/g, '/').replace(/−/g, '-').replace(/π/g, 'pi').replace(/√\(/g, 'sqrt(').replace(/\bln\(/g, 'log(').replace(/²/g, '^2').replace(/³/g, '^3');
+  t = t.replace(/\be\^\(([^()]*)\)/g, 'exp($1)').replace(/\be\^([a-z0-9.]+)/g, 'exp($1)');
+  t = t.replace(/\)\s*\(/g, ')*(').replace(/(\d)\s*([a-z(])/gi, '$1*$2').replace(/\)\s*([a-z0-9])/gi, ')*$1');
+  return t;
+}
+function casOut(t) {
+  return String(t).replace(/\)\*\(/g, ')(').replace(/(\d)\*([a-z(])/gi, '$1$2').replace(/\*/g, '·').replace(/\^\((\d+)\)/g, '^$1')
+    .replace(/\^(\d+)/g, function (_, d) { return d.split('').map(function (c) { return '⁰¹²³⁴⁵⁶⁷⁸⁹'[+c]; }).join(''); }).replace(/\blog\(/g, 'ln(').replace(/\bexp\(([^()]*)\)/g, 'e^($1)').replace(/-/g, '−');
+}
+function casUI(box) {
+  var MODES = [['인수분해', 'factor(#)', 'x^3-6x^2+11x-6'], ['전개', 'expand(#)', '(2x-3)(x+4)^2'], ['간단히 (약분·정리)', 'simplify(#)', '(x^2-1)/(x-1)'], ['미분 (도함수)', 'd(#,x)', 'x^3*sin(x)'], ['부정적분', 'integral(#,x)', '3x^2+2x+1'], ['정적분', 'defint(#,x,@a,@b)', 'x^2+1'], ['방정식 풀이 (= 0의 해)', 'roots(#)', 'x^3-2x^2-5x+6'], ['방정식 근삿값 (모든 해)', 'nroots(#)', 'x^3-2x-5']];
+  var form = el('div', 'calc-form'), out = el('div', 'calc-out'), status = el('p', 'res-note', '식 계산 엔진을 불러오는 중…');
+  var w = el('label', 'fld'); w.appendChild(el('span', null, '계산 종류')); var sel = el('select'); MODES.forEach(function (m, i) { var o = el('option', null, m[0]); o.value = i; sel.appendChild(o); }); var rw = el('div', 'in'); rw.appendChild(sel); w.appendChild(rw);
+  var w2 = el('label', 'fld'); w2.appendChild(el('span', null, '식 (변수는 x)')); var inp = el('input'); inp.type = 'text'; inp.value = MODES[0][2]; var rw2 = el('div', 'in'); rw2.appendChild(inp); w2.appendChild(rw2);
+  var bw = el('div', 'calc-form inner'), ia = el('input'), ib = el('input'); ia.type = ib.type = 'text'; ia.value = '0'; ib.value = '3'; ia.inputMode = ib.inputMode = 'decimal';
+  var la = el('label', 'fld'); la.append(el('span', null, '아래끝 a')); var ra = el('div', 'in'); ra.appendChild(ia); la.appendChild(ra);
+  var lb = el('label', 'fld'); lb.append(el('span', null, '위끝 b')); var rb = el('div', 'in'); rb.appendChild(ib); lb.appendChild(rb);
+  bw.append(la, lb); bw.hidden = true;
+  form.append(w, w2, bw, el('p', 'res-note', '입력 예: x^2-3x+2, (x+1)^3, sin(x)·cos(x), e^(2x), ln(x), sqrt(x). 곱셈 기호는 생략해도 돼요.'));
+  box.append(form, status, out);
+  var timer = 0;
+  function run() {
+    clearTimeout(timer); timer = setTimeout(function () {
+      out.innerHTML = '';
+      loadCAS().then(function (A) {
+        status.hidden = true;
+        var m = MODES[+sel.value], expr = casIn(inp.value); if (!expr.trim()) return;
+        var cmd = m[1].replace('#', expr).replace('@a', casIn(ia.value)).replace('@b', casIn(ib.value)), res;
+        try { if (A.clearall) A.clearall(); res = A.run(cmd); } catch (e) { res = null; }
+        if (!res || /Stop|error|nil/i.test(res)) { out.appendChild(el('p', 'res-err', '이 식은 계산하지 못했어요. 식을 확인해 주세요.')); return; }
+        var main = el('div', 'res-main'); main.append(el('span', null, m[0] + ' 결과'), el('b', null, casOut(res) + (+sel.value === 4 ? ' + C' : ''))); out.appendChild(main);
+        var rows = el('div', 'res-rows'), r1 = el('div', 'res-row'); r1.append(el('span', null, '입력한 식'), el('b', null, casOut(expr))); rows.appendChild(r1);
+        if (+sel.value === 5) { var nv; try { nv = A.run('float(' + cmd + ')'); } catch (e) {} if (nv) { var r2 = el('div', 'res-row'); r2.append(el('span', null, '소수 값'), el('b', null, casOut(nv))); rows.appendChild(r2); } }
+        out.appendChild(rows);
+        out.appendChild(el('p', 'res-note', '※ 기호 연산 라이브러리 Algebrite로 계산했어요. ln은 자연로그, 정적분은 미적분학의 기본정리로 계산해요. 결과가 복잡하면 다른 형태로 나올 수 있어요.'));
+      }).catch(function () { status.hidden = false; status.textContent = '식 계산 엔진을 불러오지 못했어요. 인터넷 연결을 확인해 주세요. (수치 계산 도구와 그래프는 연결 없이도 돼요)'; });
+    }, 250);
+  }
+  sel.addEventListener('change', function () { inp.value = MODES[+sel.value][2]; bw.hidden = +sel.value !== 5; run(); });
+  [inp, ia, ib].forEach(function (x) { x.addEventListener('input', run); });
+  run();
+}
+  function dutchUI(box) {
+    var mode = 0;
+    var tabs = el('div', 'tabs'), tb = [];
+    ['간단', '상세 (사람별)'].forEach(function (t, i) { var b = el('button', 'tab', t); b.type = 'button'; b.setAttribute('aria-pressed', i === 0 ? 'true' : 'false'); b.addEventListener('click', function () { mode = i; tb.forEach(function (x, j) { x.setAttribute('aria-pressed', j === i ? 'true' : 'false'); }); simple.hidden = i !== 0; detail.hidden = i !== 1; calc(); }); tb.push(b); tabs.appendChild(b); });
+    function numField(label, val, unit) {
+      var w = el('label', 'fld'); w.appendChild(el('span', null, label));
+      var row = el('div', 'in'), inp = el('input'); inp.type = 'text'; inp.inputMode = 'decimal'; inp.value = Number(val).toLocaleString('ko-KR');
+      row.appendChild(inp); if (unit) row.appendChild(el('span', 'unit', unit)); w.appendChild(row);
+      var hint = el('span', 'hint'); w.appendChild(hint);
+      inp.addEventListener('input', function () { var raw = inp.value.replace(/[^0-9.\-]/g, ''); if (raw && raw !== '-' && raw.slice(-1) !== '.') inp.value = Number(raw).toLocaleString('ko-KR', { maximumFractionDigits: 6 }); calc(); });
+      w._v = function () { return parseFloat(inp.value.replace(/,/g, '')) || 0; }; w._h = hint;
+      return w;
+    }
+    function selField(label, opts, def) {
+      var w = el('label', 'fld'); w.appendChild(el('span', null, label));
+      var s2 = el('select'); opts.forEach(function (o, k) { var op = el('option', null, o); op.value = k; if (k === def) op.selected = true; s2.appendChild(op); });
+      var row = el('div', 'in'); row.appendChild(s2); w.appendChild(row);
+      s2.addEventListener('change', calc); w._v = function () { return +s2.value; };
+      return w;
+    }
+    var common = el('div', 'calc-form');
+    var fTotal = numField('총 금액', 87000, '원');
+    common.append(fTotal);
+    var simple = el('div', 'calc-form');
+    var fN = numField('인원 (나 포함)', 4, '명'), fHow = selField('내가 더 낼 방식', ['금액으로', '비율로 (%)'], 0), fExtra = numField('내가 더 낼 금액 또는 비율', 20000, '');
+    var opt = el('label', 'optchk'); var optC = el('input'); optC.type = 'checkbox'; opt.append(optC, document.createTextNode(' 내가 더 낼게'));
+    var extraBox = el('div', 'extra-box'); extraBox.hidden = true; extraBox.append(fHow, fExtra);
+    optC.addEventListener('change', function () { extraBox.hidden = !optC.checked; calc(); });
+    simple.append(fN, opt, extraBox);
+    var detail = el('div', 'calc-form'); detail.hidden = true;
+    detail.appendChild(el('p', 'res-note', '사람마다 더 낼 금액은 +, 덜 낼 금액은 -로 넣어 주세요. 예: 술 안 마신 사람 -10000'));
+    var plist = el('div', 'plist'); detail.appendChild(plist);
+    function addP(name, adj) {
+      var row = el('div', 'prow');
+      var n = el('input'); n.type = 'text'; n.value = name; n.className = 'pname'; n.setAttribute('aria-label', '이름');
+      var a = el('input'); a.type = 'text'; a.inputMode = 'decimal'; a.value = adj ? Number(adj).toLocaleString('ko-KR') : '0'; a.setAttribute('aria-label', '더 낼 금액(+) 또는 덜 낼 금액(-)');
+      var rm = el('button', 'rm', '✕'); rm.type = 'button'; rm.setAttribute('aria-label', '삭제');
+      rm.addEventListener('click', function () { if (plist.children.length > 2) { row.remove(); calc(); } });
+      [n, a].forEach(function (x) { x.addEventListener('input', function () { if (x === a) { var raw = a.value.replace(/[^0-9\-]/g, ''); if (raw && raw !== '-') a.value = Number(raw).toLocaleString('ko-KR'); } calc(); }); });
+      row.append(n, a, el('span', 'unit', '원'), rm); plist.appendChild(row);
+    }
+    addP('나', 20000); addP('친구1', 0); addP('친구2', 0); addP('친구3', -10000);
+    var add = el('button', 'addp', '+ 사람 추가'); add.type = 'button';
+    add.addEventListener('click', function () { if (plist.children.length < 20) { addP('친구' + plist.children.length, 0); calc(); } });
+    detail.appendChild(add);
+    var out = el('div', 'calc-out');
+    box.append(tabs, common, simple, detail, out);
+    function show(list, total, note) {
+      out.innerHTML = '';
+      var sum = list.reduce(function (s3, x) { return s3 + x[1]; }, 0);
+      var m = el('div', 'res-main'); m.append(el('span', null, list[0][0] + ' 부담액'), el('b', null, won(list[0][1]))); out.appendChild(m);
+      var rs = el('div', 'res-rows');
+      list.forEach(function (x) { var r2 = el('div', 'res-row'); r2.append(el('span', null, x[0]), el('b', null, won(x[1]))); rs.appendChild(r2); });
+      var r3 = el('div', 'res-row tot'); r3.append(el('span', null, '합계 (총 금액 ' + won(total) + ')'), el('b', null, won(sum))); rs.appendChild(r3);
+      out.appendChild(rs);
+      if (note) out.appendChild(el('p', 'res-note', '※ ' + note));
+      if (window.fitAds) window.fitAds();
+    }
+    function calc() {
+      var total = fTotal._v(), u = 1;
+      fTotal._h.textContent = total >= 10000 ? '= ' + manwon(total) : '';
+      out.innerHTML = '';
+      if (total <= 0) { out.appendChild(el('p', 'res-err', '총 금액을 입력해 주세요.')); return; }
+      if (mode === 0) {
+        var n = Math.max(1, Math.round(fN._v())), ev = optC.checked ? fExtra._v() : 0, extra = fHow._v() === 0 ? ev : total * ev / 100;
+        if (extra < 0 || extra > total) { out.appendChild(el('p', 'res-err', '더 낼 금액은 0원과 총 금액 사이로 넣어 주세요.')); return; }
+        var per = Math.round((total - extra) / n / u) * u, me = total - per * (n - 1);
+        var list = [[extra > 0 ? '나 (' + won(extra) + ' 더 냄)' : '나', me]];
+        for (var i = 1; i < n; i++) list.push(['다른 사람 ' + i, per]);
+        show(list, total, n > 1 ? (extra > 0 ? '더 낼 금액을 먼저 빼고 나머지를 ' + n + '명이 똑같이 나눴어요. ' : '') + '1원 단위로 나누어떨어지지 않는 금액은 내 몫에서 맞췄어요.' : null);
+      } else {
+        var rows = Array.prototype.map.call(plist.children, function (r) { var ins = r.querySelectorAll('input'); return [ins[0].value.trim() || '이름 없음', parseFloat(ins[1].value.replace(/,/g, '')) || 0]; });
+        var adjSum = rows.reduce(function (s4, x) { return s4 + x[1]; }, 0), base = (total - adjSum) / rows.length;
+        var res = rows.map(function (x) { return [x[0] + (x[1] > 0 ? ' (+' + n0(x[1]) + ')' : x[1] < 0 ? ' (' + n0(x[1]) + ')' : ''), Math.round((base + x[1]) / u) * u]; });
+        if (res.some(function (x) { return x[1] < 0; })) { out.appendChild(el('p', 'res-err', '덜 내는 금액이 너무 커서 0원보다 적게 내는 사람이 생겨요. 조정 금액을 줄여 주세요.')); return; }
+        var diff = total - res.reduce(function (s5, x) { return s5 + x[1]; }, 0); res[0][1] += diff;
+        show(res, total, '조정 금액을 뺀 나머지를 ' + rows.length + '명이 똑같이(' + won(base) + ') 나눈 뒤 각자의 조정 금액을 더했어요. 1원 단위로 나누어떨어지지 않는 금액은 첫 번째 사람 몫에서 맞췄어요.');
+      }
+    }
+    window._recalc = calc;
+    calc();
+  }
+  function render(it) {
+    layerBody.innerHTML = '';
+    var def = CALC[it.c];
+    var box = el('div', 'calc');
+    box.appendChild(el('p', 'calc-desc', it.s));
+    if (it.c === 'dutch') { layerBody.appendChild(box); dutchUI(box); return; }
+    if (it.c === 'sci') { layerBody.appendChild(box); sciUI(box); return; }
+    if (it.c === 'gpaavg') { layerBody.appendChild(box); gpaUI(box); return; }
+    if (it.c === 'shape') { layerBody.appendChild(box); shapeUI(box); return; }
+    if (MATH_MODES[it.c]) { layerBody.appendChild(box); modeUI(box, MATH_MODES[it.c], MATH_INTRO[it.c]); return; }
+    if (it.c === 'graph') { layerBody.appendChild(box); graphUI(box); return; }
+    if (it.c === 'cas') { layerBody.appendChild(box); casUI(box); return; }
+    var form = el('div', 'calc-form'), ins = [], hints = [];
+    def.f.forEach(function (f, i) {
+      var w = el('label', 'fld'); w.appendChild(el('span', null, f[0]));
+      var row = el('div', 'in'), inp;
+      if (f[1] === 'sel') { inp = el('select'); f[3].forEach(function (o, k) { var op = el('option', null, o); op.value = k; if (k === f[2]) op.selected = true; inp.appendChild(op); }); }
+      else { inp = el('input'); inp.type = f[1] === 'num' ? 'text' : f[1]; if (f[1] === 'num') { inp.inputMode = 'decimal'; inp.value = Number(f[2]).toLocaleString('ko-KR'); } else inp.value = f[2]; }
+      row.appendChild(inp);
+      if (f[3] && f[1] === 'num') row.appendChild(el('span', 'unit', f[3]));
+      w.appendChild(row);
+      var hint = el('span', 'hint'); w.appendChild(hint); hints.push(hint);
+      form.appendChild(w); ins.push(inp);
+      inp.addEventListener('input', function () {
+        if (f[1] === 'num') { var raw = inp.value.replace(/[^0-9.\-]/g, ''); var pos = inp.value.length - inp.selectionStart; if (raw && raw !== '-' && raw.slice(-1) !== '.') { inp.value = Number(raw).toLocaleString('ko-KR', { maximumFractionDigits: 6 }); try { inp.setSelectionRange(inp.value.length - pos, inp.value.length - pos); } catch (e) {} } }
+        calc();
+      });
+      inp.addEventListener('change', calc);
+    });
+    var out = el('div', 'calc-out');
+    box.append(form, out);
+    layerBody.appendChild(box);
+    function val(i) { var f = def.f[i], v = ins[i].value; if (f[1] === 'num') return parseFloat(v.replace(/,/g, '')) || 0; if (f[1] === 'sel') return +v; return v; }
+    function calc() {
+      var vals = def.f.map(function (f, i) { return val(i); });
+      def.f.forEach(function (f, i) { hints[i].textContent = (f[1] === 'num' && f[3] === '원' && vals[i] >= 10000) ? '= ' + manwon(vals[i]) : ''; });
+      var r; try { r = def.run(vals); } catch (e) { r = { err: '입력값을 확인해 주세요.' }; }
+      out.innerHTML = '';
+      if (!r || r.err) { out.appendChild(el('p', 'res-err', (r && r.err) || '입력값을 확인해 주세요.')); return; }
+      var m = el('div', 'res-main'); m.append(el('span', null, r.main[0]), el('b', null, r.main[1])); out.appendChild(m);
+      if (r.rows && r.rows.length) { var rs = el('div', 'res-rows'); r.rows.forEach(function (x) { var row = el('div', 'res-row'); row.append(el('span', null, x[0]), el('b', null, x[1])); rs.appendChild(row); }); out.appendChild(rs); }
+      if (r.table) { var det = el('details', 'res-table'); det.appendChild(el('summary', null, r.table.title + ' 펼쳐 보기')); var wrap = el('div', 'tbl-wrap'), tb = el('table'), tr0 = el('tr'); r.table.head.forEach(function (h) { tr0.appendChild(el('th', null, h)); }); tb.appendChild(tr0); r.table.rows.forEach(function (row) { var tr = el('tr'); row.forEach(function (c2) { tr.appendChild(el('td', null, c2)); }); tb.appendChild(tr); }); wrap.appendChild(tb); det.appendChild(wrap); out.appendChild(det); }
+      if (r.note) out.appendChild(el('p', 'res-note', '※ ' + r.note));
+      if (window.fitAds) window.fitAds();
+    }
+    window._recalc = calc;
+    calc();
+  }
+  // ── 주소(#항목) 변경: 막힌 환경에서는 건너뜀 ──
+  var historyOk = true;
+  function safeHistory(kind, state, hash) {
+    if (!historyOk) return false;
+    try { history[kind](state, '', hash); return true; } catch (e) { historyOk = false; return false; }
+  }
+  function openItem(id, push) {
+    var it = ITEMS[id];
+    if (!it) return;
+    document.getElementById('layerEmo').textContent = it.e;
+    document.getElementById('layerSub').textContent = it.cat.emoji + ' ' + it.cat.name;
+    document.getElementById('layerTitle').textContent = it.n;
+    render(it);
+    if (!layer.open) { layer.showModal(); layer.querySelector('.layer-inner').focus(); }
+    document.body.classList.add('layer-open');
+    document.getElementById('layerScroll').scrollTop = 0;
+    if (window.fitAds) window.fitAds();
+    if (push) safeHistory('pushState', { item: id }, '#' + id);
+  }
+  function finishClose() {
+    layerBody.innerHTML = '';
+    if (layer.open) layer.close();
+    document.body.classList.remove('layer-open');
+  }
+  function closeLayer() {
+    if (historyOk && history.state && history.state.item && location.hash) { history.back(); return; }
+    finishClose();
+  }
+  document.getElementById('closeBtn').addEventListener('click', closeLayer);
+  layer.addEventListener('cancel', function (e) { e.preventDefault(); closeLayer(); });
+  layer.addEventListener('click', function (e) { if (e.target === layer) closeLayer(); });
+  window.addEventListener('popstate', function () {
+    var id = location.hash.slice(1);
+    if (ITEMS[id]) openItem(id, false); else finishClose();
+  });
+  var initial = location.hash.slice(1);
+  if (ITEMS[initial]) { safeHistory('replaceState', { item: initial }, '#' + initial); openItem(initial, false); }
+
+  // ── 광고 팝업: 무작위 간격(1~10)마다 세부 팝업 전에 3초 표시 ──
+  var adGate = document.getElementById('adGate');
+  var pendingId = null, gateTimer = 0, GATE_MS = 3000;
+  function todayKey() { var d = new Date(); return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate(); }
+  function randGap() { return 1 + Math.floor(Math.random() * 10); }
+  function isAdTurn() {
+    var rec = null;
+    try { rec = JSON.parse(localStorage.getItem('calc-ad-gate') || 'null'); } catch (e) {}
+    if (!rec || rec.date !== todayKey() || !rec.next) rec = { date: todayKey(), n: 0, next: randGap() };
+    rec.n += 1;
+    var due = rec.n >= rec.next;
+    if (due) rec.next = rec.n + randGap();
+    try { localStorage.setItem('calc-ad-gate', JSON.stringify(rec)); } catch (e) {}
+    return due;
+  }
+  function adReady() { var s = adGate.querySelector('.ad-gate-slot'); return !s.classList.contains('ad-empty') && !!s.querySelector('iframe'); }
+  function requestOpen(id) {
+    hideTip();
+    if (isAdTurn() && adReady()) {
+      pendingId = id;
+      adGate.showModal();
+      document.body.classList.add('layer-open');
+      if (window.fitAds) window.fitAds();
+      adGate.querySelector('.ad-gate-inner').focus();
+      var bar = document.getElementById('adGateBar');
+      bar.style.animationDuration = GATE_MS + 'ms';
+      bar.classList.remove('run'); void bar.offsetWidth; bar.classList.add('run');
+      bar.onanimationend = function () { setTimeout(closeGate, 120); };
+      clearTimeout(gateTimer);
+      gateTimer = setTimeout(closeGate, GATE_MS + 400);
+      return;
+    }
+    openItem(id, true);
+  }
+  function closeGate() {
+    clearTimeout(gateTimer);
+    if (!adGate.open) return;
+    adGate.close();
+    var id = pendingId; pendingId = null;
+    if (id) openItem(id, true); else document.body.classList.remove('layer-open');
+  }
+  adGate.addEventListener('cancel', function (e) { e.preventDefault(); closeGate(); });
+
+  // ── 툴팁: 마우스를 올리면 한 줄 요약 ──
+  var canHover = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var tip = el('div', 'tip'); tip.hidden = true; tip.setAttribute('role', 'tooltip'); document.body.appendChild(tip);
+  var tipTimer = 0, tipFor = null;
+  function hideTip() { clearTimeout(tipTimer); tipFor = null; tip.hidden = true; }
+  function showTip(btn) {
+    var it = ITEMS[btn.getAttribute('data-item')]; if (!it) return;
+    tipFor = btn;
+    tip.innerHTML = '';
+    tip.append(el('b', null, it.e + ' ' + it.n), document.createTextNode(it.s));
+    tip.hidden = false;
+    var r = btn.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+    var x = Math.min(Math.max(8, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 8);
+    var y = r.top - th - 10; if (y < 8) y = r.bottom + 10;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  }
+  if (canHover) {
+    cats.addEventListener('mouseover', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (!b || b === tipFor) return;
+      clearTimeout(tipTimer); tipTimer = setTimeout(function () { showTip(b); }, 120);
+    });
+    cats.addEventListener('mouseout', function (e) {
+      var b = e.target.closest && e.target.closest('.chip[data-item]');
+      if (b && !b.contains(e.relatedTarget)) hideTip();
+    });
+    window.addEventListener('scroll', hideTip, { passive: true });
+  }
+})();
+</script>
+<script>
+// ═══ 광고 배너: 화면 폭에 맞춰 비율 축소, 불러오지 못하면 접기 ═══
+(function () {
+  var slots = Array.prototype.slice.call(document.querySelectorAll('.ad-slot'));
+  function fit() {
+    slots.forEach(function (s) {
+      var box = s.querySelector('.ad-fit');
+      var w = box.clientWidth;
+      if (!w) return;                         // 닫힌 팝업 안에서는 열릴 때 다시 계산
+      var frame = s.querySelector('.ad-frame');
+      var base = parseFloat(frame.getAttribute('data-w')) || 680;
+      var k = Math.min(1, w / base);
+      s.style.setProperty('--ad-scale', k.toFixed(4));
+    });
+  }
+  window.fitAds = fit;
+  window.addEventListener('resize', fit);
+  if (window.ResizeObserver) {
+    var ro = new ResizeObserver(fit);
+    slots.forEach(function (s) { ro.observe(s.querySelector('.ad-fit')); });
+  }
+  fit();
+  // 스크립트가 막혔거나 광고 차단으로 배너가 없으면 칸을 접어요.
+  setTimeout(function () {
+    slots.forEach(function (s) {
+      var f = s.querySelector('iframe');
+      if (!f) s.classList.add('ad-empty');
+    });
+  }, 5000);
+})();
+</script>
+</body>
+</html>
